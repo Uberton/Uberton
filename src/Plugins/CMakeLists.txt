@@ -1,0 +1,1 @@
+smtg_add_subdirectories() 

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<vstgui-ui-description version="1">
+	<fonts>
+	</fonts>
+	<colors>
+		<color name="Background" rgba="#f0b6ffff"/>
+	</colors>
+	<template background-color="Background" background-color-draw-style="filled and stroked" class="CViewContainer" maxSize="380, 190" minSize="380, 190" mouse-enabled="true" name="Editor" opacity="1" origin="0, 0" size="380, 190" transparent="false" wants-focus="false">
+		<view angle-range="270" angle-start="135" circle-drawing="false" class="CKnob" control-tag="gain" corona-color="~ CyanCColor" corona-dash-dot="true" corona-dash-dot-lengths="1.26,0.1" corona-drawing="true" corona-from-center="false" corona-inset="12" corona-inverted="false" corona-line-cap-butt="true" corona-outline="true" corona-outline-width-add="2" default-value="0.5" handle-color="~ WhiteCColor" handle-line-width="8" handle-shadow-color="~ BlackCColor" max-value="1" min-value="0" mouse-enabled="true" opacity="1" origin="265, 100" size="70, 70" skip-handle-drawing="true" transparent="false" value-inset="3" wants-focus="true" wheel-inc-value="0.1" zoom-factor="1.5"/>
+		<view back-color="~ BlackCColor" background-offset="0, 0" class="CTextLabel" default-value="0.5" font="~ NormalFontBig" font-antialias="true" font-color="~ BlackCColor" frame-color="~ BlackCColor" frame-width="1" max-value="1" min-value="0" mouse-enabled="true" opacity="1" origin="95, 35" round-rect-radius="6" shadow-color="~ BlackCColor" size="190, 20" style-3D-in="false" style-3D-out="false" style-no-draw="false" style-no-frame="false" style-no-text="false" style-round-rect="false" style-shadow-text="false" text-alignment="center" text-inset="0, 0" text-rotation="0" text-shadow-offset="1, 1" title="Basic monophonic Instrument" transparent="true" value-precision="2" wants-focus="false" wheel-inc-value="0.1"/>
+		<view back-color="None" background-offset="0, 0" class="CTextLabel" control-tag="gain" default-value="0.5" font="~ NormalFont" font-antialias="true" font-color="~ BlackCColor" frame-color="None" frame-width="1" max-value="1" min-value="0" mouse-enabled="true" opacity="1" origin="250, 155" round-rect-radius="6" shadow-color="None" size="100, 20" style-3D-in="false" style-3D-out="false" style-no-draw="false" style-no-frame="false" style-no-text="false" style-round-rect="false" style-shadow-text="false" text-alignment="center" text-inset="0, 0" text-rotation="0" text-shadow-offset="1, 1" title="0.8000" transparent="true" value-precision="2" wants-focus="false" wheel-inc-value="0.1"/>
+		<view back-color="~ BlackCColor" background-offset="0, 0" class="CTextLabel" default-value="0.5" font="~ NormalFont" font-antialias="true" font-color="~ BlackCColor" frame-color="~ BlackCColor" frame-width="1" max-value="1" min-value="0" mouse-enabled="true" opacity="1" origin="70, 120" round-rect-radius="6" shadow-color="~ BlackCColor" size="190, 20" style-3D-in="false" style-3D-out="false" style-no-draw="false" style-no-frame="false" style-no-text="false" style-round-rect="false" style-shadow-text="false" text-alignment="center" text-inset="0, 0" text-rotation="0" text-shadow-offset="1, 1" title="This Parameter does nothing!  →" transparent="true" value-precision="2" wants-focus="false" wheel-inc-value="0.1"/>
+	</template>
+	<custom>
+		<attributes name="FocusDrawing"/>
+		<attributes Path="C:\Users\E-Bow\Documents\Code\Cplusplus\VST\Uberton\Plugins\BasicInstrument\resource\editor.uidesc" name="VST3Editor"/>
+		<attributes Grids="1x 1,5x 5,10x 10,12x 12,15x 15" Size="5, 5" name="UIGridController"/>
+		<attributes SelectedTemplate="Editor" name="UITemplateController"/>
+		<attributes EditViewScale="1" EditorSize="0, 0, 1820, 1025" SplitViewSize_0_0="0.8698698698698699161013792036101222038269" SplitViewSize_0_1="0.1101101101101101126245040973117284011096" SplitViewSize_1_0="0.6786786786786787040171020635170862078667" SplitViewSize_1_1="0.3163163163163162927560279058525338768959" SplitViewSize_2_0="0.7554945054945054749850896769203245639801" SplitViewSize_2_1="0.2417582417582417597667898689905996434391" TabSwitchValue="2" Version="1" name="UIEditController"/>
+		<attributes name="UIAttributesController"/>
+		<attributes SelectedRow="8" name="UIViewCreatorDataSource"/>
+		<attributes SelectedRow="0" name="UIColorsDataSource"/>
+		<attributes SelectedRow="0" name="UITagsDataSource"/>
+	</custom>
+	<control-tags>
+		<control-tag name="gain" tag="0"/>
+	</control-tags>
+	<bitmaps/>
+</vstgui-ui-description>
