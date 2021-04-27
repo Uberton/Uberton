@@ -1,0 +1,40 @@
+
+cmake_minimum_required(VERSION 3.4.3)
+
+project(common_lib)
+
+# --- common ------
+add_library(uberton_common 
+    STATIC
+        source/uberton.h
+        source/ControllerBase.cpp
+        source/ProcessorBase.cpp
+        source/ControllerBase.h
+        source/ProcessorBase.h
+        source/vstmath.h
+        source/vstmath.cpp
+        source/oscillators.h
+        source/resonator.h
+        source/parameters.h
+)
+
+
+# add the dependencies (are they all needed?)
+target_link_libraries(uberton_common
+    PUBLIC
+        base
+        sdk
+        vstgui
+        vstgui_uidescription
+        sdk_common
+        pluginterfaces
+        vstgui_support
+)
+
+target_include_directories(uberton_common
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/..
+)
+
+
+smtg_setup_universal_binary(uberton_common)
