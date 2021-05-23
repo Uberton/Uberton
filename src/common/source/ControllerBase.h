@@ -66,6 +66,26 @@ public:
 			setParamNormalized(bypassId, paramState.isBypassed());
 		return result;
 	}
+
+	void addRangeParam(Vst::ParamID id, UString256 name, UString256 units, std::array<ParamValue, 3> minMaxDefault, bool readonly = false) {
+		int flags = 0;
+		if (readonly) {
+			flags |= ParameterInfo::kIsReadOnly;
+		}
+		else {
+			flags |= ParameterInfo::kCanAutomate;
+		}
+		auto p = parameters.addParameter(new RangeParameter(name, id, units, minMaxDefault[0], minMaxDefault[1], minMaxDefault[2], 0, flags));
+		p->setUnitID(currentUnitID);
+	}
+
+	// all parameters created with addRangeParam() after setting current unit id will get this id
+	void setCurrentUnitID(UnitID id) {
+		currentUnitID = id;
+	}
+
+	UnitID currentUnitID = kRootUnitId;
+	const bool ReadOnly = true;
 };
 
 

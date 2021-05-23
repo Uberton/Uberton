@@ -98,7 +98,11 @@ public:
 		return kResultTrue;
 	}
 
-	tresult PLUGIN_API setState(IBStream* state) SMTG_OVERRIDE { return paramState.setState(state); }
+	tresult PLUGIN_API setState(IBStream* state) SMTG_OVERRIDE { 
+		tresult r = paramState.setState(state); 
+		recomputeParameters();
+		return r;
+	}
 	tresult PLUGIN_API getState(IBStream* state) SMTG_OVERRIDE { return paramState.getState(state); }
 
 	virtual void processAudio(ProcessData& data) = 0;
@@ -187,6 +191,8 @@ public:
 
 	ParamState paramState;
 
+	virtual void recomputeParameters() {}
+
 private:
 	enum class BypassingState {
 		None,
@@ -214,7 +220,11 @@ public:
 		return kResultTrue;
 	}
 
-	tresult PLUGIN_API setState(IBStream* state) SMTG_OVERRIDE { return paramState.setState(state); }
+	tresult PLUGIN_API setState(IBStream* state) SMTG_OVERRIDE {
+		tresult r = paramState.setState(state);
+		recomputeParameters();
+		return r;
+	}
 	tresult PLUGIN_API getState(IBStream* state) SMTG_OVERRIDE { return paramState.getState(state); }
 
 	virtual void processAudio(ProcessData& data) = 0;
