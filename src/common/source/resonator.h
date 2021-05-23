@@ -25,23 +25,63 @@ namespace Math {
 // ----      ----------------------------------------------------
 // ---- Base ----------------------------------------------------
 // ----      ----------------------------------------------------
-// T: float type (float/double)
-// d: dimension (1, 2, ...)
-// N: number of eigenvalues taken into acount
-// channels: number of input/output "channels" or positions
+// This class implements a base resonator for a discrete eigenvalue problem. The
+// sample rate needs to be set before using an instance of this class. The system
+// can be excited through delta peaks with variabel height and needs to be evolved
+// each sample by calling next(). A number of input and output positions can be set
+// for exciting / listening back on the system.
+//
+// Template Parameters:
+//   Parent:	CRTP-style parent class that implements the specific eigenvalue problem
+//	T:		float type (float/double)
+//	d:		dimension (1, 2, ...)
+//	N:		number of eigenvalues taken into acount
+//	channels: number of input/output "channels" or positions
+//
+// The parent class needs to implement the functions
+//   - scalar eigenValueSqrt(int i);
+//   - scalar eigenFunction(int i, const Vec& x); and
+//   - void setDesiredBaseFrequency(real freq, real dampening, real velocity);
+//
+// The differential equation that is implemented in this model has the form
+//         ⎛1  d²    2b d     ⎞
+//     0 = ⎜−− −−  + −− −− − Δ⎟ψ(x,t)
+//         ⎝c² dt²   c² dt    ⎠
+// with sonic velocity c, dampening coefficient b in s⁻¹ and Δ=∇².
+// The used solutions are linear combinations of
+//
+//     ψ(x,t) = φ(x)·exp[-bt]·exp[i√(k²c²-b²)]
+//
+// with spatial eigenfunctions φ(x) and corresponding eigenvalues k².
+//
 
 template<class Parent, class T, int d, int N, int channels>
-class DiscreteEigenvalueProblem : public Parent
+class ResonatorBase : public Parent
 {
 public:
 	using real = T;
 	using scalar = std::complex<real>;
 	using Vec = Uberton::Math::Vector<T, d>;
-	static constexpr real pi = Uberton::Math::pi<real>();
 
 	template<class T, int n>
 	using array = std::array<T, n>;
 
+
+	void setSampleRate(T sampleRate) {
+		this->deltaT = T{ 1. } / sampleRate;
+		update();
+	}
+
+	/// Excite the system at current input positions with a peak of given amounts
+	void delta(const array<real, channels>& amount) {
+		for (int ch = 0; ch < channels; ++ch) {
+			for (int i = 0; i < N; ++i) {
+				amplitudes[i] += amount[ch] * inputPosEF[ch][i];
+			}
+		}
+	}
+
+	/// Compute next time step and get the evaluations at the output positions
 	array<real, channels> next() {
 		evolve();
 		array<real, channels> results{ 0 };
@@ -53,20 +93,8 @@ public:
 		return results;
 	}
 
-	void setSampleRate(T sampleRate) {
-		this->deltaT = T{ 1. } / sampleRate;
-		update();
-	}
-
-	void delta(const array<real, channels>& amount) {
-		for (int ch = 0; ch < channels; ++ch) {
-			for (int i = 0; i < N; ++i) {
-				amplitudes[i] += amount[ch] * inputPosEF[ch][i];
-			}
-		}
-	}
-
-	void evalOutPosEF(const array<Vec, channels>& outPositions) {
+	/// Set the "listening" positions
+	void setOutputPositions(const array<Vec, channels>& outPositions) {
 		for (int ch = 0; ch < channels; ++ch) {
 			for (int i = 0; i < N; ++i) {
 				outputPosEF[ch][i] = this->eigenFunction(i, outPositions[ch]);
@@ -74,7 +102,8 @@ public:
 		}
 	}
 
-	void evalInPosEF(const array<Vec, channels>& inPositions) {
+	/// Set the "playing" or exciting position
+	void setInputPositions(const array<Vec, channels>& inPositions) {
 		for (int ch = 0; ch < channels; ++ch) {
 			for (int i = 0; i < N; ++i) {
 				inputPosEF[ch][i] = this->eigenFunction(i, inPositions[ch]);
@@ -82,21 +111,17 @@ public:
 		}
 	}
 
-	void setV(scalar newv) {
-		v = newv;
+	/// Set the base frequency (redirect to adjust i.e. the system size), dampening coefficient
+	/// and (sonic) velocity
+	void setFreqDampeningAndVelocity(real freq, real dampening, real velocity) {
+		this->b = dampening; // lowest frequency
+		this->c = velocity;
+		this->setDesiredBaseFrequency(freq, dampening, velocity);
 		update();
 	}
 
-	void setFreqDampeningAndVelocity(real f, real b, real c) {
-		this->b = b; // lowest frequency
-		this->c = c;
-		this->setFreqDampeningAndVelocity1(f, b, c);
-		update();
-	}
-
-	scalar getV() const { return v; }
-	T getTime() const { return time; }
-	constexpr int dim() const { return d; }
+	T time() const { return time; }
+	constexpr int dimension() const { return d; }
 	constexpr int degree() const { return N; }
 	constexpr int numChannels() const { return channels; }
 
@@ -104,34 +129,33 @@ protected:
 	void update() {
 		constexpr scalar imagUnit = scalar(0, 1);
 		for (int i = 0; i < N; i++) {
-			//timeFunctions[i] = std::exp(imagUnit * this->eigenValueSqrt(i) * v * deltaT);
 			timeFunctions[i] = std::exp(imagUnit * this->frequency(i) * deltaT);
 		}
 	}
+
 	void evolve() {
-		time += deltaT;
+		absoluteTime += deltaT;
 		for (int i = 0; i < N; i++) {
 			constexpr scalar imagUnit = scalar(0, 1);
 			amplitudes[i] *= timeFunctions[i]; // precomputing these is up to 20 times faster
-			//amplitudes[i] *= std::exp(deltaT*imagUnit*523.f*(2*pi));
 		}
 	}
 
 	scalar frequency(int i) {
 		constexpr scalar imagUnit = scalar(0, 1);
 		scalar k = this->eigenValueSqrt(i);
-		return c * (imagUnit * b + std::sqrt(k * k - b * b)); // c(ib + √(k²-b²))
+		return (imagUnit * b + std::sqrt(k * k * c * c - b * b)); // ib + √(k²c²-b²)
 	}
 
 private:
-	T time{ 0 };
-	T deltaT{ 0 };
-	scalar v{ 1, .05 };
-	real c = 10;  // sonic velocity c
-	real b = .1f; // dampening factor
-	array<scalar, N> amplitudes{};
-	array<scalar, N> timeFunctions{};
+	T absoluteTime{ 0 };			  // not really needed
+	T deltaT{ 0 };					  // 1 / sample rate
+	real c{ 10 };					  // (sonic) velocity c
+	real b{ .1f };					  // dampening factor
+	array<scalar, N> amplitudes{};	  // current weights for frequency component
+	array<scalar, N> timeFunctions{}; // precomputed exponential time functions
 
+	// eigenfunction evaluations at input/output positions
 	array<array<scalar, N>, channels> outputPosEF{};
 	array<array<scalar, N>, channels> inputPosEF{};
 };
@@ -148,20 +172,27 @@ public:
 	using real = T;
 	using scalar = std::complex<real>;
 	using Vec = Uberton::Math::Vector<T, 1>;
-	static constexpr real pi = Uberton::Math::pi<real>();
 
 	scalar eigenValueSqrt(int i) const {
-		return (i + 1) * pi;
+		return (i + 1) * pi<real>() / length;
 	}
 
 	scalar eigenFunction(int i, const Vec& x) const {
-		return std::sin((i + 1) * pi * x[0]);
+		return std::sin((i + 1) * pi<real>() * x[0] / length);
 	}
+
+	void setDesiredBaseFrequency(real f, real b, real c) {
+		const real w = 2 * pi * f;
+		length = pi * c / std::sqrt(w * w + b * b);
+	}
+
+private:
+	real length{ 1 };
 };
 
 
 template<class T, int N, int channels>
-class StringResonator : public DiscreteEigenvalueProblem<StringEigenValues<T>, T, 1, N, channels>
+class StringResonator : public ResonatorBase<StringEigenValues<T>, T, 1, N, channels>
 {
 };
 
@@ -178,7 +209,6 @@ public:
 	using scalar = std::complex<real>;
 	using KVec = Uberton::Math::Vector<real, d + 1>;
 	using Vec = Uberton::Math::Vector<real, d>;
-	static constexpr real pi = Uberton::Math::pi<real>();
 
 	CubeEigenValues() {
 		computeFirstEigenvalues();
@@ -205,9 +235,9 @@ protected:
 		return result;
 	}
 
-	void setFreqDampeningAndVelocity1(real f, real b, real c) {
+	void setDesiredBaseFrequency(real f, real b, real c) {
 		const real w = 2 * pi * f;
-		length = pi * std::sqrt(d / (w * w / (c * c) + b * b));
+		length = pi * c * std::sqrt(d / (w * w + b * b));
 	}
 
 	real lowestFrequency() const {
@@ -218,7 +248,7 @@ private:
 	void computeFirstEigenvalues() {
 		// V_sphere = N·2ᵈ
 		real radius = radiusOfNSphere(numEigenvalues * std::pow(2, dim));
-		int maxRadius = static_cast<int>(std::ceil(radius)) +1;
+		int maxRadius = static_cast<int>(std::ceil(radius)) + 1;
 		int maxNumEV = std::pow(maxRadius + 1, dim);
 		//std::cout << "maxNumEV " << maxNumEV << "\n";
 
@@ -226,7 +256,7 @@ private:
 			maxNumEV = numEigenvalues;
 		}
 		std::vector<KVec> kvecs(maxNumEV);
-		
+
 		for (int i = 0; i < maxNumEV; ++i) {
 			KVec kvec; // last entry sums up the squares of the other entries
 			int kindex = i;
@@ -258,11 +288,12 @@ private:
 	int numEigenvalues{ N };
 	real length{ 1 };
 	int dim{ d };
+	static constexpr real pi = Uberton::Math::pi<real>();
 };
 
 
 template<class T, int d, int N, int channels>
-class CubeResonator : public DiscreteEigenvalueProblem<CubeEigenValues<T, d, N>, T, d, N, channels>
+class CubeResonator : public ResonatorBase<CubeEigenValues<T, d, N>, T, d, N, channels>
 {
 };
 
@@ -278,12 +309,11 @@ public:
 	using real = T;
 	using scalar = std::complex<real>;
 	using Vec = Uberton::Math::Vector<real, 3>;
-	static constexpr real pi = Uberton::Math::pi<real>();
 
 protected:
 	scalar eigenValueSqrt(int i) const {
 		int l = linearIndex(i).first;
-		return l * (l + 1);
+		return std::sqrt(l * (l + 1)) * baseFreqCoeff;
 	}
 
 
@@ -294,13 +324,17 @@ protected:
 
 		// spherical coordinates
 		real r = x[0];
-		real theta = x[1];
-		real phi = x[2];
+		real theta = pi * x[1];
+		real phi = 2 * pi * x[2];
 
 		real legend = static_cast<T>(Uberton::Math::assoc_legendre(l, m, std::cos(theta)));
 
 		// return only real part
 		return std::pow(r, l) / Uberton::Math::r_twopi<real>() * normalizer(l, m) * legend * std::cos(m * phi);
+	}
+
+	void setDesiredBaseFrequency(real f, real b, real c) {
+		baseFreqCoeff = f / std::sqrt(2);
 	}
 
 private:
@@ -317,11 +351,14 @@ private:
 	real normalizer(int l, int m) const {
 		return (std::sqrt((2 * l + 1) / 2 * Uberton::Math::factorial(l - m) / Uberton::Math::factorial(l + m)));
 	}
+
+	real baseFreqCoeff{ 1 };
+	static constexpr real pi = Uberton::Math::pi<real>();
 };
 
 
 template<class T, int N, int channels>
-class SphereResonator : public DiscreteEigenvalueProblem<SphereEigenValues<T, N>, T, 3, N, channels>
+class SphereResonator : public ResonatorBase<SphereEigenValues<T, N>, T, 3, N, channels>
 {
 };
 
