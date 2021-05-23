@@ -22,6 +22,312 @@
 namespace Uberton {
 namespace Math {
 
+// ----      ----------------------------------------------------
+// ---- Base ----------------------------------------------------
+// ----      ----------------------------------------------------
+// T: float type (float/double)
+// d: dimension (1, 2, ...)
+// N: number of eigenvalues taken into acount
+// channels: number of input/output "channels" or positions
+
+template<class Parent, class T, int d, int N, int channels>
+class DiscreteEigenvalueProblem : public Parent
+{
+public:
+	using real = T;
+	using scalar = std::complex<real>;
+	using Vec = Uberton::Math::Vector<T, d>;
+	static constexpr real pi = Uberton::Math::pi<real>();
+
+	template<class T, int n>
+	using array = std::array<T, n>;
+
+	array<real, channels> next() {
+		evolve();
+		array<real, channels> results{ 0 };
+		for (int ch = 0; ch < channels; ++ch) {
+			for (int i = 0; i < N; ++i) {
+				results[ch] += (amplitudes[i] * outputPosEF[ch][i]).real();
+			}
+		}
+		return results;
+	}
+
+	void setSampleRate(T sampleRate) {
+		this->deltaT = T{ 1. } / sampleRate;
+		update();
+	}
+
+	void delta(const array<real, channels>& amount) {
+		for (int ch = 0; ch < channels; ++ch) {
+			for (int i = 0; i < N; ++i) {
+				amplitudes[i] += amount[ch] * inputPosEF[ch][i];
+			}
+		}
+	}
+
+	void evalOutPosEF(const array<Vec, channels>& outPositions) {
+		for (int ch = 0; ch < channels; ++ch) {
+			for (int i = 0; i < N; ++i) {
+				outputPosEF[ch][i] = this->eigenFunction(i, outPositions[ch]);
+			}
+		}
+	}
+
+	void evalInPosEF(const array<Vec, channels>& inPositions) {
+		for (int ch = 0; ch < channels; ++ch) {
+			for (int i = 0; i < N; ++i) {
+				inputPosEF[ch][i] = this->eigenFunction(i, inPositions[ch]);
+			}
+		}
+	}
+
+	void setV(scalar newv) {
+		v = newv;
+		update();
+	}
+
+	void setFreqDampeningAndVelocity(real f, real b, real c) {
+		this->b = b; // lowest frequency
+		this->c = c;
+		this->setFreqDampeningAndVelocity1(f, b, c);
+		update();
+	}
+
+	scalar getV() const { return v; }
+	T getTime() const { return time; }
+	constexpr int dim() const { return d; }
+	constexpr int degree() const { return N; }
+	constexpr int numChannels() const { return channels; }
+
+protected:
+	void update() {
+		constexpr scalar imagUnit = scalar(0, 1);
+		for (int i = 0; i < N; i++) {
+			//timeFunctions[i] = std::exp(imagUnit * this->eigenValueSqrt(i) * v * deltaT);
+			timeFunctions[i] = std::exp(imagUnit * this->frequency(i) * deltaT);
+		}
+	}
+	void evolve() {
+		time += deltaT;
+		for (int i = 0; i < N; i++) {
+			constexpr scalar imagUnit = scalar(0, 1);
+			amplitudes[i] *= timeFunctions[i]; // precomputing these is up to 20 times faster
+			//amplitudes[i] *= std::exp(deltaT*imagUnit*523.f*(2*pi));
+		}
+	}
+
+	scalar frequency(int i) {
+		constexpr scalar imagUnit = scalar(0, 1);
+		scalar k = this->eigenValueSqrt(i);
+		return c * (imagUnit * b + std::sqrt(k * k - b * b)); // c(ib + √(k²-b²))
+	}
+
+private:
+	T time{ 0 };
+	T deltaT{ 0 };
+	scalar v{ 1, .05 };
+	real c = 10;  // sonic velocity c
+	real b = .1f; // dampening factor
+	array<scalar, N> amplitudes{};
+	array<scalar, N> timeFunctions{};
+
+	array<array<scalar, N>, channels> outputPosEF{};
+	array<array<scalar, N>, channels> inputPosEF{};
+};
+
+
+// ----        ----------------------------------------------------
+// ---- String ----------------------------------------------------
+// ----        ----------------------------------------------------
+
+template<class T>
+class StringEigenValues
+{
+public:
+	using real = T;
+	using scalar = std::complex<real>;
+	using Vec = Uberton::Math::Vector<T, 1>;
+	static constexpr real pi = Uberton::Math::pi<real>();
+
+	scalar eigenValueSqrt(int i) const {
+		return (i + 1) * pi;
+	}
+
+	scalar eigenFunction(int i, const Vec& x) const {
+		return std::sin((i + 1) * pi * x[0]);
+	}
+};
+
+
+template<class T, int N, int channels>
+class StringResonator : public DiscreteEigenvalueProblem<StringEigenValues<T>, T, 1, N, channels>
+{
+};
+
+
+// ----      ----------------------------------------------------
+// ---- Cube ----------------------------------------------------
+// ----      ----------------------------------------------------
+
+template<class T, int d, int N>
+class CubeEigenValues
+{
+public:
+	using real = T;
+	using scalar = std::complex<real>;
+	using KVec = Uberton::Math::Vector<real, d + 1>;
+	using Vec = Uberton::Math::Vector<real, d>;
+	static constexpr real pi = Uberton::Math::pi<real>();
+
+	CubeEigenValues() {
+		computeFirstEigenvalues();
+		for (auto& a : ksAndEV) {
+			for (int i = 0; i < a.size(); i++) {
+				//FDebugPrint("%f, ", a[i]);
+			}
+			//FDebugPrint("\n");
+			//std::cout << a << "\n";
+		}
+	}
+
+protected:
+	scalar eigenValueSqrt(int i) const {
+		return ksAndEV[i][d] * pi / length;
+	}
+
+	scalar eigenFunction(int i, const Vec& x) const {
+		real result{ 1 };
+		constexpr real pi = Uberton::Math::pi<real>();
+		for (int j = 0; j < dim; ++j) {
+			result *= std::sin(ksAndEV[i][j] * pi * x[j] / length);
+		}
+		return result;
+	}
+
+	void setFreqDampeningAndVelocity1(real f, real b, real c) {
+		const real w = 2 * pi * f;
+		length = pi * std::sqrt(d / (w * w / (c * c) + b * b));
+	}
+
+	real lowestFrequency() const {
+		return pi * std::sqrt(d) / length;
+	}
+
+private:
+	void computeFirstEigenvalues() {
+		// V_sphere = N·2ᵈ
+		real radius = radiusOfNSphere(numEigenvalues * std::pow(2, dim));
+		int maxRadius = static_cast<int>(std::ceil(radius)) +1;
+		int maxNumEV = std::pow(maxRadius + 1, dim);
+		//std::cout << "maxNumEV " << maxNumEV << "\n";
+
+		if (maxNumEV < numEigenvalues) {
+			maxNumEV = numEigenvalues;
+		}
+		std::vector<KVec> kvecs(maxNumEV);
+		
+		for (int i = 0; i < maxNumEV; ++i) {
+			KVec kvec; // last entry sums up the squares of the other entries
+			int kindex = i;
+			for (int j = 0; j < dim; j++) {
+				kvec[j] = kindex % (maxRadius + 1) + 1;
+				kindex /= (maxRadius + 1);
+				kvec[dim] += kvec[j] * kvec[j];
+			}
+			kvec[dim] = static_cast<real>(std::sqrt(kvec[dim]));
+
+			kvecs[i] = kvec;
+		}
+
+		std::sort(kvecs.begin(), kvecs.end(), [](auto& a, auto& b) { return a[d] < b[d]; });
+		std::copy(kvecs.begin(), kvecs.begin() + N, ksAndEV.begin());
+	}
+
+	real radiusOfNSphere(real volume) const {
+		constexpr real pi = Uberton::Math::pi<real>();
+		if (dim % 2 == 0) { // V = π^(½d)·r^d/(½d)!  ⇔  r = ᵈ√[V·(½d)! / π^(½d)]
+			return std::pow(volume * Uberton::Math::factorial(dim / 2) / std::pow(pi, dim / 2), real{ 1 } / dim);
+		}
+		else { // V = 2[½(d-1)]!·(4π)^[½(d-1)]·rᵈ/d!  ⇔  r = ᵈ√[V·d! / { 2[½(d-1)]!·(4π)^[½(d-1)] }]
+			return std::pow(numEigenvalues * Uberton::Math::factorial(dim) / (2 * Uberton::Math::factorial((dim - 1) / 2) * std::pow(4 * pi, (dim - 1) / 2)), real{ 1 } / dim);
+		}
+	}
+
+	std::array<KVec, N> ksAndEV;
+	int numEigenvalues{ N };
+	real length{ 1 };
+	int dim{ d };
+};
+
+
+template<class T, int d, int N, int channels>
+class CubeResonator : public DiscreteEigenvalueProblem<CubeEigenValues<T, d, N>, T, d, N, channels>
+{
+};
+
+
+// ----        ----------------------------------------------------
+// ---- Sphere ----------------------------------------------------
+// ----        ----------------------------------------------------
+
+template<class T, int N>
+class SphereEigenValues
+{
+public:
+	using real = T;
+	using scalar = std::complex<real>;
+	using Vec = Uberton::Math::Vector<real, 3>;
+	static constexpr real pi = Uberton::Math::pi<real>();
+
+protected:
+	scalar eigenValueSqrt(int i) const {
+		int l = linearIndex(i).first;
+		return l * (l + 1);
+	}
+
+
+	scalar eigenFunction(int i, const Vec& x) const {
+		auto lm = linearIndex(i);
+		int l = lm.first;
+		int m = lm.second;
+
+		// spherical coordinates
+		real r = x[0];
+		real theta = x[1];
+		real phi = x[2];
+
+		real legend = static_cast<T>(Uberton::Math::assoc_legendre(l, m, std::cos(theta)));
+
+		// return only real part
+		return std::pow(r, l) / Uberton::Math::r_twopi<real>() * normalizer(l, m) * legend * std::cos(m * phi);
+	}
+
+private:
+	// Get m and l numbers from linear index i∈[0, n)
+	std::pair<int, int> linearIndex(int i) const {
+		// i+1 = l²+l+1+m and m from -l to l
+		// solve for l: √(i+1) -1 <= l <= √i
+		// Then, calc m from l and i
+		int l = static_cast<int>(std::floor(std::sqrt(i)));
+		int m = i - (l * l + l);
+		return { l, m };
+	}
+
+	real normalizer(int l, int m) const {
+		return (std::sqrt((2 * l + 1) / 2 * Uberton::Math::factorial(l - m) / Uberton::Math::factorial(l + m)));
+	}
+};
+
+
+template<class T, int N, int channels>
+class SphereResonator : public DiscreteEigenvalueProblem<SphereEigenValues<T, N>, T, 3, N, channels>
+{
+};
+
+
+
+
 
 template<class SampleType>
 class BaseAudioComponent
@@ -368,10 +674,12 @@ protected:
 		int maxNumEigenvalues = std::pow(r + 1, actualDim);
 		//if (maxNumEigenvalues < N) throw std::exception("r<N");
 
-		std::vector<Vector<T, d + 1>> kvecs(maxNumEigenvalues);
+		using Vec = Vector<T, d + 1>;
+
+		std::vector<Vec> kvecs(maxNumEigenvalues);
 
 		for (int i = 0; i < maxNumEigenvalues; ++i) {
-			Vector<T, d + 1> kvec{}; // last entry sums up the squares of the other entries
+			Vec kvec{}; // last entry sums up the squares of the other entries
 			int kindex = i;
 			for (int j = 0; j < actualDim; j++) {
 				kvec[j] = kindex % (r + 1) + 1;
@@ -383,7 +691,7 @@ protected:
 			kvecs[i] = kvec;
 		}
 
-		std::sort(kvecs.begin(), kvecs.end(), [](Vector<T, d + 1>& a, Vector<T, d + 1>& b) { return a[d] < b[d]; });
+		std::sort(kvecs.begin(), kvecs.end(), [](Vec& a, Vec& b) { return a[d] < b[d]; });
 		std::copy(kvecs.begin(), kvecs.begin() + N, ks_and_eigenvalues.begin());
 	}
 	/*
