@@ -17,20 +17,15 @@ namespace Uberton {
 namespace BasicFx {
 
 tresult PLUGIN_API Controller::initialize(FUnknown* context) {
-	//implementBypass = true;
-
 	tresult result = ControllerBaseP::initialize(context);
 	if (result != kResultTrue) return result;
 
-	//parameters.addParameter(STR16("Bypass"), 0, 1, 0, ParameterInfo::kCanAutomate | ParameterInfo::kIsBypass, Params::kBypassId);
-	parameters.addParameter(STR16("Gain 1"), STR16("dB"), 0, .5, ParameterInfo::kCanAutomate, Params::kParamVolId);
-
+	addRangeParam(Params::kParamVolId, "Gain", "dB", { 0, 1, .5 });
 	return kResultTrue;
 }
 
 IPlugView* PLUGIN_API Controller::createView(FIDString name) {
-	ConstString name_(name);
-	if (name_ == ViewType::kEditor)
+	if (ConstString(name) == ViewType::kEditor)
 		return new VSTGUI::VST3Editor(this, "Editor", "editor.uidesc");
 	return nullptr;
 }

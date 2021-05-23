@@ -13,15 +13,19 @@
 
 
 #pragma once
-
 #include <pluginterfaces/vst/vsttypes.h>
+#include <parameters.h>
 
 namespace Uberton {
 namespace BasicInstrument {
 
+
 enum Params : Steinberg::Vst::ParamID {
 	kParamVolId,
+	kNumGlobalParameters,
 };
+
+using ParamState = UniformParamState<kNumGlobalParameters>;
 
 static const Steinberg::FUID ProcessorUID(0xed4cc4ff, 0x6a0846c5, 0xb07de226, 0xb01098c4);
 static const Steinberg::FUID ControllerUID(0x624ad3a6, 0x20894bc1, 0xb6de1482, 0xc1cf0900);

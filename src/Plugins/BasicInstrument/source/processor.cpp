@@ -38,6 +38,9 @@ tresult PLUGIN_API Processor::initialize(FUnknown* context) {
 
 tresult PLUGIN_API Processor::setupProcessing(ProcessSetup& setup) {
 	osc.setSampleRate(setup.sampleRate);
+	resonator.setSampleRate(setup.sampleRate);
+	resonator.setInputPositions({ .3 });
+	resonator.setOutputPositions({ .7 });
 	return ProcessorBase::setupProcessing(setup);
 }
 
@@ -51,6 +54,7 @@ void Processor::processAudio(ProcessData& data) {
 	if (playing) {
 		for (int32 i = 0; i < numSamples; i++) {
 			float sample = osc.get();
+			sample = resonator.next()[0];
 
 			for (int32 channel = 0; channel < numChannels; channel++) {
 				out[channel][i] = sample * gain;
@@ -84,9 +88,12 @@ void Processor::processEvents(IEventList* eventList) {
 			playing = true;
 			osc.setPhase(0.0);
 			osc.setFrequency(Math::frequencyTable[event.noteOn.pitch]);
+			resonator.setFreqDampeningAndVelocity(Math::frequencyTable[event.noteOn.pitch], .1, 10);
+			resonator.delta({ .5 });
 			break;
 		case Event::kNoteOffEvent:
-			playing = false;
+			//playing = false;
+			
 			break;
 		case Event::kNoteExpressionValueEvent:
 			break;

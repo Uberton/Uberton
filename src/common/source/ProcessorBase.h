@@ -30,10 +30,10 @@ using namespace Steinberg::Vst;
  * - Only one bus (with any number of channels) and equal input / output numbers are allowed.
  * - Implements bypass ramping(ramp over one sample buffer)
  */
-class ProcessorBase : public AudioEffect
+class ProcessorBaseA : public AudioEffect
 {
 public:
-	ProcessorBase();
+	ProcessorBaseA();
 
 	tresult PLUGIN_API process(ProcessData& data) SMTG_OVERRIDE;
 	tresult PLUGIN_API setActive(TBool state) SMTG_OVERRIDE;
@@ -78,13 +78,13 @@ template<class ParamState, bool hasBypass = ImplementBypass>
 //	{ p.setState(stream) } -> std::convertible_to<tresult>;
 //	{ p.setComponentState(stream, controller) } -> std::convertible_to<tresult>;
 //}
-class ProcessorBaseP;
+class ProcessorBase;
 
-/*
- * Implementation with bypass
- */
+//
+// Implementation with bypass
+//
 template<class ParamState>
-class ProcessorBaseP<ParamState, ImplementBypass> : public AudioEffect
+class ProcessorBase<ParamState, ImplementBypass> : public AudioEffect
 {
 public:
 	tresult PLUGIN_API process(ProcessData& data) SMTG_OVERRIDE {
@@ -98,8 +98,8 @@ public:
 		return kResultTrue;
 	}
 
-	tresult PLUGIN_API setState(IBStream* state) SMTG_OVERRIDE { 
-		tresult r = paramState.setState(state); 
+	tresult PLUGIN_API setState(IBStream* state) SMTG_OVERRIDE {
+		tresult r = paramState.setState(state);
 		recomputeParameters();
 		return r;
 	}
@@ -202,11 +202,11 @@ private:
 	BypassingState bypassingState{ BypassingState::None };
 };
 
-/*
- * Implementation without bypass
- */
+//
+// Implementation without bypass
+//
 template<class ParamState>
-class ProcessorBaseP<ParamState, NoBypass> : public AudioEffect
+class ProcessorBase<ParamState, NoBypass> : public AudioEffect
 {
 public:
 	tresult PLUGIN_API process(ProcessData& data) SMTG_OVERRIDE {

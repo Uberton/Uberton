@@ -19,11 +19,13 @@
 namespace Uberton {
 namespace BasicFx {
 
-using ParamState1 = UniformParamState<1>;
 
 enum Params : Steinberg::Vst::ParamID {
 	kParamVolId,
+	kNumGlobalParameters
 };
+
+using ParamState = UniformParamState<kNumGlobalParameters>;
 
 static const Steinberg::FUID ProcessorUID(0xBD58B550, 0xF9E5634E, 0x9D2EFF39, 0xEA0927B1);
 static const Steinberg::FUID ControllerUID(0xA0B1A6F4, 0x005D9B47, 0x967177E3, 0x7A671891);

@@ -13,12 +13,14 @@
 
 #include <ProcessorBase.h>
 #include <oscillators.h>
+#include <resonator.h>
+#include "ids.h"
 
 
 namespace Uberton {
 namespace BasicInstrument {
 
-class Processor : public ProcessorBase
+class Processor : public ProcessorBase<ParamState, ImplementBypass>
 {
 public:
 	Processor();
@@ -42,6 +44,8 @@ protected:
 
 	bool playing{ false };
 	SineOscillatorPow5 osc;
+	Math::CubeResonator<float, 1, 5, 1> resonator;
+
 };
 
 }

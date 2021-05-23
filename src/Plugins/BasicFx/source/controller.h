@@ -20,7 +20,7 @@ namespace BasicFx {
 using namespace Steinberg;
 using namespace Steinberg::Vst;
 
-class Controller : public ControllerBaseP<ParamState1, ImplementBypass>, public VSTGUI::VST3EditorDelegate
+class Controller : public ControllerBaseP<ParamState, ImplementBypass>, public VSTGUI::VST3EditorDelegate
 {
 public:
 	tresult PLUGIN_API initialize(FUnknown* context) SMTG_OVERRIDE;
