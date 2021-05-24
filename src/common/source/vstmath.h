@@ -58,6 +58,8 @@ class Vector
 	array<T, d> values;
 
 public:
+	using Index = ptrdiff_t;
+
 	Vector(const T (&elems)[d]) {
 		std::copy(std::begin(elems), std::end(elems), values.begin());
 	}
@@ -82,11 +84,11 @@ public:
 	}
 
 	// Unchecked access (faster)
-	const T& operator[](int i) const { return values[i]; }
-	T& operator[](int i) { return values[i]; }
+	const T& operator[](Index i) const { return values[i]; }
+	T& operator[](Index i) { return values[i]; }
 	// Runtime checked access (saver)
-	const T& at(int i) const { values.at(i); }
-	T& at(int i) { return values.at(i); }
+	const T& at(Index i) const { values.at(i); }
+	T& at(Index i) { return values.at(i); }
 
 	Vector& operator+=(const T& c) { return apply(std::plus<T>(), c); }
 	Vector& operator-=(const T& c) { return apply(std::minus<T>(), c); }
@@ -125,7 +127,7 @@ public:
 
 	friend std::ostream& operator<<(std::ostream& os, const Vector<T, d>& v) {
 		os << "(";
-		for (int i = 0; i < d - 1; i++)
+		for (Index i = 0; i < d - 1; i++)
 			os << v.values[i] << ",";
 		return os << v.values[d - 1] << ")";
 	}
@@ -135,7 +137,7 @@ public:
 
 template<class T, int d>
 bool operator==(const Vector<T, d>& a, const Vector<T, d>& b) {
-	for (int i = 0; i < d; i++)
+	for (Index i = 0; i < d; i++)
 		if (a[i] != b[i]) return false;
 	return true;
 }

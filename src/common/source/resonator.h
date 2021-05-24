@@ -43,6 +43,11 @@ namespace Math {
 //   - scalar eigenFunction(int i, const Vec& x); and
 //   - void setDesiredBaseFrequency(real freq, real dampening, real velocity);
 //
+// All positions should be normalized to [0, 1]. The same applies to the eigenFunction()
+// function that the parent class needs to implement. If it features properties like a
+// size or length that is internally adjusted to match the desired base frequency, this
+// should not affect the output of eigenFunction() for constant x.
+//
 // The differential equation that is implemented in this model has the form
 //         ⎛1  d²    2b d     ⎞
 //     0 = ⎜−− −−  + −− −− − Δ⎟ψ(x,t)
@@ -93,7 +98,7 @@ public:
 		return results;
 	}
 
-	/// Set the "listening" positions
+	/// Set the "listening" positions (normalized to [0,1])
 	void setOutputPositions(const array<Vec, channels>& outPositions) {
 		for (int ch = 0; ch < channels; ++ch) {
 			for (int i = 0; i < N; ++i) {
@@ -102,7 +107,7 @@ public:
 		}
 	}
 
-	/// Set the "playing" or exciting position
+	/// Set the "playing" or exciting position (normalized to [0,1])
 	void setInputPositions(const array<Vec, channels>& inPositions) {
 		for (int ch = 0; ch < channels; ++ch) {
 			for (int i = 0; i < N; ++i) {
@@ -178,7 +183,7 @@ public:
 	}
 
 	scalar eigenFunction(int i, const Vec& x) const {
-		return std::sin((i + 1) * pi<real>() * x[0] / length);
+		return std::sin((i + 1) * pi<real>() * x[0]); // no division by length as x is normalized
 	}
 
 	void setDesiredBaseFrequency(real f, real b, real c) {
@@ -230,7 +235,7 @@ protected:
 		real result{ 1 };
 		constexpr real pi = Uberton::Math::pi<real>();
 		for (int j = 0; j < dim; ++j) {
-			result *= std::sin(ksAndEV[i][j] * pi * x[j] / length);
+			result *= std::sin(ksAndEV[i][j] * pi * x[j]); // no division by length as x is normalized
 		}
 		return result;
 	}
@@ -240,9 +245,6 @@ protected:
 		length = pi * c * std::sqrt(d / (w * w + b * b));
 	}
 
-	real lowestFrequency() const {
-		return pi * std::sqrt(d) / length;
-	}
 
 private:
 	void computeFirstEigenvalues() {
@@ -277,10 +279,10 @@ private:
 	real radiusOfNSphere(real volume) const {
 		constexpr real pi = Uberton::Math::pi<real>();
 		if (dim % 2 == 0) { // V = π^(½d)·r^d/(½d)!  ⇔  r = ᵈ√[V·(½d)! / π^(½d)]
-			return std::pow(volume * Uberton::Math::factorial(dim / 2) / std::pow(pi, dim / 2), real{ 1 } / dim);
+			return static_cast<real>(std::pow(volume * Uberton::Math::factorial(dim / 2) / std::pow(pi, dim / 2), real{ 1 } / dim));
 		}
 		else { // V = 2[½(d-1)]!·(4π)^[½(d-1)]·rᵈ/d!  ⇔  r = ᵈ√[V·d! / { 2[½(d-1)]!·(4π)^[½(d-1)] }]
-			return std::pow(numEigenvalues * Uberton::Math::factorial(dim) / (2 * Uberton::Math::factorial((dim - 1) / 2) * std::pow(4 * pi, (dim - 1) / 2)), real{ 1 } / dim);
+			return static_cast<real>(std::pow(numEigenvalues * Uberton::Math::factorial(dim) / (2 * Uberton::Math::factorial((dim - 1) / 2) * std::pow(4 * pi, (dim - 1) / 2)), real{ 1 } / dim));
 		}
 	}
 
