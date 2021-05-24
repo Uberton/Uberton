@@ -8,7 +8,6 @@ set(TesseractFx_sources
     source/controller.cpp
     source/processor.cpp
     source/processorImpl.h
-    source/filter.h
     resource/editor.uidesc
 )
 

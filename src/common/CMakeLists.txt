@@ -16,6 +16,7 @@ add_library(uberton_common
         source/oscillators.h
         source/resonator.h
         source/parameters.h
+        source/filter.h
 )
 
 
