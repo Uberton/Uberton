@@ -12,10 +12,7 @@
 #pragma once
 
 #include <ProcessorBase.h>
-#include <resonator.h>
-#include <public.sdk/samples/vst/common/logscale.h>
 #include "ids.h"
-#include "filter.h"
 #include "processorImpl.h"
 
 namespace Uberton {
@@ -42,6 +39,9 @@ private:
 	double vuPPMOld = 0;
 
 	void recomputeParameters() override;
+	void recomputeInexpensiveParameters();
+	void updateResonatorInputPosition();
+	void updateResonatorOutputPosition();
 	void addOutputPoint(ProcessData& data, ParamID id, ParamValue value);
 
 	float gain{ 0 };
@@ -49,6 +49,11 @@ private:
 	float sonicVel{ 0 };
 	float resFreq{ 0 };
 	float wet{ 1 };
+
+	bool needToUpdatePositions{ false };
+
+
+	using Vec = ProcessorImpl<float>::Vec;
 };
 
 }

@@ -22,7 +22,11 @@ Processor::Processor() {
 	paramState[Params::kParamFreq] = .5;
 	paramState[Params::kParamDampening] = .1;
 	paramState[Params::kParamC] = 5;
-	recomputeParameters();
+
+	for (int i = 0; i < maxDimension; i++) {
+		paramState[Params::kParamX0 + i] = .5;
+		paramState[Params::kParamY0 + i] = .5;
+	}
 }
 
 tresult PLUGIN_API Processor::initialize(FUnknown* context) {
@@ -39,16 +43,16 @@ tresult PLUGIN_API Processor::initialize(FUnknown* context) {
 tresult PLUGIN_API Processor::setActive(TBool state) {
 	if (state) {
 		processorImpl = std::make_unique<ProcessorImpl<float>>();
+		processorImpl->init(processSetup.sampleRate);
+		recomputeParameters();
 
 		/*if (processSetup.symbolicSampleSize == kSample32) {
 			processorImpl = std::make_unique<ProcessorImpl<float>>();
 		} else {
 			processorImpl = std::make_unique<ProcessorImpl<double>>();
 		}*/
-		processorImpl->init(processSetup.sampleRate);
-		processorImpl->resonator.setListeningPositions({ Math::Vector<float, 3>{ .2, .2, .3 }, { .4, .3, .4 } });
-		processorImpl->resonator.setStrikingPosition(Math::Vector<float, 3>{ .5, .1, .2 });
-		recomputeParameters();
+		//processorImpl->resonator.setListeningPositions({ Math::Vector<float, 3>{ .2, .2, .3 }, { .4, .3, .4 } });
+		//processorImpl->resonator.setStrikingPosition(Math::Vector<float, 3>{ .5, .1, .2 });
 	}
 	return kResultTrue;
 }
@@ -86,12 +90,9 @@ void Processor::processAudio(ProcessData& data) {
 
 	Sample32* sInL;
 	Sample32* sInR;
-	Sample32 pL = 0, pR = 0;
 	float dry = 1 - wet;
 	Math::Vector<float, ProcessorImpl<float>::numChannels> tmp;
 
-	processorImpl->setCutoff(paramState[Params::kParamCutoff]);
-	//processorImpl->setVelocity({ (float)paramState[Params::kParamFreq] * 2000, (float)paramState[Params::kParamDampening] * 5 });
 
 
 	vuPPMOld = vuPPM;
@@ -99,15 +100,11 @@ void Processor::processAudio(ProcessData& data) {
 		sInL = (Sample32*)in[0] + i;
 		sInR = (Sample32*)in[1] + i;
 
-		processorImpl->resonator1.delta({ *sInL, *sInR });
-		tmp = processorImpl->resonator1.next();
+		tmp = processorImpl->process(*sInL, *sInR);
 
-		pL = processorImpl->f1.process(tmp[0]) * gain;
-		pR = processorImpl->f2.process(tmp[1]) * gain;
-
-		*((Sample32*)out[0] + i) = pL * wet + dry * (*sInL);
-		*((Sample32*)out[1] + i) = pR * wet + dry * (*sInR);
-		vuPPM += std::abs(pL + pR);
+		*((Sample32*)out[0] + i) = gain * tmp[0] * wet + dry * (*sInL);
+		*((Sample32*)out[1] + i) = gain * tmp[1] * wet + dry * (*sInR);
+		vuPPM += std::abs(tmp[0] + tmp[1]);
 	}
 	vuPPM /= 2 * numSamples;
 	if (vuPPM != vuPPMOld) {
@@ -127,21 +124,53 @@ void Processor::processParameterChanges(IParameterChanges* inputParameterChanges
 			else {
 				paramState.params[id] = value;
 			}
+			if (id >= Params::kParamX0 && id < Params::kParamX0 + maxDimension) {
+				updateResonatorInputPosition();
+			}
+			if (id >= Params::kParamY0 && id < Params::kParamY0 + maxDimension) {
+				updateResonatorOutputPosition();
+			}
 		}
 
 		);
-		recomputeParameters();
+		recomputeInexpensiveParameters();
 	});
 }
 
 void Processor::recomputeParameters() {
+	recomputeInexpensiveParameters();
+	updateResonatorInputPosition();
+	updateResonatorOutputPosition();
+}
+
+void Processor::recomputeInexpensiveParameters() {
 	gain = paramState[Params::kParamVol];
 	resFreq = paramState[Params::kParamFreq] * 1900 + 100;
 	dampening = paramState[Params::kParamDampening] * 100;
 	sonicVel = paramState[Params::kParamC] * (1000 - .1) + .1;
 	wet = paramState[Params::kParamMix];
-	if (processorImpl)
+	if (processorImpl) {
 		processorImpl->setFreq(resFreq, dampening, sonicVel);
+		processorImpl->setCutoff(paramState[Params::kParamCutoff]);
+	}
+}
+
+void Processor::updateResonatorInputPosition() {
+	Vec inputPos;
+	size_t d = inputPos.size();
+	for (int i = 0; i < d; i++) {
+		inputPos[i] = paramState[Params::kParamX0 + i];
+	}
+	processorImpl->resonator.setInputPositions({ inputPos, inputPos });
+}
+
+void Processor::updateResonatorOutputPosition() {
+	Vec outputPos;
+	size_t d = outputPos.size();
+	for (int i = 0; i < d; i++) {
+		outputPos[i] = paramState[Params::kParamY0 + i];
+	}
+	processorImpl->resonator.setOutputPositions({ outputPos, outputPos });
 }
 
 void Processor::addOutputPoint(ProcessData& data, ParamID id, ParamValue value) {
