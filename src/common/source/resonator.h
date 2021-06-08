@@ -187,8 +187,8 @@ public:
 	}
 
 	void setDesiredBaseFrequency(real f, real b, real c) {
-		const real w = 2 * pi * f;
-		length = pi * c / std::sqrt(w * w + b * b);
+		const real w = 2 * pi<real>() * f;
+		length = pi<real>() * c / std::sqrt(w * w + b * b);
 	}
 
 private:
@@ -298,6 +298,213 @@ template<class T, int d, int N, int channels>
 class CubeResonator : public ResonatorBase<CubeEigenValues<T, d, N>, T, d, N, channels>
 {
 };
+
+
+// ----                                                         ---
+// ---- Cube (Precomputed and stored eigenvalues + computation) ---
+// ----                                                         ---
+
+template<class T>
+std::vector<std::vector<T>> computeFirstEigenvalues(int dim, int numEigenvalues) {
+	// V_sphere = N·2ᵈ
+	//std::cout << dim << "\n";
+	using real = T;
+	using scalar = std::complex<real>;
+	using KVec = std::vector<real>;
+
+	auto radiusOfNSphere = [&](real volume) {
+		constexpr real pi = Uberton::Math::pi<real>();
+		if (dim % 2 == 0) { // V = π^(½d)·r^d/(½d)!  ⇔  r = ᵈ√[V·(½d)! / π^(½d)]
+			return std::pow(volume * Uberton::Math::factorial(dim / 2) / std::pow(pi, dim / 2), real{ 1 } / dim);
+		}
+		else { // V = 2[½(d-1)]!·(4π)^[½(d-1)]·rᵈ/d!  ⇔  r = ᵈ√[V·d! / { 2[½(d-1)]!·(4π)^[½(d-1)] }]
+			return std::pow(numEigenvalues * Uberton::Math::factorial(dim) / (2 * Uberton::Math::factorial((dim - 1) / 2) * std::pow(4 * pi, (dim - 1) / 2)), real{ 1 } / dim);
+		}
+	};
+
+	real radius = radiusOfNSphere(numEigenvalues * std::pow(2, dim));
+	int add = 0;
+	if (dim == 1) {
+		add = numEigenvalues;
+	}
+	else if (dim <= 3) {
+		//add = 3;
+	}
+	//else if (dim <= 5) {
+	//	add = 10;
+	//}
+	int maxRadius = static_cast<int>(std::ceil(radius)) + add;
+	int maxNumEV = std::pow(maxRadius + 1, dim);
+
+	std::vector<KVec> kvecs;
+
+	for (int i = 0; i < maxNumEV; ++i) {
+		std::vector<real> kvec(dim + 1); // last entry sums up the squares of the other entries
+		int kindex = i;
+		for (int j = 0; j < dim; j++) {
+			kvec[j] = kindex % (maxRadius + 1) + 1;
+			kindex /= (maxRadius + 1);
+			kvec[dim] += kvec[j] * kvec[j];
+		}
+		kvec[dim] = static_cast<real>(std::sqrt(kvec[dim]));
+		kvecs.push_back(kvec);
+	}
+
+	std::sort(kvecs.begin(), kvecs.end(), [dim](auto& a, auto& b) { return a[dim] < b[dim]; });
+	kvecs.resize(numEigenvalues);
+	return kvecs;
+}
+//
+// Compute and (de)serialize the first n eigenvectors and -values of a d-dimensional
+// cube. The file is stored in ASCII format, which saves spaces as most values are integers
+//
+template<class T>
+struct CubeEWPCalculator {
+	
+	CubeEWPCalculator(){}
+
+	void compute(int d, int n) {
+		if (d < 1 || n < 1) throw std::exception("dim and n need to be greater than 0");
+		//data = computeFirstEigenvalues<T>(d, n);
+		initialized = true;
+	}
+
+	using CoeffType = short; // short is more than enough. char is just uncomfortable to read from ascii file
+	struct Row { std::vector<CoeffType> coeffs; T eigenvalue{ 0 }; };
+	std::vector<Row> data;
+	//std::vector<std::vector<T>> data;
+
+
+	template<class U>
+	friend std::ostream& operator<<(std::ostream& os, const CubeEWPCalculator<U>& a) {
+		if (!a.initialized) return os;
+		int dim = a.data[0].coeffs.size();
+		os << dim << " " << a.data.size() << "\n";
+		for (const auto& row : a.data) {
+			for (const auto& entry : row.coeffs) {
+				os << entry << " ";
+			}
+			os << row.eigenvalue << " ";
+			os << "\n";
+		}
+		os << "-\n";
+		return os;
+	}
+	template<class U>
+	friend std::istream& operator>>(std::istream& is, CubeEWPCalculator<U>& a) {
+		a.data.clear();
+		int dim;
+		int size;
+		is >> dim >> size;
+		int rowLength = dim;
+		for (int i = 0; i < size; i++) {
+			Row row;
+			row.coeffs = std::vector<CoeffType>(rowLength);
+			for (int j = 0; j < rowLength; j++) {
+				is >> row.coeffs[j];
+			}
+			is >> row.eigenvalue;
+			a.data.push_back(row);
+		}
+		char endChar;
+		is >> endChar;
+		if (endChar != '-') {
+			throw std::exception("cube ewp file is damaged");
+		}
+		a.initialized = true;
+		return is;
+	}
+private: 
+	bool initialized{ false };
+};
+
+template<class T, int maxDim>
+struct CubeEWPStorage {
+	std::vector<CubeEWPCalculator<T>> matrices;
+
+	CubeEWPStorage() {
+
+	}
+
+	void load(const std::string& filename) {
+		std::ifstream file(filename);
+		for (int i = 1; i <= maxDim; i++) {
+			CubeEWPCalculator<T> ewp;
+			file >> ewp;
+			matrices.push_back(ewp);
+		}
+	}
+
+	void print() {
+		for (const auto& ewp : matrices) {
+			std::cout << ewp;
+		}
+	}
+
+	void compute(int n) {
+		matrices.clear();
+		for (int i = 1; i <= maxDim; i++) {
+			CubeEWPCalculator<float> ewp;
+			ewp.compute(i, n);
+			matrices.push_back(ewp);
+		}
+	}
+
+	void save(const std::string& filename) {
+		std::ofstream file(filename);
+		for (const auto& ewp : matrices) {
+			file << ewp;
+		}
+	}
+};
+
+template<class T, int maxDim, int N>
+class PreComputedCubeEigenValues
+{
+public:
+	using real = T;
+	using scalar = std::complex<real>;
+	using Vec = Uberton::Math::Vector<real, maxDim>;
+
+	void setDim(int newDim) {
+		if (newDim < 1)
+			dim = 1;
+		else if (newDim > maxDim)
+			dim = maxDim;
+		else
+			dim = newDim;
+	}
+
+protected:
+	scalar eigenValueSqrt(int i) const {
+		return storage.matrices[dim - 1].data[i].eigenvalue * pi<real>() / length;
+	}
+
+	scalar eigenFunction(int i, const Vec& x) const {
+		real result{ 1 };
+		constexpr real pi<real>() = Uberton::Math::pi<real>();
+		for (int j = 0; j < dim; ++j) {
+			result *= std::sin(storage.matrices[dim - 1].data[i].coeffs[j] * pi<real>() * x[j]); // no division by length as x is normalized
+		}
+		return result;
+	}
+
+	void setDesiredBaseFrequency(real f, real b, real c) {
+		const real w = 2 * pi * f;
+		length = pi * c * std::sqrt(dim / (w * w + b * b));
+	}
+
+private:
+	CubeEWPStorage<T, maxDim> storage;
+	std::vector<CubeEWPCalculator::Row>* data;
+	int dim{ maxDim };
+};
+
+template<class T, int maxDim, int N, int channels>
+class PreComputedCubeResonator : public ResonatorBase<PreComputedCubeEigenValues<T, maxDim, N>, T, maxDim, N, channels>
+{
+};
+
 
 
 // ----        ----------------------------------------------------
