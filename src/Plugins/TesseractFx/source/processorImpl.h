@@ -13,11 +13,12 @@
 
 #include <public.sdk/samples/vst/common/logscale.h>
 #include <resonator.h>
-#include "filter.h"
+#include <filter.h>
+#include "ids.h"
 
 
 namespace Uberton {
-
+namespace TesseractFx {
 
 class ProcessorImplBase
 {
@@ -30,62 +31,65 @@ template<typename SampleType>
 class ProcessorImpl : public ProcessorImplBase
 {
 public:
-	constexpr static int dim = 3;
-	constexpr static int order = 10;
+	constexpr static int maxOrder = 10;
 	constexpr static int numChannels = 2;
 	using Type = SampleType;
-	using Vec = Math::Vector<SampleType, dim>;
+	using Vec = Math::Vector<SampleType, maxDimension>;
 	using SampleVec = Math::Vector<SampleType, numChannels>;
+	//using Resonator = Math::CubeResonator<SampleType, dim, order, numChannels>;
+	using Resonator = Math::PreComputedCubeResonator<SampleType, maxDimension, maxOrder, numChannels>;
 
 
 	void init(float sampleRate) override {
-		// resonator.setSampleRate(sampleRate);
-		f1.setCutoff(.2);
-		f2.setCutoff(.2);
+		for (auto& filter : filters) {
+			filter.setCutoff(.2);
+			filter.setMode(Filter::Mode::Highpass);
+		}
 
 		resonator.setSampleRate(sampleRate);
-		resonator.setInputPositions({ Vec{ .3, .5, .2 }, Vec{ .4, .5, .6 } });
-		resonator.setOutputPositions({ Vec{ .6, .5, .2 }, Vec{ .4, .5, .6 } });
 	}
 
-	void setFreq(SampleType f, SampleType b, SampleType c) {
-		if (f != f_ || b != b_ || c != c_) {
-			resonator.setFreqDampeningAndVelocity(f, b, c);
-			f_ = f;
-			c_ = c;
-			b_ = b;
+	void setResonatorDim(int dim) {
+		if (dim != resonator.getDim()) {
+			resonator.setDim(dim);
 		}
 	}
 
-	void setCutoff(double value) {
-		f1.setCutoff(value);
-		f2.setCutoff(value);
+	void setResonatorFreq(SampleType freq, SampleType damp, SampleType vel) {
+		if (freq != currentResFreq || damp != currentResDamp || vel != currentResVel) {
+			resonator.setFreqDampeningAndVelocity(freq, damp, vel);
+			currentResFreq = freq;
+			currentResVel = vel;
+			currentResDamp = damp;
+		}
 	}
-	
+
+	void setFilterCutoff(double value) {
+		for (auto& filter : filters) {
+			filter.setCutoff(value);
+		}
+	}
+
 	SampleVec process(SampleType l, SampleType r) {
 		resonator.delta({ l, r });
 		SampleVec tmp = resonator.next();
-
-		//tmp[0] = f1.process(tmp[0]);
-		//tmp[1] = f2.process(tmp[1]);
-		return { static_cast<float>(f1.process(tmp[0])), static_cast<float>(f2.process(tmp[1])) };
+		for (int i = 0; i < numChannels; i++) {
+			tmp[i] = filters[i].process(tmp[i]);
+		}
+		return tmp;
+		//return { static_cast<SampleType>(f1.process(tmp[0])), static_cast<SampleType>(f2.process(tmp[1])) };
 	}
-	//void setVelocity(std::complex<SampleType> vel) {
-	//	resonator.setVelocity_sq(vel);
-	//}
-
-	Filter f1{ Filter::Mode::Highpass };
-	Filter f2{ Filter::Mode::Highpass };
-	LogScale<ParamValue> freqLogScale{ 0., 1., 80., 18000., 0.5, 1800. };
-	SampleType f_ = 1, b_ = 1, c_ = 1;
-
-	//Math::CubeEigenvalueProblem<SampleType, dim, order, numChannels> resonator;
 
 
-	using Resonator = Math::CubeResonator<SampleType, dim, 10, 2>;
 	Resonator resonator;
-	//using VecArray = std::array<Resonator::Vec, numChannels>;
+	std::array<Filter, numChannels> filters;
+	LogScale<ParamValue> freqLogScale{ 0., 1., 80., 18000., 0.5, 1800. };
+
+	//Filter f1{ Filter::Mode::Highpass };
+	//Filter f2{ Filter::Mode::Highpass };
+
+	SampleType currentResFreq = 1, currentResDamp = 1, currentResVel = 1;
 };
 
-
+}
 }

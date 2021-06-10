@@ -22,6 +22,7 @@ Processor::Processor() {
 	paramState[Params::kParamFreq] = .5;
 	paramState[Params::kParamDampening] = .1;
 	paramState[Params::kParamC] = 5;
+	paramState[Params::kParamDim] = 1;
 
 	for (int i = 0; i < maxDimension; i++) {
 		paramState[Params::kParamX0 + i] = .5;
@@ -51,8 +52,6 @@ tresult PLUGIN_API Processor::setActive(TBool state) {
 		} else {
 			processorImpl = std::make_unique<ProcessorImpl<double>>();
 		}*/
-		//processorImpl->resonator.setListeningPositions({ Math::Vector<float, 3>{ .2, .2, .3 }, { .4, .3, .4 } });
-		//processorImpl->resonator.setStrikingPosition(Math::Vector<float, 3>{ .5, .1, .2 });
 	}
 	return kResultTrue;
 }
@@ -73,6 +72,8 @@ void Processor::processAudio(ProcessData& data) {
 	//if (processSetup.symbolicSampleSize == kSample32)
 	void** in = getChannelBuffersPointer(processSetup, data.inputs[0]);
 	void** out = getChannelBuffersPointer(processSetup, data.outputs[0]);
+
+	// Handle silence flags
 	{
 		if (data.inputs[0].silenceFlags != 0 && vuPPM < 0.0001) {
 			data.outputs[0].silenceFlags = data.inputs[0].silenceFlags;
@@ -130,6 +131,10 @@ void Processor::processParameterChanges(IParameterChanges* inputParameterChanges
 			if (id >= Params::kParamY0 && id < Params::kParamY0 + maxDimension) {
 				updateResonatorOutputPosition();
 			}
+			if (id == Params::kParamDim) {
+				updateResonatorDimension();
+			}
+			
 		}
 
 		);
@@ -150,8 +155,8 @@ void Processor::recomputeInexpensiveParameters() {
 	sonicVel = paramState[Params::kParamC] * (1000 - .1) + .1;
 	wet = paramState[Params::kParamMix];
 	if (processorImpl) {
-		processorImpl->setFreq(resFreq, dampening, sonicVel);
-		processorImpl->setCutoff(paramState[Params::kParamCutoff]);
+		processorImpl->setResonatorFreq(resFreq, dampening, sonicVel);
+		processorImpl->setFilterCutoff(paramState[Params::kParamCutoff]);
 	}
 }
 
@@ -162,6 +167,7 @@ void Processor::updateResonatorInputPosition() {
 		inputPos[i] = paramState[Params::kParamX0 + i];
 	}
 	processorImpl->resonator.setInputPositions({ inputPos, inputPos });
+	// FDebugPrint("Outputpos %f, %f, %f, %f,%f, %f, %f, %f, %f, %f\n", inputPos[0], inputPos[1], inputPos[2], inputPos[3], inputPos[4], inputPos[5], inputPos[6], inputPos[7], inputPos[8], inputPos[9]);
 }
 
 void Processor::updateResonatorOutputPosition() {
@@ -171,6 +177,19 @@ void Processor::updateResonatorOutputPosition() {
 		outputPos[i] = paramState[Params::kParamY0 + i];
 	}
 	processorImpl->resonator.setOutputPositions({ outputPos, outputPos });
+	// FDebugPrint("Outputpos %f, %f, %f, %f,%f, %f, %f, %f, %f, %f\n", outputPos[0], outputPos[1], outputPos[2], outputPos[3], outputPos[4], outputPos[5], outputPos[6], outputPos[7], outputPos[8], outputPos[9]);
+}
+
+void Processor::updateResonatorDimension() {
+	dim = std::min<int8>(maxDimension - 1, (int8)(paramState[Params::kParamDim] * maxDimension)) + 1;
+	processorImpl->setResonatorDim(dim);
+	processorImpl->setResonatorFreq(resFreq, dampening, sonicVel);
+	processorImpl->setFilterCutoff(paramState[Params::kParamCutoff]);
+	// Need to reevaluate all eigenfunctions 
+	updateResonatorInputPosition();
+	updateResonatorOutputPosition();
+	// auto& f = processorImpl->resonator.inputPosEF[0];
+	// FDebugPrint("Out EF %i: %f, %f, %f, %f,%f, %f, %f, %f, %f, %f\n", dim, f[0].real(), f[1].real(), f[2].real(), f[3].real(), f[4].real(), f[5].real(), f[6].real(), f[7].real(), f[8].real(), f[9].real());
 }
 
 void Processor::addOutputPoint(ProcessData& data, ParamID id, ParamValue value) {

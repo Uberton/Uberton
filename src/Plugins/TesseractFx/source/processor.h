@@ -38,10 +38,18 @@ private:
 	double vuPPM = 0;
 	double vuPPMOld = 0;
 
-	void recomputeParameters() override;
+	// Inexpensive parameter udpates
 	void recomputeInexpensiveParameters();
+
+	// Expensive parameter udpates
 	void updateResonatorInputPosition();
 	void updateResonatorOutputPosition();
+	void updateResonatorDimension();
+
+	// Update all parameters (expensive and inexpensive)
+	void recomputeParameters() override;
+
+	// Add data point to data.outputParameterChanges
 	void addOutputPoint(ProcessData& data, ParamID id, ParamValue value);
 
 	float gain{ 0 };
@@ -49,8 +57,7 @@ private:
 	float sonicVel{ 0 };
 	float resFreq{ 0 };
 	float wet{ 1 };
-
-	bool needToUpdatePositions{ false };
+	int dim = maxDimension;
 
 
 	using Vec = ProcessorImpl<float>::Vec;

@@ -20,7 +20,7 @@ namespace Uberton {
 namespace TesseractFx {
 
 
-constexpr int maxDimension = 5;
+constexpr int maxDimension = 10;
 
 enum Params : Steinberg::Vst::ParamID {
 	kParamVol,

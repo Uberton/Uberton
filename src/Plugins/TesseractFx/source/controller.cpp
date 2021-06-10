@@ -32,6 +32,7 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 	addRangeParam(Params::kParamDampening, "Dampening", "%", { 0, 10, 1 });
 	addRangeParam(Params::kParamC, "Sonic Vel", "m/s", { .1, 1000, 10 });
 	addRangeParam(Params::kParamVUPPM, "Output Level", "dB", { 0, 1, 0 }, ReadOnly);
+	addRangeParam(Params::kParamDim, "Dimension", "D", { 1, maxDimension, 5 })->getInfo().stepCount = maxDimension - 1;
 
 	UString256 a("", 10);
 	for (int i = 0; i < maxDimension; i++) {
