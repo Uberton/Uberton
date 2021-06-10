@@ -23,7 +23,7 @@ public:
 		Bandpass
 	};
 
-	Filter(Mode mode = Mode::Lowpass) : mode(mode) {
+	Filter(Mode mode = Mode::Highpass) : mode(mode) {
 		calculateFeedbackAmount();
 	}
 
@@ -40,7 +40,7 @@ public:
 
 	void setCutoff(double value) {
 		cutoff = value;
-		if (value > .999)// prevent divisions through zero
+		if (value > .999) // prevent divisions through zero
 			cutoff = .999;
 		calculateFeedbackAmount();
 	}

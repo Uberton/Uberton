@@ -67,7 +67,7 @@ public:
 		return result;
 	}
 
-	void addRangeParam(Vst::ParamID id, UString256 name, UString256 units, std::array<ParamValue, 3> minMaxDefault, bool readonly = false) {
+	RangeParameter* addRangeParam(Vst::ParamID id, UString256 name, UString256 units, std::array<ParamValue, 3> minMaxDefault, bool readonly = false) {
 		int flags = 0;
 		if (readonly) {
 			flags |= ParameterInfo::kIsReadOnly;
@@ -75,8 +75,10 @@ public:
 		else {
 			flags |= ParameterInfo::kCanAutomate;
 		}
-		auto p = parameters.addParameter(new RangeParameter(name, id, units, minMaxDefault[0], minMaxDefault[1], minMaxDefault[2], 0, flags));
+		auto p = new RangeParameter(name, id, units, minMaxDefault[0], minMaxDefault[1], minMaxDefault[2], 0, flags);
+		parameters.addParameter(p);
 		p->setUnitID(currentUnitID);
+		return p;
 	}
 
 	// all parameters created with addRangeParam() after setting current unit id will get this id

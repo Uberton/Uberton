@@ -137,6 +137,7 @@ public:
 
 template<class T, int d>
 bool operator==(const Vector<T, d>& a, const Vector<T, d>& b) {
+	using Index = typename Vector<T, d>::Index;
 	for (Index i = 0; i < d; i++)
 		if (a[i] != b[i]) return false;
 	return true;

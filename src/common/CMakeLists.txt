@@ -17,6 +17,7 @@ add_library(uberton_common
         source/resonator.h
         source/parameters.h
         source/filter.h
+        source/cube_ewp_n=50.h
 )
 
 
