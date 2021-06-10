@@ -35,7 +35,7 @@ namespace Math {
 //   Parent:	CRTP-style parent class that implements the specific eigenvalue problem
 //	T:		float type (float/double)
 //	d:		dimension (1, 2, ...)
-//	N:		number of eigenvalues taken into acount
+//	N:		(maximum) number of eigenvalues taken into acount
 //	channels: number of input/output "channels" or positions
 //
 // The parent class needs to implement the functions
@@ -75,16 +75,23 @@ public:
 	template<class T, int n>
 	using array = std::array<T, n>;
 
-
+	/// Initialize resonator with sample rate in Hz (i.e. 44100)
 	void setSampleRate(T sampleRate) {
 		this->deltaT = T{ 1. } / sampleRate;
 		update();
 	}
 
+	/// The actual order to which the system response will be computed as well as excited
+	/// can be set lower than N (the max order)
+	void setOrder(int order) {
+		this->order = std::max(1, std::min(N, order));
+	}
+
+
 	/// Excite the system at current input positions with a peak of given amounts
 	void delta(const array<real, channels>& amount) {
 		for (int ch = 0; ch < channels; ++ch) {
-			for (int i = 0; i < N; ++i) {
+			for (int i = 0; i < order; ++i) {
 				amplitudes[i] += amount[ch] * inputPosEF[ch][i];
 			}
 		}
@@ -95,7 +102,7 @@ public:
 		evolve();
 		array<real, channels> results{ 0 };
 		for (int ch = 0; ch < channels; ++ch) {
-			for (int i = 0; i < N; ++i) {
+			for (int i = 0; i < order; ++i) {
 				results[ch] += (amplitudes[i] * outputPosEF[ch][i]).real();
 			}
 		}
@@ -131,7 +138,7 @@ public:
 
 	T time() const { return time; }
 	constexpr int dimension() const { return d; }
-	constexpr int degree() const { return N; }
+	constexpr int maxOrder() const { return N; }
 	constexpr int numChannels() const { return channels; }
 
 protected:
@@ -144,7 +151,7 @@ protected:
 
 	void evolve() {
 		absoluteTime += deltaT;
-		for (int i = 0; i < N; i++) {
+		for (int i = 0; i < order; i++) {
 			constexpr scalar imagUnit = scalar(0, 1);
 			amplitudes[i] *= timeFunctions[i]; // precomputing these is up to 20 times faster
 		}
@@ -168,6 +175,8 @@ public:
 	// eigenfunction evaluations at input/output positions
 	array<array<scalar, N>, channels> outputPosEF{};
 	array<array<scalar, N>, channels> inputPosEF{};
+
+	int order{ N };
 };
 
 

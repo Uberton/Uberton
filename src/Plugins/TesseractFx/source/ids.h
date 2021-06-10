@@ -21,6 +21,7 @@ namespace TesseractFx {
 
 
 constexpr int maxDimension = 10;
+constexpr int maxOrder = 10;
 
 enum Params : Steinberg::Vst::ParamID {
 	kParamVol,
@@ -38,6 +39,7 @@ enum Params : Steinberg::Vst::ParamID {
 	kParamY0,
 	kParamYL = kParamY0 + maxDimension-1,
 	kParamNewValue,
+	kParamOrder,
 
 	kParamVUPPM,
 	kNumGlobalParameters

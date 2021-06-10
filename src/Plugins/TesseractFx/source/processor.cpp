@@ -23,6 +23,7 @@ Processor::Processor() {
 	paramState[Params::kParamDampening] = .1;
 	paramState[Params::kParamC] = 5;
 	paramState[Params::kParamDim] = 1;
+	paramState[Params::kParamOrder] = 1;
 
 	for (int i = 0; i < maxDimension; i++) {
 		paramState[Params::kParamX0 + i] = .5;
@@ -134,18 +135,18 @@ void Processor::processParameterChanges(IParameterChanges* inputParameterChanges
 			if (id == Params::kParamDim) {
 				updateResonatorDimension();
 			}
-			
 		}
 
 		);
-		recomputeInexpensiveParameters();
 	});
+	recomputeInexpensiveParameters();
 }
 
 void Processor::recomputeParameters() {
+	//updateResonatorInputPosition();
+	//updateResonatorOutputPosition();
 	recomputeInexpensiveParameters();
-	updateResonatorInputPosition();
-	updateResonatorOutputPosition();
+	updateResonatorDimension();
 }
 
 void Processor::recomputeInexpensiveParameters() {
@@ -154,9 +155,14 @@ void Processor::recomputeInexpensiveParameters() {
 	dampening = paramState[Params::kParamDampening] * 100;
 	sonicVel = paramState[Params::kParamC] * (1000 - .1) + .1;
 	wet = paramState[Params::kParamMix];
+	order = std::min<int8>(maxOrder - 1, (int8)(paramState[Params::kParamOrder] * maxOrder)) + 1;
+	// auto& f = processorImpl->resonator.timeFunctions;
+	// FDebugPrint("Out EF %i %i: %f, %f, %f, %f,%f, %f, %f, %f, %f, %f\n", dim, order, f[0].real(), f[1].real(), f[2].real(), f[3].real(), f[4].real(), f[5].real(), f[6].real(), f[7].real(), f[8].real(), f[9].real());
+
 	if (processorImpl) {
 		processorImpl->setResonatorFreq(resFreq, dampening, sonicVel);
 		processorImpl->setFilterCutoff(paramState[Params::kParamCutoff]);
+		processorImpl->setResonatorOrder(order);
 	}
 }
 
@@ -183,9 +189,7 @@ void Processor::updateResonatorOutputPosition() {
 void Processor::updateResonatorDimension() {
 	dim = std::min<int8>(maxDimension - 1, (int8)(paramState[Params::kParamDim] * maxDimension)) + 1;
 	processorImpl->setResonatorDim(dim);
-	processorImpl->setResonatorFreq(resFreq, dampening, sonicVel);
-	processorImpl->setFilterCutoff(paramState[Params::kParamCutoff]);
-	// Need to reevaluate all eigenfunctions 
+	// Need to reevaluate all eigenfunctions
 	updateResonatorInputPosition();
 	updateResonatorOutputPosition();
 	// auto& f = processorImpl->resonator.inputPosEF[0];

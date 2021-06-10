@@ -31,7 +31,7 @@ template<typename SampleType>
 class ProcessorImpl : public ProcessorImplBase
 {
 public:
-	constexpr static int maxOrder = 10;
+	constexpr static int maxOrder = maxOrder;
 	constexpr static int numChannels = 2;
 	using Type = SampleType;
 	using Vec = Math::Vector<SampleType, maxDimension>;
@@ -52,15 +52,20 @@ public:
 	void setResonatorDim(int dim) {
 		if (dim != resonator.getDim()) {
 			resonator.setDim(dim);
+			resonator.setFreqDampeningAndVelocity(currentResFreq, currentResDamp, currentResVel); // need to update this when dim changed
 		}
+	}
+
+	void setResonatorOrder(int order) {
+		resonator.setOrder(order);
 	}
 
 	void setResonatorFreq(SampleType freq, SampleType damp, SampleType vel) {
 		if (freq != currentResFreq || damp != currentResDamp || vel != currentResVel) {
 			resonator.setFreqDampeningAndVelocity(freq, damp, vel);
 			currentResFreq = freq;
-			currentResVel = vel;
 			currentResDamp = damp;
+			currentResVel = vel;
 		}
 	}
 

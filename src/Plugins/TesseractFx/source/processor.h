@@ -58,6 +58,7 @@ private:
 	float resFreq{ 0 };
 	float wet{ 1 };
 	int dim = maxDimension;
+	int order = maxOrder;
 
 
 	using Vec = ProcessorImpl<float>::Vec;
