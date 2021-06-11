@@ -36,7 +36,7 @@ public:
 	using Type = SampleType;
 	using Vec = Math::Vector<SampleType, maxDimension>;
 	using SampleVec = Math::Vector<SampleType, numChannels>;
-	//using Resonator = Math::CubeResonator<SampleType, dim, order, numChannels>;
+	//using Resonator = Math::CubeResonator<SampleType, resonatorDim, resonatorOrder, numChannels>;
 	using Resonator = Math::PreComputedCubeResonator<SampleType, maxDimension, maxOrder, numChannels>;
 
 
@@ -49,15 +49,15 @@ public:
 		resonator.setSampleRate(sampleRate);
 	}
 
-	void setResonatorDim(int dim) {
-		if (dim != resonator.getDim()) {
-			resonator.setDim(dim);
-			resonator.setFreqDampeningAndVelocity(currentResFreq, currentResDamp, currentResVel); // need to update this when dim changed
+	void setResonatorDim(int resonatorDim) {
+		if (resonatorDim != resonator.getDim()) {
+			resonator.setDim(resonatorDim);
+			resonator.setFreqDampeningAndVelocity(currentResFreq, currentResDamp, currentResVel); // need to update this when resonatorDim changed
 		}
 	}
 
-	void setResonatorOrder(int order) {
-		resonator.setOrder(order);
+	void setResonatorOrder(int resonatorOrder) {
+		resonator.setOrder(resonatorOrder);
 	}
 
 	void setResonatorFreq(SampleType freq, SampleType damp, SampleType vel) {

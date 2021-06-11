@@ -26,22 +26,22 @@ constexpr int maxOrder = 10;
 enum Params : Steinberg::Vst::ParamID {
 	kParamVol,
 	kParamMix,
-	kParamDim,
-	kParamFreq,
-	kParamCutoff,
+
 	kParamResonatorType,
-	kParamDampening,
-	kParamC,
+	kParamResonatorDim,
+	kParamResonatorOrder,
+	kParamResonatorFreq,
+	kParamResonatorDamp,
+	kParamResonatorVel,
 
-	kParamX0,
-	kParamXL = kParamX0 + maxDimension-1,
+	kParamFilterCutoff,
 
-	kParamY0,
-	kParamYL = kParamY0 + maxDimension-1,
-	kParamNewValue,
-	kParamOrder,
+	kParamIn0,
+	kParamXL = kParamIn0 + maxDimension - 1,
+	kParamOut0,
+	kParamYL = kParamOut0 + maxDimension - 1,
 
-	kParamVUPPM,
+	kParamVUPPM, // OUT
 	kNumGlobalParameters
 };
 

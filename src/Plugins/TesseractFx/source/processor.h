@@ -34,10 +34,6 @@ public:
 	static FUnknown* createInstance(void*) { return (Vst::IAudioProcessor*)new Processor(); }
 
 private:
-	std::unique_ptr<ProcessorImpl<float>> processorImpl;
-	double vuPPM = 0;
-	double vuPPMOld = 0;
-
 	// Inexpensive parameter udpates
 	void recomputeInexpensiveParameters();
 
@@ -52,16 +48,21 @@ private:
 	// Add data point to data.outputParameterChanges
 	void addOutputPoint(ProcessData& data, ParamID id, ParamValue value);
 
-	float gain{ 0 };
-	float dampening{ 0 };
-	float sonicVel{ 0 };
-	float resFreq{ 0 };
-	float wet{ 1 };
-	int dim = maxDimension;
-	int order = maxOrder;
-
 
 	using Vec = ProcessorImpl<float>::Vec;
+
+	std::unique_ptr<ProcessorImpl<float>> processorImpl;
+
+	float volume{ 0 };
+	float mix{ 1 };
+	int resonatorDim = maxDimension;
+	int resonatorOrder = maxOrder;
+	float resonatorFreq{ 0 };
+	float resonatorDamp{ 0 };
+	float resonatorVel{ 0 };
+
+	double vuPPM = 0;
+	double vuPPMOld = 0;
 };
 
 }
