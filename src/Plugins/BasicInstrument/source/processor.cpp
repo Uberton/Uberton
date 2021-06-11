@@ -49,7 +49,7 @@ void Processor::processAudio(ProcessData& data) {
 	int32 numSamples = data.numSamples;
 
 	Sample32** out = data.outputs[0].channelBuffers32;
-	float gain = paramState.params[kParamVolId];
+	float volume = paramState.params[kParamVolId];
 
 	if (playing) {
 		for (int32 i = 0; i < numSamples; i++) {
@@ -57,7 +57,7 @@ void Processor::processAudio(ProcessData& data) {
 			sample = resonator.next()[0];
 
 			for (int32 channel = 0; channel < numChannels; channel++) {
-				out[channel][i] = sample * gain;
+				out[channel][i] = sample * volume;
 			}
 		}
 	}

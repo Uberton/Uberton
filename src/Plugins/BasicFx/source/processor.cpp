@@ -41,11 +41,11 @@ void Processor::processAudio(ProcessData& data) {
 	Sample32** in = data.inputs[0].channelBuffers32;
 	Sample32** out = data.outputs[0].channelBuffers32;
 
-	float gain = paramState[Params::kParamVolId];
+	float volume = paramState[Params::kParamVolId];
 
 	for (int32 i = 0; i < numChannels; i++) {
 		for (int32 sample = 0; sample < numSamples; sample++) {
-			out[i][sample] = in[i][sample] * gain;
+			out[i][sample] = in[i][sample] * volume;
 		}
 	}
 }

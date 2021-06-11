@@ -107,4 +107,17 @@ constexpr ParamID bypassId = 1000001;
 //};
 
 
+/// Turn discrete value between min and max to normalized ParamValue from 0 to 1
+inline ParamValue discreteToNormalized(int value, int min, int max) {
+	return (value - min) / static_cast<ParamValue>(max - min);
+}
+
+/// Turn normalized ParamValue from 0 to 1 tp discrete value between min and max
+inline int normalizedToDiscrete(ParamValue value, int min, int max) {
+	return std::min<int>(max - min, static_cast<int>(value * (max - min + 1))) + min;
+}
+
+
+
+
 } // namespace Uberton
