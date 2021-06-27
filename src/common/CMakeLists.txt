@@ -18,6 +18,7 @@ add_library(uberton_common
         source/parameters.h
         source/filter.h
         source/cube_ewp_n=50.h
+        source/cube_ewp_n=200.h
 )
 
 

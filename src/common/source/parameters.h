@@ -117,6 +117,12 @@ inline int normalizedToDiscrete(ParamValue value, int min, int max) {
 	return std::min<int>(max - min, static_cast<int>(value * (max - min + 1))) + min;
 }
 
+inline ParamValue normalizedToScaled(ParamValue value, int min, int max) {
+	return value * (max - min) + min;
+}
+inline ParamValue scaledToNormalized(ParamValue value, int min, int max) {
+	return (value - min) / (max - min);
+}
 
 
 
