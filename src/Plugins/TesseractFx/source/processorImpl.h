@@ -13,7 +13,8 @@
 
 #include <public.sdk/samples/vst/common/logscale.h>
 #include <resonator.h>
-#include <filter.h>
+//#include <filter.h>
+#include <../../Plugins/Synth1/source/filter.h>
 #include "ids.h"
 
 
@@ -38,12 +39,16 @@ public:
 	using SampleVec = Math::Vector<SampleType, numChannels>;
 	//using Resonator = Math::CubeResonator<SampleType, resonatorDim, resonatorOrder, numChannels>;
 	using Resonator = Math::PreComputedCubeResonator<SampleType, maxDimension, maxOrder, numChannels>;
+	using Filter = Steinberg::Vst::NoteExpressionSynth::Filter;
 
 
 	void init(float sampleRate) override {
 		for (auto& filter : filters) {
-			filter.setCutoff(.2);
-			filter.setMode(Filter::Mode::Highpass);
+			//filter.setCutoff(.2);
+			//filter.setMode(Filter::Mode::Highpass);
+			filter.setSampleRate(sampleRate);
+			filter.setFreqAndQ(220, 10);
+			filter.setType(Filter::Type::kHighpass);
 		}
 
 		resonator.setSampleRate(sampleRate);
@@ -69,9 +74,10 @@ public:
 		}
 	}
 
-	void setFilterCutoff(double value) {
+	void setFilterCutoff(double freq, double q) {
 		for (auto& filter : filters) {
-			filter.setCutoff(value);
+			filter.setFreqAndQ(freq, q);
+			//filter.setCutoff(value);
 		}
 	}
 
@@ -85,9 +91,44 @@ public:
 		//return { static_cast<SampleType>(f1.process(tmp[0])), static_cast<SampleType>(f2.process(tmp[1])) };
 	}
 
+	void processAll(ProcessData& data, float mix, float volume) {
+		int32 numSamples = data.numSamples;
+		
+		SampleType** in = (SampleType**)data.inputs[0].channelBuffers32;
+		SampleType** out = (SampleType**)data.outputs[0].channelBuffers32;
+
+
+		SampleType* sInL;
+		SampleType* sInR;
+		float wet = mix;
+		float dry = 1 - wet;
+		std::array<SampleType, numChannels> input;
+		SampleVec tmp;
+
+		for (int32 i = 0; i < numSamples; i++) {
+			//sInL = in[0] + i;
+			//sInR = in[1] + i;
+
+			//resonator.delta({ *sInL, *sInR });
+
+			for (int ch = 0; ch < numChannels; ch++) {
+				input[ch] = *(in[ch] + i);
+			}
+			resonator.delta(input);
+			tmp = resonator.next();
+			for (int ch = 0; ch < numChannels; ch++) {
+				tmp[ch] = filters[ch].process(tmp[ch]) * .01; // its tooooo loud!!
+				*(out[ch] + i) = volume * tmp[ch] * wet + dry * (*(in[ch] + i));
+			}
+
+			//*(out[0] + i) = volume * tmp[0] * wet + dry * (*sInL);
+			//*(out[1] + i) = volume * tmp[1] * wet + dry * (*sInR);
+		}
+	}
+
 
 	Resonator resonator;
-	std::array<Filter, numChannels> filters;
+	std::array<Filter, numChannels> filters{ Filter::Type::kHighpass, Filter::Type::kHighpass };
 	LogScale<ParamValue> freqLogScale{ 0., 1., 80., 18000., 0.5, 1800. };
 
 	//Filter f1{ Filter::Mode::Highpass };

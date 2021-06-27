@@ -49,7 +49,11 @@ private:
 	void addOutputPoint(ProcessData& data, ParamID id, ParamValue value);
 
 
+
 	using Vec = ProcessorImpl<float>::Vec;
+
+	Vec inputPosSpaceCurve(ParamValue t);  // t in [0,1]; returns 0 vector for t = 0.5
+	Vec outputPosSpaceCurve(ParamValue t); // t in [0,1]; returns 0 vector for t = 0.5
 
 	std::unique_ptr<ProcessorImpl<float>> processorImpl;
 

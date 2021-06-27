@@ -25,9 +25,19 @@ Processor::Processor() {
 	paramState[Params::kParamResonatorDamp] = .1;
 	paramState[Params::kParamResonatorVel] = 5;
 
+	paramState[Params::kParamInPosCurveL] = .5;
+	paramState[Params::kParamInPosCurveR] = .5;
+	paramState[Params::kParamOutPosCurveL] = .5;
+	paramState[Params::kParamOutPosCurveR] = .5;
+
+	paramState[Params::kParamLCFreq] = 0;
+	paramState[Params::kParamLCQ] = 0;
+
 	for (int i = 0; i < maxDimension; i++) {
-		paramState[Params::kParamIn0 + i] = .5;
-		paramState[Params::kParamOut0 + i] = .5;
+		paramState[Params::kParamInL0 + i] = .5;
+		paramState[Params::kParamInR0 + i] = .5;
+		paramState[Params::kParamOutL0 + i] = .5;
+		paramState[Params::kParamOutR0 + i] = .5;
 	}
 }
 
@@ -89,8 +99,8 @@ void Processor::processAudio(ProcessData& data) {
 		}
 		data.outputs[0].silenceFlags = 0;
 	}
-
-	Sample32* sInL;
+	processorImpl->processAll(data, mix, volume);
+	/*Sample32* sInL;
 	Sample32* sInR;
 	float wet = mix;
 	float dry = 1 - wet;
@@ -112,7 +122,7 @@ void Processor::processAudio(ProcessData& data) {
 	if (vuPPM != vuPPMOld) {
 		//float db = 20 * std::log10(vuPPM);
 		addOutputPoint(data, kParamVUPPM, vuPPM);
-	}
+	}*/
 }
 
 void Processor::processParameterChanges(IParameterChanges* inputParameterChanges) {
@@ -126,10 +136,10 @@ void Processor::processParameterChanges(IParameterChanges* inputParameterChanges
 			else {
 				paramState.params[id] = value;
 			}
-			if (id >= Params::kParamIn0 && id < Params::kParamIn0 + maxDimension) {
+			if (id == Params::kParamInPosCurveL || id == Params::kParamInPosCurveR || (id >= Params::kParamInL0 && id <= Params::kParamInRN)) {
 				updateResonatorInputPosition();
 			}
-			if (id >= Params::kParamOut0 && id < Params::kParamOut0 + maxDimension) {
+			if (id == Params::kParamOutPosCurveL || id == Params::kParamOutPosCurveR || (id >= Params::kParamOutL0 && id <= Params::kParamOutRN)) {
 				updateResonatorOutputPosition();
 			}
 			if (id == Params::kParamResonatorDim) {
@@ -143,10 +153,8 @@ void Processor::processParameterChanges(IParameterChanges* inputParameterChanges
 }
 
 void Processor::recomputeParameters() {
-	//updateResonatorInputPosition();
-	//updateResonatorOutputPosition();
 	recomputeInexpensiveParameters();
-	updateResonatorDimension();
+	updateResonatorDimension(); // also updates positions!
 }
 
 void Processor::recomputeInexpensiveParameters() {
@@ -162,28 +170,36 @@ void Processor::recomputeInexpensiveParameters() {
 
 	if (processorImpl) {
 		processorImpl->setResonatorFreq(resonatorFreq, resonatorDamp, resonatorVel);
-		processorImpl->setFilterCutoff(paramState[Params::kParamFilterCutoff]);
+		ParamValue LCFreq = normalizedToScaled(paramState[Params::kParamLCFreq], 20, 8000);
+		ParamValue LCQ = normalizedToScaled(paramState[Params::kParamLCQ], 1, 8);
+		processorImpl->setFilterCutoff(LCFreq, LCQ);
 		processorImpl->setResonatorOrder(resonatorOrder);
 	}
 }
 
 void Processor::updateResonatorInputPosition() {
-	Vec inputPos;
-	size_t d = inputPos.size();
+	Vec inputPosL, inputPosR;
+	size_t d = inputPosL.size();
 	for (int i = 0; i < d; i++) {
-		inputPos[i] = paramState[Params::kParamIn0 + i];
+		inputPosL[i] = paramState[Params::kParamInL0 + i];
+		inputPosR[i] = paramState[Params::kParamInR0 + i];
 	}
-	processorImpl->resonator.setInputPositions({ inputPos, inputPos });
+	inputPosL += inputPosSpaceCurve(paramState[Params::kParamInPosCurveL]);
+	inputPosR += inputPosSpaceCurve(paramState[Params::kParamInPosCurveR]);
+	processorImpl->resonator.setInputPositions({ inputPosL, inputPosR });
 	// FDebugPrint("Outputpos %f, %f, %f, %f,%f, %f, %f, %f, %f, %f\n", inputPos[0], inputPos[1], inputPos[2], inputPos[3], inputPos[4], inputPos[5], inputPos[6], inputPos[7], inputPos[8], inputPos[9]);
 }
 
 void Processor::updateResonatorOutputPosition() {
-	Vec outputPos;
-	size_t d = outputPos.size();
+	Vec outputPosL, outputPosR;
+	size_t d = outputPosL.size();
 	for (int i = 0; i < d; i++) {
-		outputPos[i] = paramState[Params::kParamOut0 + i];
+		outputPosL[i] = paramState[Params::kParamOutL0 + i];
+		outputPosR[i] = paramState[Params::kParamOutR0 + i];
 	}
-	processorImpl->resonator.setOutputPositions({ outputPos, outputPos });
+	outputPosL += outputPosSpaceCurve(paramState[Params::kParamOutPosCurveL]);
+	outputPosR += outputPosSpaceCurve(paramState[Params::kParamOutPosCurveR]);
+	processorImpl->resonator.setOutputPositions({ outputPosL, outputPosR });
 	// FDebugPrint("Outputpos %f, %f, %f, %f,%f, %f, %f, %f, %f, %f\n", outputPos[0], outputPos[1], outputPos[2], outputPos[3], outputPos[4], outputPos[5], outputPos[6], outputPos[7], outputPos[8], outputPos[9]);
 }
 
@@ -206,6 +222,44 @@ void Processor::addOutputPoint(ProcessData& data, ParamID id, ParamValue value) 
 			queue->addPoint(0, value, index);
 		}
 	}
+}
+
+Processor::Vec Processor::inputPosSpaceCurve(ParamValue t) {
+	float pi = 3.1415926;
+	float t_ = t - .5;
+	float phi = t_ * 1.5 * pi;
+	// for t == 0.5 this function returns the 0 vector.
+	return Vec{
+		t_ * 0.5f,
+		phi / (2 * pi) * std::sinf(phi),
+		phi / (2 * pi) * std::cosf(phi + pi * 0.5f),
+		t_ * 0.5f,
+		t_ * 0.5f,
+		t_ * 0.5f,
+		t_ * 0.5f,
+		t_ * 0.5f,
+		t_ * 0.5f,
+		t_ * 0.5f
+	};
+}
+
+Processor::Vec Processor::outputPosSpaceCurve(ParamValue t) {
+	float pi = 3.1415926;
+	float t_ = t - .5;
+	float phi = t_ * 1.5 * pi;
+	// for t == 0.5 this function returns the 0 vector.
+	return Vec{
+		t_ * 0.5f,
+		phi / (2 * pi) * std::sinf(phi),
+		phi / (2 * pi) * std::cosf(phi + pi * 0.5f),
+		t_ * 0.5f,
+		t_ * 0.5f,
+		t_ * 0.5f,
+		t_ * 0.5f,
+		t_ * 0.5f,
+		t_ * 0.5f,
+		t_ * 0.5f
+	};
 }
 
 } // namespace TesseractFx
