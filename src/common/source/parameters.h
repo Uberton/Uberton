@@ -113,17 +113,88 @@ inline ParamValue discreteToNormalized(int value, int min, int max) {
 }
 
 /// Turn normalized ParamValue from 0 to 1 tp discrete value between min and max
-inline int normalizedToDiscrete(ParamValue value, int min, int max) {
+inline int normalizedToDiscrete(double value, int min, int max) {
 	return std::min<int>(max - min, static_cast<int>(value * (max - min + 1))) + min;
 }
 
-inline ParamValue normalizedToScaled(ParamValue value, int min, int max) {
+inline double normalizedToScaled(double value, double min, double max) {
 	return value * (max - min) + min;
 }
-inline ParamValue scaledToNormalized(ParamValue value, int min, int max) {
+inline double scaledToNormalized(double value, double min, double max) {
 	return (value - min) / (max - min);
 }
 
 
+template<class FloatType>
+class RampedParameter
+{
+public:
+	RampedParameter(FloatType value, FloatType numRampSamples) : value(value), targetValue(value),
+																 numRampSamples(numRampSamples) {
+	}
+
+	void set(FloatType newValue) noexcept {
+		if (newValue == targetValue) return;
+		targetValue = newValue;
+		countdown = numRampSamples;
+		delta = (targetValue - value) / numRampSamples;
+	}
+
+	FloatType get() const noexcept {
+		return value;
+	}
+
+	// returns true when finished
+	bool step() noexcept {
+		if (countdown <= 0) return true;
+		countdown--;
+		value = targetValue + countdown * delta;
+		//value += ramp; // might over-/undershoot a bit because of fp precision
+		return false;
+
+		delta *= countdown;
+		value += delta;
+	}
+
+private:
+	FloatType value;
+	FloatType targetValue;
+	FloatType delta{ 0 };
+	int countdown{ 0 };
+	const FloatType numRampSamples;
+};
+
+struct ParamSpec
+{
+	constexpr ParamSpec(int id, double min, double max, double defaultValue, double initialValue)
+		: id(id), minValue(min), maxValue(max),
+		  defaultValue(defaultValue), initialValue(initialValue) {}
+
+	constexpr ParamSpec(int id, const double (&minMaxDefault)[3], double initialValue)
+		: id(id), minValue(minMaxDefault[0]), maxValue(minMaxDefault[1]),
+		  defaultValue(minMaxDefault[2]), initialValue(initialValue) {}
+
+	const int32_t id;
+	const double initialValue;
+	const double defaultValue;
+	const double minValue;
+	const double maxValue;
+
+	double fromDiscrete(int value) const {
+		return discreteToNormalized(value, minValue, maxValue);
+	}
+
+	int toDiscrete(double value) const {
+		return normalizedToDiscrete(value, minValue, maxValue);
+	}
+
+	double toNormalized(double value) const {
+		return scaledToNormalized(value, minValue, maxValue);
+	}
+
+	double toScaled(double value) const {
+		return normalizedToScaled(value, minValue, maxValue);
+	}
+};
 
 } // namespace Uberton

@@ -64,6 +64,7 @@ private:
 
 
 
+
 /*
  * Processor base class that uses some kind of global parameter state with specifications
  * as described in parameters.h.
@@ -73,18 +74,78 @@ private:
  * state.
  */
 template<class ParamState, bool hasBypass = ImplementBypass>
-//requires requires (ParamState p, IBStream* stream, EditController& controller) {
+// requires requires (ParamState p, IBStream* stream, EditController& controller, bool b, int i) {
 //	{ p.getState(stream) } -> std::convertible_to<tresult>;
 //	{ p.setState(stream) } -> std::convertible_to<tresult>;
 //	{ p.setComponentState(stream, controller) } -> std::convertible_to<tresult>;
-//}
+//	{ p[i] } -> std::convertible_to<double>;
+//	{ p.isBypassed() } -> std::convertible_to<bool>;
+//	p.setBypass(b);
+// }
 class ProcessorBase;
+
+
+
+/*
+ * Parent for this Processor Base class - contains common parts for ProcessorBase with and without bypass 
+ */
+template<class ParamState>
+class ProcessorBaseCommon : public AudioEffect
+{
+public:
+	tresult PLUGIN_API getState(IBStream* state) SMTG_OVERRIDE { return paramState.getState(state); }
+
+	virtual void processAudio(ProcessData& data) = 0;
+	virtual void processParameterChanges(IParameterChanges* parameterChanges) = 0;
+	virtual void processEvents(IEventList* eventList) {}
+
+	void checkSilence(ProcessData& data) {
+		for (int32 i = 0; i < data.numOutputs; i++) {
+			auto& bus = data.outputs[i];
+			bus.silenceFlags = 0;
+			if (!getAudioOutput(i)->isActive()) continue;
+			for (int32 ch = 0; ch < bus.numChannels; ch++) {
+				bool isSilent = true;
+				for (int32 sample = 0; sample < data.numSamples; sample += 20) {
+					if (std::abs(bus.channelBuffers32[ch][sample]) > 0.0001) {
+						isSilent = false;
+						break;
+					}
+				}
+				if (isSilent) {
+					bus.silenceFlags |= (uint64)1 << ch;
+				}
+			}
+		}
+	}
+
+	ParamValue toScaled(const ParamSpec& p) {
+		return p.toScaled(paramState[p.id]);
+	}
+
+	int toDiscrete(const ParamSpec& p) {
+		return p.toDiscrete(paramState[p.id]);
+	}
+
+protected:
+	ParamState paramState;
+};
+
+
+
 
 //
 // Implementation with bypass
+// --------------------------
+// Additional reqirements for ParamState (ParamState needs to store bypass state):
+//
+// requires requires (ParamState p, bool b) {
+//	{ p.isBypassed() } -> std::convertible_to<bool>;
+//	p.setBypass(b);
+// }
 //
 template<class ParamState>
-class ProcessorBase<ParamState, ImplementBypass> : public AudioEffect
+class ProcessorBase<ParamState, ImplementBypass> : public ProcessorBaseCommon<ParamState>
 {
 public:
 	tresult PLUGIN_API process(ProcessData& data) SMTG_OVERRIDE {
@@ -103,11 +164,6 @@ public:
 		recomputeParameters();
 		return r;
 	}
-	tresult PLUGIN_API getState(IBStream* state) SMTG_OVERRIDE { return paramState.getState(state); }
-
-	virtual void processAudio(ProcessData& data) = 0;
-	virtual void processParameterChanges(IParameterChanges* parameterChanges) = 0;
-	virtual void processEvents(IEventList* eventList) {}
 
 	bool bypassProcessing(ProcessData& data) {
 		if (data.numSamples == 0) return true;
@@ -158,27 +214,10 @@ public:
 		return false;
 	}
 
-	void checkSilence(ProcessData& data) {
-		for (int32 i = 0; i < data.numOutputs; i++) {
-			auto& bus = data.outputs[i];
-			bus.silenceFlags = 0;
-			if (!getAudioOutput(i)->isActive()) continue;
-			for (int32 ch = 0; ch < bus.numChannels; ch++) {
-				bool isSilent = true;
-				for (int32 sample = 0; sample < data.numSamples; sample += 20) {
-					if (std::abs(bus.channelBuffers32[ch][sample]) > 0.0001) {
-						isSilent = false;
-						break;
-					}
-				}
-				if (isSilent) {
-					bus.silenceFlags |= (uint64)1 << ch;
-				}
-			}
-		}
-	}
 
-	bool isBypassed() const { return paramState.isBypassed(); }
+	bool isBypassed() const {
+		return paramState.isBypassed();
+	}
 
 	void setBypassed(bool state) {
 		if (state == paramState.isBypassed()) return;
@@ -188,8 +227,6 @@ public:
 		else
 			bypassingState = BypassingState::RampToOn;
 	}
-
-	ParamState paramState;
 
 	virtual void recomputeParameters() {}
 
@@ -202,11 +239,12 @@ private:
 	BypassingState bypassingState{ BypassingState::None };
 };
 
+
 //
 // Implementation without bypass
 //
 template<class ParamState>
-class ProcessorBase<ParamState, NoBypass> : public AudioEffect
+class ProcessorBase<ParamState, NoBypass> : public ProcessorBaseCommon<ParamState>
 {
 public:
 	tresult PLUGIN_API process(ProcessData& data) SMTG_OVERRIDE {
@@ -225,34 +263,6 @@ public:
 		recomputeParameters();
 		return r;
 	}
-	tresult PLUGIN_API getState(IBStream* state) SMTG_OVERRIDE { return paramState.getState(state); }
-
-	virtual void processAudio(ProcessData& data) = 0;
-	virtual void processParameterChanges(IParameterChanges* parameterChanges) = 0;
-	virtual void processEvents(IEventList* eventList) {}
-
-	void checkSilence(ProcessData& data) {
-		for (int32 i = 0; i < data.numOutputs; i++) {
-			auto& bus = data.outputs[i];
-			bus.silenceFlags = 0;
-			if (!getAudioOutput(i)->isActive()) continue;
-			for (int32 ch = 0; ch < bus.numChannels; ch++) {
-				bool isSilent = true;
-				for (int32 sample = 0; sample < data.numSamples; sample += 20) {
-					if (std::abs(bus.channelBuffers32[ch][sample]) > 0.0001) {
-						isSilent = false;
-						break;
-					}
-				}
-				if (isSilent) {
-					bus.silenceFlags |= (uint64)1 << ch;
-				}
-			}
-		}
-	}
-
-private:
-	ParamState paramState;
 };
 
 

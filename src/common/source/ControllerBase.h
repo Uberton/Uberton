@@ -18,6 +18,7 @@
 #include <public.sdk/source/vst/vsteditcontroller.h>
 #include <pluginterfaces/base/ustring.h>
 #include <array>
+#include "parameters.h"
 
 
 namespace Uberton {
@@ -75,9 +76,23 @@ public:
 		else {
 			flags |= ParameterInfo::kCanAutomate;
 		}
-		auto p = new RangeParameter(name, id, units, minMaxDefault[0], minMaxDefault[1], minMaxDefault[2], 0, flags);
+		auto p = new RangeParameter(name, id, units, minMaxDefault[0], minMaxDefault[1], minMaxDefault[2], 0, flags, currentUnitID);
 		parameters.addParameter(p);
-		p->setUnitID(currentUnitID);
+		return p;
+	}
+
+	RangeParameter* addRangeParam(const ParamSpec& paramDesc, const UString256& title, const UString256& shortTitle, const UString256& units, int32 flags = ParameterInfo::kCanAutomate) {
+		auto p = new RangeParameter(title, paramDesc.id, units, paramDesc.minValue, paramDesc.maxValue, paramDesc.defaultValue, 0, flags, currentUnitID, shortTitle);
+		parameters.addParameter(p);
+		return p;
+	}
+
+	StringListParameter* addStringListParam(const ParamSpec& paramDesc, const UString256& title, const UString256& shortTitle, const std::initializer_list<UString256>& strings, int32 flags = ParameterInfo::kCanAutomate) {
+		auto p = new StringListParameter(title, paramDesc.id, nullptr, flags, currentUnitID, shortTitle);
+		parameters.addParameter(p);
+		for (const auto& s : strings) {
+			p->appendString(s);
+		}
 		return p;
 	}
 
