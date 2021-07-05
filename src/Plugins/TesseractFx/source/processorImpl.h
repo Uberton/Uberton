@@ -35,7 +35,7 @@ public:
 	constexpr static int maxOrder = maxOrder;
 	constexpr static int numChannels = 2;
 	using Type = SampleType;
-	using Vec = Math::Vector<SampleType, maxDimension>;
+	using SpaceVec = Math::Vector<SampleType, maxDimension>;
 	using SampleVec = Math::Vector<SampleType, numChannels>;
 	//using Resonator = Math::CubeResonator<SampleType, resonatorDim, resonatorOrder, numChannels>;
 	using Resonator = Math::PreComputedCubeResonator<SampleType, maxDimension, maxOrder, numChannels>;
@@ -74,7 +74,7 @@ public:
 		}
 	}
 
-	void setFilterCutoff(double freq, double q) {
+	void setLCFilterFreqAndQ(double freq, double q) {
 		for (auto& filter : filters) {
 			filter.setFreqAndQ(freq, q);
 		}
@@ -116,7 +116,7 @@ public:
 			}
 			
 			//lcFreq.step(); lcQ.step();
-			// setFilterCutoff(normalizedToScaled(lcFreq.get(), 20, 8000), normalizedToScaled(lcQ.get(), 1, 8));
+			// setLCFilterFreqAndQ(normalizedToScaled(lcFreq.get(), 20, 8000), normalizedToScaled(lcQ.get(), 1, 8));
 		}
 	}
 
@@ -125,12 +125,12 @@ public:
 	//	lcQ.set(q);
 	//}
 
-	RampedParameter<float> lcFreq{ 0, 1 };
-	RampedParameter<float> lcQ{ 0, 1 };
+	//RampedParameter<float> lcFreq{ 0, 1 };
+	//RampedParameter<float> lcQ{ 0, 1 };
 
 	Resonator resonator;
 	std::array<Filter, numChannels> filters{ Filter::Type::kHighpass, Filter::Type::kHighpass };
-	LogScale<ParamValue> freqLogScale{ 0., 1., 80., 18000., 0.5, 1800. };
+	//LogScale<ParamValue> freqLogScale{ 0., 1., 80., 18000., 0.5, 1800. };
 
 	SampleType currentResFreq = 1, currentResDamp = 1, currentResVel = 1;
 };

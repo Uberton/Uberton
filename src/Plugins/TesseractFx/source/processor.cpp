@@ -21,7 +21,9 @@ Processor::Processor() {
 	auto initValue = [&](const ParamSpec& p) {
 		paramState[p.id] = p.toNormalized(p.initialValue);
 	};
-	
+
+	paramState.version = 0;
+
 	initValue(ParamSpecs::vol);
 	initValue(ParamSpecs::mix);
 	initValue(ParamSpecs::resonatorType);
@@ -178,16 +180,12 @@ void Processor::recomputeInexpensiveParameters() {
 	if (processorImpl) {
 		processorImpl->setResonatorFreq(resonatorFreq, resonatorDamp, resonatorVel);
 		processorImpl->setResonatorOrder(resonatorOrder);
-
-		//lcFreq.set(paramState[Params::kParamLCFreq]);
-		//lcFreq.set(paramState[Params::kParamLCQ]);
-		//processorImpl->updateFilter(paramState[Params::kParamLCFreq], paramState[Params::kParamLCQ]);
-		processorImpl->setFilterCutoff(toScaled(ParamSpecs::lcFreq), toScaled(ParamSpecs::lcQ));
+		processorImpl->setLCFilterFreqAndQ(toScaled(ParamSpecs::lcFreq), toScaled(ParamSpecs::lcQ));
 	}
 }
 
 void Processor::updateResonatorInputPosition() {
-	Vec inputPosL, inputPosR;
+	SpaceVec inputPosL, inputPosR;
 	size_t d = inputPosL.size();
 	for (int i = 0; i < d; i++) {
 		inputPosL[i] = paramState[Params::kParamInL0 + i];
@@ -200,7 +198,7 @@ void Processor::updateResonatorInputPosition() {
 }
 
 void Processor::updateResonatorOutputPosition() {
-	Vec outputPosL, outputPosR;
+	SpaceVec outputPosL, outputPosR;
 	size_t d = outputPosL.size();
 	for (int i = 0; i < d; i++) {
 		outputPosL[i] = paramState[Params::kParamOutL0 + i];
@@ -213,7 +211,6 @@ void Processor::updateResonatorOutputPosition() {
 }
 
 void Processor::updateResonatorDimension() {
-	
 	resonatorDim = toDiscrete(ParamSpecs::resonatorDim);
 	processorImpl->setResonatorDim(resonatorDim);
 	// Need to reevaluate all eigenfunctions
@@ -223,22 +220,12 @@ void Processor::updateResonatorDimension() {
 	//FDebugPrint("Out EF %i: %f, %f, %f, %f,%f, %f, %f, %f, %f, %f\n", resonatorDim, f[0].real(), f[1].real(), f[2].real(), f[3].real(), f[4].real(), f[5].real(), f[6].real(), f[7].real(), f[8].real(), f[9].real());
 }
 
-void Processor::addOutputPoint(ProcessData& data, ParamID id, ParamValue value) {
-	if (data.outputParameterChanges) {
-		int32 index;
-		IParamValueQueue* queue = data.outputParameterChanges->addParameterData(id, index);
-		if (queue) {
-			queue->addPoint(0, value, index);
-		}
-	}
-}
-
-Processor::Vec Processor::inputPosSpaceCurve(ParamValue t) {
-	float pi = 3.1415926;
-	float t_ = t - .5;
-	float phi = t_ * 1.5 * pi;
+Processor::SpaceVec Processor::inputPosSpaceCurve(ParamValue t) {
+	constexpr float pi = Math::pi<float>();
+	const float t_ = t - .5;
+	const float phi = t_ * 1.5 * pi;
 	// for t == 0.5 this function returns the 0 vector.
-	return Vec{
+	return SpaceVec{
 		t_ * 0.5f,
 		phi / (2 * pi) * std::sinf(phi),
 		phi / (2 * pi) * std::cosf(phi + pi * 0.5f),
@@ -252,12 +239,12 @@ Processor::Vec Processor::inputPosSpaceCurve(ParamValue t) {
 	};
 }
 
-Processor::Vec Processor::outputPosSpaceCurve(ParamValue t) {
-	float pi = 3.1415926;
-	float t_ = t - .5;
-	float phi = t_ * 1.5 * pi;
+Processor::SpaceVec Processor::outputPosSpaceCurve(ParamValue t) {
+	constexpr float pi = Math::pi<float>();
+	const float t_ = t - .5;
+	const float phi = t_ * 1.5 * pi;
 	// for t == 0.5 this function returns the 0 vector.
-	return Vec{
+	return SpaceVec{
 		t_ * 0.5f,
 		phi / (2 * pi) * std::sinf(phi),
 		phi / (2 * pi) * std::cosf(phi + pi * 0.5f),

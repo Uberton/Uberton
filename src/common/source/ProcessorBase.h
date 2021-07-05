@@ -127,6 +127,17 @@ public:
 		return p.toDiscrete(paramState[p.id]);
 	}
 
+	/// Add data point to data.outputParameterChanges
+	void addOutputPoint(ProcessData& data, ParamID id, ParamValue value) {
+		if (data.outputParameterChanges) {
+			int32 index;
+			IParamValueQueue* queue = data.outputParameterChanges->addParameterData(id, index);
+			if (queue) {
+				queue->addPoint(0, value, index);
+			}
+		}
+	}
+
 protected:
 	ParamState paramState;
 };

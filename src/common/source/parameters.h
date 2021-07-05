@@ -23,7 +23,7 @@ using namespace Steinberg;
 using namespace Steinberg::Vst;
 
 /*
- * Wrapper for a global parameter state with N parameters of type ParamValue.
+ * Wrapper for a global parameter state with N parameters of type ParamValue (double).
  * Provides member functions for loading and storing the entire state through
  * an IBStream and setting an EditController's component state.
  *
@@ -107,24 +107,36 @@ constexpr ParamID bypassId = 1000001;
 //};
 
 
-/// Turn discrete value between min and max to normalized ParamValue from 0 to 1
+
+/*
+ * Helper functions for converting between normalized discrete and scaled values
+ */
+
+/// Turn discrete value between min and max to normalized value from 0 to 1
 inline ParamValue discreteToNormalized(int value, int min, int max) {
 	return (value - min) / static_cast<ParamValue>(max - min);
 }
 
-/// Turn normalized ParamValue from 0 to 1 tp discrete value between min and max
+/// Turn normalized value from 0 to 1 to discrete value between min and max
 inline int normalizedToDiscrete(double value, int min, int max) {
 	return std::min<int>(max - min, static_cast<int>(value * (max - min + 1))) + min;
 }
 
+/// Convert normalized value in [1, 1] to value in [min, max]
 inline double normalizedToScaled(double value, double min, double max) {
 	return value * (max - min) + min;
 }
+
+/// Convert value in [min, max] to normalized value in [0, 1]
 inline double scaledToNormalized(double value, double min, double max) {
 	return (value - min) / (max - min);
 }
 
 
+/* 
+ * Linear ramped parameter. 
+ * step() needs to be called each sample
+ */ 
 template<class FloatType>
 class RampedParameter
 {
@@ -164,13 +176,21 @@ private:
 	const FloatType numRampSamples;
 };
 
+
+
+/*
+ * Parameter specification with id, minimum, maximum, default as well as initial value.
+ * 
+ * Provides helper functions for converting between normalized and scaled/discrete using the
+ * stored info about min and max. 
+ */
 struct ParamSpec
 {
-	constexpr ParamSpec(int id, double min, double max, double defaultValue, double initialValue)
+	constexpr ParamSpec(int32_t id, double min, double max, double defaultValue, double initialValue)
 		: id(id), minValue(min), maxValue(max),
 		  defaultValue(defaultValue), initialValue(initialValue) {}
 
-	constexpr ParamSpec(int id, const double (&minMaxDefault)[3], double initialValue)
+	constexpr ParamSpec(int32_t id, const double (&minMaxDefault)[3], double initialValue)
 		: id(id), minValue(minMaxDefault[0]), maxValue(minMaxDefault[1]),
 		  defaultValue(minMaxDefault[2]), initialValue(initialValue) {}
 

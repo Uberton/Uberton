@@ -40,7 +40,7 @@ namespace Math {
 //
 // The parent class needs to implement the functions
 //   - scalar eigenValueSqrt(int i);
-//   - scalar eigenFunction(int i, const Vec& x); and
+//   - scalar eigenFunction(int i, const SpaceVec& x); and
 //   - void setDesiredBaseFrequency(real freq, real dampening, real velocity);
 //
 // All positions should be normalized to [0, 1]. The same applies to the eigenFunction()
@@ -70,7 +70,7 @@ class ResonatorBase : public Parent
 public:
 	using real = T;
 	using scalar = std::complex<real>;
-	using Vec = Uberton::Math::Vector<T, d>;
+	using SpaceVec = Uberton::Math::Vector<T, d>;
 
 	template<class T, int n>
 	using array = std::array<T, n>;
@@ -110,7 +110,7 @@ public:
 	}
 
 	/// Set the "listening" positions (normalized to [0,1])
-	void setOutputPositions(const array<Vec, channels>& outPositions) {
+	void setOutputPositions(const array<SpaceVec, channels>& outPositions) {
 		for (int ch = 0; ch < channels; ++ch) {
 			for (int i = 0; i < N; ++i) {
 				outputPosEF[ch][i] = this->eigenFunction(i, outPositions[ch]);
@@ -119,7 +119,7 @@ public:
 	}
 
 	/// Set the "playing" or exciting position (normalized to [0,1])
-	void setInputPositions(const array<Vec, channels>& inPositions) {
+	void setInputPositions(const array<SpaceVec, channels>& inPositions) {
 		for (int ch = 0; ch < channels; ++ch) {
 			for (int i = 0; i < N; ++i) {
 				inputPosEF[ch][i] = this->eigenFunction(i, inPositions[ch]);
@@ -190,13 +190,13 @@ class StringEigenValues
 public:
 	using real = T;
 	using scalar = std::complex<real>;
-	using Vec = Uberton::Math::Vector<T, 1>;
+	using SpaceVec = Uberton::Math::Vector<T, 1>;
 
 	scalar eigenValueSqrt(int i) const {
 		return (i + 1) * pi<real>() / length;
 	}
 
-	scalar eigenFunction(int i, const Vec& x) const {
+	scalar eigenFunction(int i, const SpaceVec& x) const {
 		return std::sin((i + 1) * pi<real>() * x[0]); // no division by length as x is normalized
 	}
 
@@ -227,7 +227,7 @@ public:
 	using real = T;
 	using scalar = std::complex<real>;
 	using KVec = Uberton::Math::Vector<real, d + 1>;
-	using Vec = Uberton::Math::Vector<real, d>;
+	using SpaceVec = Uberton::Math::Vector<real, d>;
 
 	CubeEigenValues() {
 		computeFirstEigenvalues();
@@ -245,7 +245,7 @@ protected:
 		return ksAndEV[i][d] * pi / length;
 	}
 
-	scalar eigenFunction(int i, const Vec& x) const {
+	scalar eigenFunction(int i, const SpaceVec& x) const {
 		real result{ 1 };
 		constexpr real pi = Uberton::Math::pi<real>();
 		for (int j = 0; j < dim; ++j) {
@@ -488,7 +488,7 @@ class PreComputedCubeEigenValues
 public:
 	using real = T;
 	using scalar = std::complex<real>;
-	using Vec = Uberton::Math::Vector<real, maxDim>;
+	using SpaceVec = Uberton::Math::Vector<real, maxDim>;
 
 	PreComputedCubeEigenValues() {
 		storage = getCubeEWPStorage<T, maxDim, N>();
@@ -510,7 +510,7 @@ protected:
 		return storage.matrices[dim - 1].data[i].eigenvalue * pi<real>() / length;
 	}
 
-	scalar eigenFunction(int i, const Vec& x) const {
+	scalar eigenFunction(int i, const SpaceVec& x) const {
 		real result{ 1 };
 		constexpr real pi = Uberton::Math::pi<real>();
 		for (int j = 0; j < dim; ++j) {
@@ -548,7 +548,7 @@ class SphereEigenValues
 public:
 	using real = T;
 	using scalar = std::complex<real>;
-	using Vec = Uberton::Math::Vector<real, 3>;
+	using SpaceVec = Uberton::Math::Vector<real, 3>;
 
 protected:
 	scalar eigenValueSqrt(int i) const {
@@ -557,7 +557,7 @@ protected:
 	}
 
 
-	scalar eigenFunction(int i, const Vec& x) const {
+	scalar eigenFunction(int i, const SpaceVec& x) const {
 		auto lm = linearIndex(i);
 		int l = lm.first;
 		int m = lm.second;
@@ -950,12 +950,12 @@ protected:
 		int maxNumEigenvalues = std::pow(r + 1, actualDim);
 		//if (maxNumEigenvalues < N) throw std::exception("r<N");
 
-		using Vec = Vector<T, d + 1>;
+		using SpaceVec = Vector<T, d + 1>;
 
-		std::vector<Vec> kvecs(maxNumEigenvalues);
+		std::vector<SpaceVec> kvecs(maxNumEigenvalues);
 
 		for (int i = 0; i < maxNumEigenvalues; ++i) {
-			Vec kvec{}; // last entry sums up the squares of the other entries
+			SpaceVec kvec{}; // last entry sums up the squares of the other entries
 			int kindex = i;
 			for (int j = 0; j < actualDim; j++) {
 				kvec[j] = kindex % (r + 1) + 1;
@@ -967,7 +967,7 @@ protected:
 			kvecs[i] = kvec;
 		}
 
-		std::sort(kvecs.begin(), kvecs.end(), [](Vec& a, Vec& b) { return a[d] < b[d]; });
+		std::sort(kvecs.begin(), kvecs.end(), [](SpaceVec& a, SpaceVec& b) { return a[d] < b[d]; });
 		std::copy(kvecs.begin(), kvecs.begin() + N, ks_and_eigenvalues.begin());
 	}
 	/*

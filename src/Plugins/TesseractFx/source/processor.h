@@ -45,15 +45,12 @@ private:
 	// Update all parameters (expensive and inexpensive)
 	void recomputeParameters() override;
 
-	// Add data point to data.outputParameterChanges
-	void addOutputPoint(ProcessData& data, ParamID id, ParamValue value);
 
 
+	using SpaceVec = ProcessorImpl<float>::SpaceVec;
 
-	using Vec = ProcessorImpl<float>::Vec;
-
-	Vec inputPosSpaceCurve(ParamValue t);  // t in [0,1]; returns 0 vector for t = 0.5
-	Vec outputPosSpaceCurve(ParamValue t); // t in [0,1]; returns 0 vector for t = 0.5
+	SpaceVec inputPosSpaceCurve(ParamValue t);  // t in [0,1]; returns 0 vector for t = 0.5
+	SpaceVec outputPosSpaceCurve(ParamValue t); // t in [0,1]; returns 0 vector for t = 0.5
 
 	std::unique_ptr<ProcessorImpl<float>> processorImpl;
 
