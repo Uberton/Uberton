@@ -77,7 +77,6 @@ public:
 	void setFilterCutoff(double freq, double q) {
 		for (auto& filter : filters) {
 			filter.setFreqAndQ(freq, q);
-			//filter.setCutoff(value);
 		}
 	}
 
@@ -106,11 +105,6 @@ public:
 		SampleVec tmp;
 
 		for (int32 i = 0; i < numSamples; i++) {
-			//sInL = in[0] + i;
-			//sInR = in[1] + i;
-
-			//resonator.delta({ *sInL, *sInR });
-
 			for (int ch = 0; ch < numChannels; ch++) {
 				input[ch] = *(in[ch] + i);
 			}
@@ -120,19 +114,23 @@ public:
 				tmp[ch] = filters[ch].process(tmp[ch]) * .01; // its tooooo loud!!
 				*(out[ch] + i) = volume * tmp[ch] * wet + dry * (*(in[ch] + i));
 			}
-
-			//*(out[0] + i) = volume * tmp[0] * wet + dry * (*sInL);
-			//*(out[1] + i) = volume * tmp[1] * wet + dry * (*sInR);
+			
+			//lcFreq.step(); lcQ.step();
+			// setFilterCutoff(normalizedToScaled(lcFreq.get(), 20, 8000), normalizedToScaled(lcQ.get(), 1, 8));
 		}
 	}
 
+	//void updateFilter(double freq, double q) {
+	//	lcFreq.set(freq);
+	//	lcQ.set(q);
+	//}
+
+	RampedParameter<float> lcFreq{ 0, 1 };
+	RampedParameter<float> lcQ{ 0, 1 };
 
 	Resonator resonator;
 	std::array<Filter, numChannels> filters{ Filter::Type::kHighpass, Filter::Type::kHighpass };
 	LogScale<ParamValue> freqLogScale{ 0., 1., 80., 18000., 0.5, 1800. };
-
-	//Filter f1{ Filter::Mode::Highpass };
-	//Filter f2{ Filter::Mode::Highpass };
 
 	SampleType currentResFreq = 1, currentResDamp = 1, currentResVel = 1;
 };

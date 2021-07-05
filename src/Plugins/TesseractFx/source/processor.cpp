@@ -17,21 +17,29 @@ namespace TesseractFx {
 
 Processor::Processor() {
 	setControllerClass(ControllerUID);
-	paramState[Params::kParamVol] = .8;
-	paramState[Params::kParamMix] = .8;
-	paramState[Params::kParamResonatorDim] = 1;
-	paramState[Params::kParamResonatorOrder] = 1;
-	paramState[Params::kParamResonatorFreq] = .5;
-	paramState[Params::kParamResonatorDamp] = .1;
-	paramState[Params::kParamResonatorVel] = 5;
 
-	paramState[Params::kParamInPosCurveL] = .5;
-	paramState[Params::kParamInPosCurveR] = .5;
-	paramState[Params::kParamOutPosCurveL] = .5;
-	paramState[Params::kParamOutPosCurveR] = .5;
+	auto initValue = [&](const ParamSpec& p) {
+		paramState[p.id] = p.toNormalized(p.initialValue);
+	};
+	
+	initValue(ParamSpecs::vol);
+	initValue(ParamSpecs::mix);
+	initValue(ParamSpecs::resonatorType);
+	initValue(ParamSpecs::resonatorDim);
+	initValue(ParamSpecs::resonatorOrder);
+	initValue(ParamSpecs::resonatorFreq);
+	initValue(ParamSpecs::resonatorDamp);
+	initValue(ParamSpecs::resonatorVel);
 
-	paramState[Params::kParamLCFreq] = 0;
-	paramState[Params::kParamLCQ] = 0;
+	initValue(ParamSpecs::inPosCurveL);
+	initValue(ParamSpecs::inPosCurveR);
+	initValue(ParamSpecs::outPosCurveL);
+	initValue(ParamSpecs::outPosCurveR);
+
+	initValue(ParamSpecs::lcFreq);
+	initValue(ParamSpecs::lcQ);
+	initValue(ParamSpecs::hcFreq);
+	initValue(ParamSpecs::hcQ);
 
 	for (int i = 0; i < maxDimension; i++) {
 		paramState[Params::kParamInL0 + i] = .5;
@@ -80,7 +88,6 @@ void Processor::processAudio(ProcessData& data) {
 	int32 numSamples = data.numSamples;
 
 
-	//if (processSetup.symbolicSampleSize == kSample32)
 	void** in = getChannelBuffersPointer(processSetup, data.inputs[0]);
 	void** out = getChannelBuffersPointer(processSetup, data.outputs[0]);
 
@@ -158,22 +165,24 @@ void Processor::recomputeParameters() {
 }
 
 void Processor::recomputeInexpensiveParameters() {
-	volume = paramState[Params::kParamVol];
-	mix = paramState[Params::kParamMix];
-	resonatorOrder = normalizedToDiscrete(paramState[Params::kParamResonatorOrder], 1, maxOrder);
-	resonatorFreq = paramState[Params::kParamResonatorFreq] * 1900 + 100;
-	resonatorDamp = paramState[Params::kParamResonatorDamp] * 100;
-	resonatorVel = paramState[Params::kParamResonatorVel] * (1000 - .1) + .1;
+	volume = toScaled(ParamSpecs::vol);
+	mix = toScaled(ParamSpecs::mix);
+	resonatorOrder = toDiscrete(ParamSpecs::resonatorOrder);
+	resonatorFreq = toScaled(ParamSpecs::resonatorFreq);
+	resonatorDamp = toScaled(ParamSpecs::resonatorDamp);
+	resonatorVel = toScaled(ParamSpecs::resonatorVel);
 
 	// auto& f = processorImpl->resonator.timeFunctions;
 	// FDebugPrint("Out EF %i %i: %f, %f, %f, %f,%f, %f, %f, %f, %f, %f\n", resonatorDim, resonatorOrder, f[0].real(), f[1].real(), f[2].real(), f[3].real(), f[4].real(), f[5].real(), f[6].real(), f[7].real(), f[8].real(), f[9].real());
 
 	if (processorImpl) {
 		processorImpl->setResonatorFreq(resonatorFreq, resonatorDamp, resonatorVel);
-		ParamValue LCFreq = normalizedToScaled(paramState[Params::kParamLCFreq], 20, 8000);
-		ParamValue LCQ = normalizedToScaled(paramState[Params::kParamLCQ], 1, 8);
-		processorImpl->setFilterCutoff(LCFreq, LCQ);
 		processorImpl->setResonatorOrder(resonatorOrder);
+
+		//lcFreq.set(paramState[Params::kParamLCFreq]);
+		//lcFreq.set(paramState[Params::kParamLCQ]);
+		//processorImpl->updateFilter(paramState[Params::kParamLCFreq], paramState[Params::kParamLCQ]);
+		processorImpl->setFilterCutoff(toScaled(ParamSpecs::lcFreq), toScaled(ParamSpecs::lcQ));
 	}
 }
 
@@ -204,8 +213,8 @@ void Processor::updateResonatorOutputPosition() {
 }
 
 void Processor::updateResonatorDimension() {
-	//resonatorDim = std::min<int>(maxDimension - 1, (int)(paramState[Params::kParamResonatorDim] * maxDimension)) + 1;
-	resonatorDim = normalizedToDiscrete(paramState[Params::kParamResonatorDim], 1, maxDimension);
+	
+	resonatorDim = toDiscrete(ParamSpecs::resonatorDim);
 	processorImpl->setResonatorDim(resonatorDim);
 	// Need to reevaluate all eigenfunctions
 	updateResonatorInputPosition();

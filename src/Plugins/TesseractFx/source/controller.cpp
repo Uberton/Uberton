@@ -21,6 +21,7 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 	tresult result = ControllerBaseP::initialize(context);
 	if (result != kResultTrue) return result;
 
+	// Set up units
 	UnitID rootUnitId = 1;
 	addUnit(new Unit(USTRING("Root"), rootUnitId));
 	setCurrentUnitID(rootUnitId);
@@ -33,54 +34,63 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 
 
 	setCurrentUnitID(rootUnitId);
-	addRangeParam(Params::kParamVol, "Master Volume", "%", { 0, 1, .8 });
-	addRangeParam(Params::kParamMix, "Mix", "%", { 0, 1, 1 });
-	addRangeParam(Params::kParamInPosCurveL, "Input Pos Curve L", "%", { 0, 1, .5 });
-	addRangeParam(Params::kParamInPosCurveR, "Input Pos curve R", "%", { 0, 1, .5 });
-	addRangeParam(Params::kParamOutPosCurveL, "Output Pos curve L", "%", { 0, 1, .5 });
-	addRangeParam(Params::kParamOutPosCurveR, "Output Pos curve R", "%", { 0, 1, .5 });
+	{
+		addRangeParam(ParamSpecs::vol, "Master Volume", "MVol", "%");
+		addRangeParam(ParamSpecs::mix, "Mix", "Mix", "%");
+		addRangeParam(ParamSpecs::resonatorType, "Resonator Type", "Res Type", "")->getInfo().stepCount = 1;
+		addRangeParam(ParamSpecs::resonatorDim, "Resonator Dimension", "Res Dim", "D")->getInfo().stepCount = maxDimension - 1;
+		addRangeParam(ParamSpecs::resonatorOrder, "Resonator Order", "Res Order", "")->getInfo().stepCount = maxOrder - 1;
+		addRangeParam(ParamSpecs::resonatorFreq, "Resonator Frequency", "Res Freq", "Hz");
+		addRangeParam(ParamSpecs::resonatorDamp, "Resonator Dampening", "Res Damp", "%");
+		addRangeParam(ParamSpecs::resonatorVel, "Sonic Velocity", "Sonic Vel", "m/s");
 
-	addRangeParam(Params::kParamResonatorDim, "Dimension", "D", { 1, maxDimension, 5 })->getInfo().stepCount = maxDimension - 1;
-	addRangeParam(Params::kParamResonatorOrder, "Order", "", { 1, maxOrder, maxOrder })->getInfo().stepCount = maxOrder - 1;
-	addRangeParam(Params::kParamResonatorFreq, "Freq", "Hz", { 100, 2000, 500 });
-	addRangeParam(Params::kParamResonatorDamp, "Dampening", "%", { 0, 10, 1 });
-	addRangeParam(Params::kParamResonatorVel, "Sonic Vel", "m/s", { .1, 1000, 10 });
-	addRangeParam(Params::kParamVUPPM, "Output Level", "dB", { 0, 1, 0 }, ReadOnly);
+		addRangeParam(ParamSpecs::inPosCurveL, "Input Pos Curve L", "InPos L", "%");
+		addRangeParam(ParamSpecs::inPosCurveR, "Input Pos Curve R", "InPos R", "%");
+		addRangeParam(ParamSpecs::outPosCurveL, "Output Pos Curve L", "OutPos L", "%");
+		addRangeParam(ParamSpecs::outPosCurveR, "Output Pos Curve R", "OutPos R", "%");
+		addStringListParam(ParamSpecs::linkInPosCurves, "Link In Pos Curves", "Link In C", { "Not Linked", "linked" });
+		addStringListParam(ParamSpecs::linkOutPosCurves, "Link Out Pos Curves", "Link Out C", { "Not Linked", "linked" });
 
+		addRangeParam(ParamSpecs::vuPPM, "Output Level", "Level", "dB", ParameterInfo::kIsReadOnly);
+	}
 
 	setCurrentUnitID(postSection);
-	addRangeParam(Params::kParamLCFreq, "Low Cut Freq", "Hz", { 20, 2000, 500 });
-	addRangeParam(Params::kParamLCQ, "Low Cut Q", "", { 1, 8, 1 });
-	addRangeParam(Params::kParamHCFreq, "High Cut Freq", "Hz", { 100, 2000, 500 });
+	{
+		addRangeParam(ParamSpecs::lcFreq, "Low Cut Frequency", "LC Freq", "Hz");
+		addRangeParam(ParamSpecs::lcQ, "Low Cut Q", "LC Q", "");
+		addRangeParam(ParamSpecs::hcFreq, "High Cut Frequency", "HC Freq", "Hz");
+		addRangeParam(ParamSpecs::hcQ, "High Cut Q", "HC Q", "");
+	}
 
 	setCurrentUnitID(inputPositionUnitId);
-	UString256 a("", 10);
-	for (int i = 0; i < maxDimension; i++) {
-		a.printInt(i);
-		UString256 name("Left X");
-		name.append(a);
-		addRangeParam(Params::kParamInL0 + i, name, "", { 0, 1, .5 });
+	{
+		UString256 a("", 10);
+		for (int i = 0; i < maxDimension; i++) {
+			a.printInt(i);
+			UString256 name("Left X");
+			name.append(a);
+			addRangeParam(Params::kParamInL0 + i, name, "", { 0, 1, .5 });
+		}
+		for (int i = 0; i < maxDimension; i++) {
+			a.printInt(i);
+			UString256 name("Right X");
+			name.append(a);
+			addRangeParam(Params::kParamInR0 + i, name, "", { 0, 1, .5 });
+		}
+		setCurrentUnitID(outputPositionUnitId);
+		for (int i = 0; i < maxDimension; i++) {
+			a.printInt(i);
+			UString256 name("Left Y");
+			name.append(a);
+			addRangeParam(Params::kParamOutL0 + i, name, "", { 0, 1, .5 });
+		}
+		for (int i = 0; i < maxDimension; i++) {
+			a.printInt(i);
+			UString256 name("Right Y");
+			name.append(a);
+			addRangeParam(Params::kParamOutR0 + i, name, "", { 0, 1, .5 });
+		}
 	}
-	for (int i = 0; i < maxDimension; i++) {
-		a.printInt(i);
-		UString256 name("Right X");
-		name.append(a);
-		addRangeParam(Params::kParamInR0 + i, name, "", { 0, 1, .5 });
-	}
-	setCurrentUnitID(outputPositionUnitId);
-	for (int i = 0; i < maxDimension; i++) {
-		a.printInt(i);
-		UString256 name("Left Y");
-		name.append(a);
-		addRangeParam(Params::kParamOutL0 + i, name, "", { 0, 1, .5 });
-	}
-	for (int i = 0; i < maxDimension; i++) {
-		a.printInt(i);
-		UString256 name("Right Y");
-		name.append(a);
-		addRangeParam(Params::kParamOutR0 + i, name, "", { 0, 1, .5 });
-	}
-
 
 	return kResultTrue;
 }
