@@ -157,15 +157,16 @@ Vector<T, d> operator*(T c, const Vector<T, d>& v) { return v * c; }
 
 
 
-
-inline int factorial(int n) {
-	return n <= 1 ? 1 : factorial(n - 1) * n;
+template<class T = double>
+inline T factorial(int n) {
+	return n <= 1 ? 1 : factorial<T>(n - 1) * n;
 }
 
 // Product of all integers from 1 to n with same parity (odd/even) as n
-inline int doublefactorial(int n) {
+template<class T = double>
+inline T doublefactorial(int n) {
 	if (n == 0 || n == 1) return 1;
-	return n * doublefactorial(n - 2);
+	return n * doublefactorial<T>(n - 2);
 }
 
 
@@ -250,9 +251,9 @@ inline T assoc_legendre_impl(int l, int m, T x, T sin_theta_power) {
 		++n;
 	}
 
-	if ((m & 1u) != 0) {
-		p1 = -p1;
-	}
+	//if ((m & 1u) != 0) {
+	//	p1 = -p1;
+	//}
 	return p1;
 }
 
