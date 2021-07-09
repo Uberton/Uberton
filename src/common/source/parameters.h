@@ -16,7 +16,9 @@
 
 #include <public.sdk/source/vst/vsteditcontroller.h>
 #include <base/source/fstreamer.h>
+#include "pluginterfaces/base/ustring.h"
 #include <array>
+#include <cmath>
 
 namespace Uberton {
 using namespace Steinberg;
@@ -113,8 +115,8 @@ constexpr ParamID bypassId = 1000001;
  */
 
 /// Turn discrete value between min and max to normalized value from 0 to 1
-inline ParamValue discreteToNormalized(int value, int min, int max) {
-	return (value - min) / static_cast<ParamValue>(max - min);
+inline double discreteToNormalized(int value, int min, int max) {
+	return (value - min) / static_cast<double>(max - min);
 }
 
 /// Turn normalized value from 0 to 1 to discrete value between min and max
@@ -122,12 +124,12 @@ inline int normalizedToDiscrete(double value, int min, int max) {
 	return std::min<int>(max - min, static_cast<int>(value * (max - min + 1))) + min;
 }
 
-/// Convert normalized value in [1, 1] to value in [min, max]
+/// Linearily convert normalized value in [1, 1] to value in [min, max]
 inline double normalizedToScaled(double value, double min, double max) {
 	return value * (max - min) + min;
 }
 
-/// Convert value in [min, max] to normalized value in [0, 1]
+/// Linearily cConvert value in [min, max] to normalized value in [0, 1]
 inline double scaledToNormalized(double value, double min, double max) {
 	return (value - min) / (max - min);
 }
@@ -136,14 +138,13 @@ inline double scaledToNormalized(double value, double min, double max) {
 /* 
  * Linear ramped parameter. 
  * step() needs to be called each sample
- */ 
+ */
 template<class FloatType>
-class RampedParameter
+class RampedValue
 {
 public:
-	RampedParameter(FloatType value, FloatType numRampSamples) : value(value), targetValue(value),
-																 numRampSamples(numRampSamples) {
-	}
+	RampedValue(FloatType value, FloatType numRampSamples)
+		: value(value), targetValue(value), numRampSamples(numRampSamples) {}
 
 	void set(FloatType newValue) noexcept {
 		if (newValue == targetValue) return;
@@ -176,6 +177,22 @@ private:
 	const FloatType numRampSamples;
 };
 
+
+/*
+ * Convert dezibels to normalized volume 
+ */
+template<class T>
+T dBtoVolume(T dB) {
+	return static_cast<T>(std::pow(10.0, 0.05f * dB));
+}
+
+/*
+ * Convert normalized volume to dezibels
+ */
+template<class T>
+T volumeTodB(T volume) {
+	return static_cast<T>(20.0 * std::log10(volume));
+}
 
 
 /*
@@ -214,6 +231,235 @@ struct ParamSpec
 
 	double toScaled(double value) const {
 		return normalizedToScaled(value, minValue, maxValue);
+	}
+};
+
+
+/*
+ * Scales for converting normalized value to plain ones. 
+ * -----------------------------------------------------
+ */
+
+/*
+ * Linear scales that linearily maps from [0, 1] to [min, max]
+ */
+class LinearScale
+{
+public:
+	LinearScale(double min = 0, double max = 1) : min(min), max(max) {}
+
+	double toScaled(double value) const {
+		return value * (max - min) + min;
+	}
+
+	double toNormalized(double value) const {
+		return (value - min) / (max - min);
+	}
+
+private:
+	double min;
+	double max;
+};
+
+/*
+ * Logarithmic function of the form
+ *     f(x) = a·bˣ + c
+ * that maps [0, 1] to [min, max].
+ */
+class LogarithmicScale
+{
+public:
+	LogarithmicScale(double min = 0, double max = 1, double base = 10.0) {
+		b = base;
+		logb_inv = 1 / std::log(b);
+		a = (min - max) / (1 - b);
+		c = min - a;
+	}
+
+	double toScaled(double value) const {
+		return a * std::pow(b, value) + c;
+	}
+
+	double toNormalized(double value) const {
+		return std::log((value - c) / a) * logb_inv;
+	}
+
+private:
+	double a;
+	double b;
+	double logb_inv;
+	double c;
+};
+
+/*
+ * Power function of the form
+ *     f(x) = a·xᵇ + c
+ * that maps [0, 1] to [min, max] and additionally fulfills the equation
+ *     f(x₁) = y₁.
+ * 
+ * This can be used as a good approximation of a logarithmic scale such as a frequency parameter. 
+ */
+class PowerScale
+{
+public:
+	PowerScale(double min = 0, double max = 1, const double (&pair)[2] = { .5, .5 }) : min(min) {
+		a = max - min;
+		b = std::log((pair[1] - min) / a) / std::log(pair[0]);
+	}
+
+	double toScaled(double value) const {
+		return a * std::pow(value, b) + min;
+	}
+
+	double toNormalized(double value) const {
+		return std::pow((value - min) / a, 1.0 / b);
+	}
+
+private:
+	double a;
+	double b;
+	double min;
+};
+
+
+
+/*
+ * ParamSpec classes to store a parameters id, default and initial value 
+ * as well as a scale for converting to and from normalized values. 
+ * ---------------------------------------------------------------------
+ */
+
+template<class Scale>
+struct ParamSpecBase
+{
+	ParamSpecBase(int32_t id, double defaultValue, double initialValue) : id(id), defaultValue(defaultValue), initialValue(initialValue) {}
+	double toNormalized(double value) const { return scale.toNormalized(value); }
+	double toScaled(double value) const { return scale.toScaled(value); }
+
+	using ScaleType = Scale;
+	Scale scale;
+	int32_t id;
+	double defaultValue;
+	double initialValue;
+};
+
+struct LinearParamSpec : public ParamSpecBase<LinearScale>
+{
+	LinearParamSpec(int32_t id, double min, double max, double defaultValue, double initialValue)
+		: ParamSpecBase<LinearScale>(id, defaultValue, initialValue) {
+		scale = { min, max };
+	}
+};
+
+struct LogParamSpec : public ParamSpecBase<LogarithmicScale>
+{
+	LogParamSpec(int32_t id, double min, double max, double defaultValue, double initialValue, double base = 10.0)
+		: ParamSpecBase<LogarithmicScale>(id, defaultValue, initialValue) {
+		scale = { min, max, base };
+	}
+};
+
+struct PowerParamSpec : public ParamSpecBase<PowerScale>
+{
+	PowerParamSpec(int32_t id, double min, double max, double defaultValue, double initialValue, const double (&pair)[2])
+		: ParamSpecBase<PowerScale>(id, defaultValue, initialValue) {
+		scale = { min, max, pair };
+	}
+};
+
+/*
+ * Vst Parameter classes that convert to and from normalized values through a scale. 
+ * The constructor takes a corresponding ParamSpec (i.e. linear or logarithmic). 
+ * ---------------------------------------------------------------------------------
+ */
+
+template<class ParamSpec>
+class ScaledParameter : public Vst::Parameter
+{
+public:
+	ScaledParameter(const ParamSpec& paramSpec, const TChar* title, const TChar* shortTitle = nullptr, const TChar* units = nullptr, int32 flags = ParameterInfo::kCanAutomate, UnitID unitID = 0)
+		: Parameter(title, paramSpec.id, units, paramSpec.toNormalized(paramSpec.defaultValue), 0, flags, unitID, shortTitle), scale(paramSpec.scale) {
+	}
+
+	void toString(ParamValue value, String128 string) const SMTG_OVERRIDE {
+		UString128 wrapper;
+		wrapper.printFloat(toPlain(value), precision);
+		wrapper.copyTo(string, 128);
+	}
+
+	bool fromString(const TChar* string, ParamValue& value) const SMTG_OVERRIDE {
+		UString wrapper((TChar*)string, strlen16(string));
+		if (wrapper.scanFloat(value)) {
+			value = toNormalized(value);
+			return true;
+		}
+		return false;
+	}
+
+	ParamValue toPlain(ParamValue value) const SMTG_OVERRIDE {
+		return scale.toScaled(value);
+	}
+
+	ParamValue toNormalized(ParamValue value) const SMTG_OVERRIDE {
+		return scale.toNormalized(value);
+	}
+
+	using ParamSpecType = ParamSpec;
+
+	const typename ParamSpec::ScaleType& scale;
+};
+
+
+class LinearParameter : public ScaledParameter<LinearParamSpec>
+{
+public:
+	using ScaledParameter<ScaledParameter::ParamSpecType>::ScaledParameter;
+};
+
+class LogParameter : public ScaledParameter<LogParamSpec>
+{
+public:
+	using ScaledParameter<ScaledParameter::ParamSpecType>::ScaledParameter;
+};
+
+class PowerParameter : public ScaledParameter<PowerParamSpec>
+{
+public:
+	using ScaledParameter<ScaledParameter::ParamSpecType>::ScaledParameter;
+};
+
+
+/*
+ * A special gain VST Parameter 
+ */
+class GainParameter : public Vst::Parameter
+{
+public:
+	GainParameter(const TChar* title, ParamID tag, const TChar* units, ParamValue defaultValue = 0.0, int32 flags = ParameterInfo::kCanAutomate, UnitID unitID = 0, const TChar* shortTitle = nullptr)
+		: Parameter(title, tag, units, defaultValue, 0, flags, unitID, shortTitle) {
+	}
+
+	void toString(ParamValue value, String128 string) const SMTG_OVERRIDE {
+		UString128 wrapper;
+		double dB = volumeTodB(value);
+		if (value > 0.0001) {
+			wrapper.printFloat(dB, precision);
+		}
+		else {
+			wrapper.append(L"-oo");
+		}
+		wrapper.copyTo(string, 128);
+	}
+
+	bool fromString(const TChar* string, ParamValue& value) const SMTG_OVERRIDE {
+		UString wrapper((TChar*)string, strlen16(string));
+
+		if (wrapper.scanFloat(value)) {
+			if (value > 0.0) value = 0.0;
+			value = dBtoVolume(value);
+			return true;
+		}
+		return false;
 	}
 };
 

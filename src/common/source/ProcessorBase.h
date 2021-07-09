@@ -119,6 +119,7 @@ public:
 		}
 	}
 
+	template<class ParamSpec>
 	ParamValue toScaled(const ParamSpec& p) {
 		return p.toScaled(paramState[p.id]);
 	}
