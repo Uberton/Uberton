@@ -161,18 +161,18 @@ class ProcessorBase<ParamState, ImplementBypass> : public ProcessorBaseCommon<Pa
 {
 public:
 	tresult PLUGIN_API process(ProcessData& data) SMTG_OVERRIDE {
-		processParameterChanges(data.inputParameterChanges);
-		processEvents(data.inputEvents);
+		this->processParameterChanges(data.inputParameterChanges);
+		this->processEvents(data.inputEvents);
 
 		if (data.numSamples > 0 && !bypassProcessing(data)) {
-			processAudio(data);
-			checkSilence(data);
+			this->processAudio(data);
+			this->checkSilence(data);
 		}
 		return kResultTrue;
 	}
 
 	tresult PLUGIN_API setState(IBStream* state) SMTG_OVERRIDE {
-		tresult r = paramState.setState(state);
+		tresult r = this->paramState.setState(state);
 		recomputeParameters();
 		return r;
 	}
@@ -182,7 +182,7 @@ public:
 
 		if (bypassingState != BypassingState::None) {
 			// Bypass ramping (only first bus)
-			processAudio(data);
+			this->processAudio(data);
 
 			float dry = 0;
 			float wet = 0;
@@ -228,12 +228,12 @@ public:
 
 
 	bool isBypassed() const {
-		return paramState.isBypassed();
+		return this->paramState.isBypassed();
 	}
 
 	void setBypassed(bool state) {
-		if (state == paramState.isBypassed()) return;
-		paramState.setBypass(state);
+		if (state == this->paramState.isBypassed()) return;
+		this->paramState.setBypass(state);
 		if (state)
 			bypassingState = BypassingState::RampToOff;
 		else
@@ -260,19 +260,19 @@ class ProcessorBase<ParamState, NoBypass> : public ProcessorBaseCommon<ParamStat
 {
 public:
 	tresult PLUGIN_API process(ProcessData& data) SMTG_OVERRIDE {
-		processParameterChanges(data.inputParameterChanges);
-		processEvents(data.inputEvents);
+		this->processParameterChanges(data.inputParameterChanges);
+		this->processEvents(data.inputEvents);
 
 		if (data.numSamples > 0) {
-			processAudio(data);
-			checkSilence(data);
+			this->processAudio(data);
+			this->checkSilence(data);
 		}
 		return kResultTrue;
 	}
 
 	tresult PLUGIN_API setState(IBStream* state) SMTG_OVERRIDE {
-		tresult r = paramState.setState(state);
-		recomputeParameters();
+		tresult r = this->paramState.setState(state);
+		this->recomputeParameters();
 		return r;
 	}
 };

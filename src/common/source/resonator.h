@@ -18,6 +18,7 @@
 #pragma once
 
 #include "vstmath.h"
+#include <vector>
 
 namespace Uberton {
 namespace Math {

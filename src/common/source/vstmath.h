@@ -257,7 +257,7 @@ inline T assoc_legendre_impl(int l, int m, T x, T sin_theta_power) {
 	return p1;
 }
 
-// Associated Legendre polynom
+// Associated Legendre polynom (including Condon-Shortley phase (-1)^m)
 template<class T>
 inline auto assoc_legendre(int l, int m, T x) noexcept {
 	auto d = static_cast<T>(pow(1 - x * x, T(abs(m)) / 2));
