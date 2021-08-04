@@ -22,6 +22,8 @@ target_link_libraries(${target} PRIVATE uberton_common)
 target_include_directories(${target} PUBLIC "${SMTG_UBERTON_SRC_PATH}/src/common/source")
 
 smtg_add_vst3_resource(${target} "resource/editor.uidesc")
+smtg_add_vst3_resource(${target} "resource/menu_button.png")
+smtg_add_vst3_resource(${target} "resource/undo_button.png")
 
 if(SMTG_MAC)
     smtg_set_bundle(${target} INFOPLIST "${CMAKE_CURRENT_LIST_DIR}/resource/Info.plist" PREPROCESS)

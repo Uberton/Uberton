@@ -21,9 +21,16 @@ namespace BasicFx {
 
 
 enum Params : Steinberg::Vst::ParamID {
-	kParamVolId,
+	kParamVol,
 	kNumGlobalParameters
 };
+
+namespace ParamSpecs {
+
+// id, min, max, default, initial (all scaled not normalized!)
+constexpr ParamSpec vol{ kParamVol, { 0, 100, 80 }, 80 };
+
+}
 
 using ParamState = UniformParamState<kNumGlobalParameters>;
 

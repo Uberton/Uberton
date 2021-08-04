@@ -17,7 +17,14 @@ namespace BasicFx {
 
 Processor::Processor() {
 	setControllerClass(ControllerUID);
-	paramState[Params::kParamVolId] = .8;
+
+	paramState.version = 0;
+
+	auto initValue = [&](const auto& p) {
+		paramState[p.id] = p.toNormalized(p.initialValue);
+	};
+
+	initValue(ParamSpecs::vol);
 }
 
 tresult PLUGIN_API Processor::initialize(FUnknown* context) {
@@ -41,13 +48,9 @@ void Processor::processAudio(ProcessData& data) {
 	Sample32** in = data.inputs[0].channelBuffers32;
 	Sample32** out = data.outputs[0].channelBuffers32;
 
-	float volume = paramState[Params::kParamVolId];
+	float volume = paramState[Params::kParamVol];
 
-	for (int32 i = 0; i < numChannels; i++) {
-		for (int32 sample = 0; sample < numSamples; sample++) {
-			out[i][sample] = in[i][sample] * volume;
-		}
-	}
+	Algo::multiply32(data.inputs[0], data.outputs[0], numSamples, volume);
 }
 
 void Processor::processParameterChanges(IParameterChanges* inputParameterChanges) {

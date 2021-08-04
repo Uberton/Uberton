@@ -6,23 +6,32 @@
 		<color name="Background" rgba="#468affff"/>
 	</colors>
 	<template background-color="Background" background-color-draw-style="filled and stroked" class="CViewContainer" maxSize="380, 190" minSize="380, 190" mouse-enabled="true" name="Editor" opacity="1" origin="0, 0" size="380, 190" transparent="false" wants-focus="false">
-		<view angle-range="270" angle-start="135" circle-drawing="false" class="CKnob" control-tag="gain" corona-color="~ RedCColor" corona-dash-dot="true" corona-dash-dot-lengths="1.26,0.1" corona-drawing="true" corona-from-center="false" corona-inset="12" corona-inverted="false" corona-line-cap-butt="true" corona-outline="true" corona-outline-width-add="2" default-value="0.5" handle-color="~ WhiteCColor" handle-line-width="8" handle-shadow-color="~ BlackCColor" max-value="1" min-value="0" mouse-enabled="true" opacity="1" origin="145, 65" size="70, 70" skip-handle-drawing="true" transparent="false" value-inset="3" wants-focus="true" wheel-inc-value="0.1" zoom-factor="1.5"/>
+		<view angle-range="270" angle-start="135" circle-drawing="false" class="CKnob" control-tag="gain" corona-color="~ RedCColor" corona-dash-dot="true" corona-dash-dot-lengths="1.26,0.1" corona-drawing="true" corona-from-center="false" corona-inset="12" corona-inverted="false" corona-line-cap-butt="true" corona-outline="true" corona-outline-width-add="2" default-value="0.8" handle-color="~ WhiteCColor" handle-line-width="8" handle-shadow-color="~ BlackCColor" max-value="1" min-value="0" mouse-enabled="true" opacity="1" origin="145, 65" size="70, 70" skip-handle-drawing="true" transparent="false" value-inset="3" wants-focus="true" wheel-inc-value="0.1" zoom-factor="1.5"/>
 		<view back-color="~ BlackCColor" background-offset="0, 0" class="CTextLabel" default-value="0.5" font="~ NormalFont" font-antialias="true" font-color="~ WhiteCColor" frame-color="~ BlackCColor" frame-width="1" max-value="1" min-value="0" mouse-enabled="true" opacity="1" origin="130, 35" round-rect-radius="6" shadow-color="~ RedCColor" size="100, 20" style-3D-in="false" style-3D-out="false" style-no-draw="false" style-no-frame="false" style-no-text="false" style-round-rect="false" style-shadow-text="false" text-alignment="center" text-inset="0, 0" text-rotation="0" text-shadow-offset="1, 1" title="Gain" transparent="false" value-precision="2" wants-focus="false" wheel-inc-value="0.1"/>
-		<view back-color="None" background-offset="0, 0" class="CTextLabel" control-tag="gain" default-value="0.5" font="~ NormalFont" font-antialias="true" font-color="~ BlackCColor" frame-color="None" frame-width="1" max-value="1" min-value="0" mouse-enabled="true" opacity="1" origin="130, 130" round-rect-radius="6" shadow-color="None" size="100, 20" style-3D-in="false" style-3D-out="false" style-no-draw="false" style-no-frame="false" style-no-text="false" style-round-rect="false" style-shadow-text="false" text-alignment="center" text-inset="0, 0" text-rotation="0" text-shadow-offset="1, 1" title="0.8400" transparent="true" value-precision="2" wants-focus="false" wheel-inc-value="0.1"/>
+		<view back-color="None" background-offset="0, 0" class="CTextLabel" control-tag="gain" default-value="0.8" font="~ NormalFont" font-antialias="true" font-color="~ BlackCColor" frame-color="None" frame-width="1" max-value="1" min-value="0" mouse-enabled="true" opacity="1" origin="130, 130" round-rect-radius="6" shadow-color="None" size="100, 20" style-3D-in="false" style-3D-out="false" style-no-draw="false" style-no-frame="false" style-no-text="false" style-round-rect="false" style-shadow-text="false" text-alignment="center" text-inset="0, 0" text-rotation="0" text-shadow-offset="1, 1" title="40.5000" transparent="true" value-precision="2" wants-focus="false" wheel-inc-value="0.1"/>
+		<view back-color="~ BlackCColor" background-offset="0, 0" bitmap="menu_button" class="Uberton Context Menu" default-value="0.5" font="~ NormalFont" font-antialias="true" font-color="~ WhiteCColor" frame-color="~ TransparentCColor" frame-width="1" max-value="2" menu-check-style="false" menu-popup-style="false" min-value="0" mouse-enabled="true" opacity="1" origin="0, 0" pressed-frame-color="~ WhiteCColor" round-rect-radius="6" shadow-color="~ RedCColor" size="24, 15" style-3D-in="false" style-3D-out="false" style-no-draw="false" style-no-frame="false" style-no-text="false" style-round-rect="false" style-shadow-text="false" symbol-color="~ WhiteCColor" text-alignment="center" text-inset="0, 0" text-rotation="0" text-shadow-offset="1, 1" transparent="false" value-precision="2" wants-focus="true" wheel-inc-value="0.1" zoom-factors="80,90,100,110,120,150"/>
+		<view background-color="~ BlackCColor" background-color-draw-style="filled and stroked" class="CViewContainer" mouse-enabled="true" opacity="1" origin="24, 0" size="54, 15" sub-controller="HistoryController" transparent="false" wants-focus="false">
+			<view bitmap="undo_button" class="History Button" default-value="0.5" height-of-one-image="20" horizontal-bitmap-flip="false" max-value="1" min-value="0" mouse-enabled="false" opacity="1" origin="0, 0" pressed-frame-color="~ WhiteCColor" size="27, 15" sub-pixmaps="0" transparent="false" type="Undo" wants-focus="true" wheel-inc-value="0.1"/>
+			<view bitmap="undo_button" class="History Button" default-value="0.5" height-of-one-image="15" horizontal-bitmap-flip="true" max-value="1" min-value="0" mouse-enabled="false" opacity="1" origin="27, 0" pressed-frame-color="~ WhiteCColor" size="27, 15" sub-pixmaps="0" transparent="false" type="Redo" wants-focus="true" wheel-inc-value="0.1"/>
+		</view>
 	</template>
 	<custom>
 		<attributes name="FocusDrawing"/>
-		<attributes Path="C:\Users\E-Bow\Documents\Code\Cplusplus\VST\Uberton\Plugins\BasicFx\resource\editor.uidesc" name="VST3Editor"/>
+		<attributes Path="C:\Users\E-Bow\Documents\Code\Cplusplus\VST\Uberton\src\Plugins\BasicFx\resource\editor.uidesc" name="VST3Editor"/>
 		<attributes Grids="1x 1,5x 5,10x 10,12x 12,15x 15" Size="5, 5" name="UIGridController"/>
 		<attributes SelectedTemplate="Editor" name="UITemplateController"/>
-		<attributes EditViewScale="1" EditorSize="0, 0, 1820, 1025" SplitViewSize_0_0="0.8698698698698699161013792036101222038269" SplitViewSize_0_1="0.1101101101101101126245040973117284011096" SplitViewSize_1_0="0.4874874874874874919328249234240502119064" SplitViewSize_1_1="0.5075075075075075048403050459455698728561" SplitViewSize_2_0="0.7554945054945054749850896769203245639801" SplitViewSize_2_1="0.2417582417582417597667898689905996434391" TabSwitchValue="0" Version="1" name="UIEditController"/>
+		<attributes EditViewScale="1" EditorSize="0, 0, 1399, 667" SplitViewSize_0_0="0.7971918876755069716111279376491438597441" SplitViewSize_0_1="0.1716068642745709749153348866457235999405" SplitViewSize_1_0="0.4867394695787831682132207333779660984874" SplitViewSize_1_1="0.5054602184087363392350766844174358993769" SplitViewSize_2_0="0.6819156540385989950792122726852539926767" SplitViewSize_2_1="0.3145103645461043706532677788345608860254" TabSwitchValue="4" Version="1" name="UIEditController"/>
 		<attributes name="UIAttributesController"/>
-		<attributes SelectedRow="8" name="UIViewCreatorDataSource"/>
+		<attributes SelectedRow="7" name="UIViewCreatorDataSource"/>
 		<attributes SelectedRow="0" name="UIColorsDataSource"/>
 		<attributes SelectedRow="0" name="UITagsDataSource"/>
+		<attributes SelectedRow="1" name="UIBitmapsDataSource"/>
 	</custom>
 	<control-tags>
 		<control-tag name="gain" tag="0"/>
 	</control-tags>
-	<bitmaps/>
+	<bitmaps>
+		<bitmap name="menu_button" path="menu_button.png"/>
+		<bitmap name="undo_button" path="undo_button.png"/>
+	</bitmaps>
 </vstgui-ui-description>

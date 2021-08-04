@@ -10,23 +10,28 @@
 
 
 #include "controller.h"
-#include "ids.h"
-#include <vstmath.h>
+#include <vstgui/plugin-bindings/vst3editor.h>
 
 namespace Uberton {
 namespace BasicFx {
 
 tresult PLUGIN_API Controller::initialize(FUnknown* context) {
-	tresult result = ControllerBaseP::initialize(context);
+	tresult result = ControllerBase::initialize(context);
 	if (result != kResultTrue) return result;
 
-	addRangeParam(Params::kParamVolId, "Gain", "dB", { 0, 1, .5 });
+	UnitID rootUnitId = 1;
+	addUnit(new Unit(USTRING("Root"), rootUnitId));
+
+	setCurrentUnitID(rootUnitId);
+	addRangeParam(ParamSpecs::vol, "Volume", "Vol", "%");
+
 	return kResultTrue;
 }
 
 IPlugView* PLUGIN_API Controller::createView(FIDString name) {
-	if (ConstString(name) == ViewType::kEditor)
+	if (ConstString(name) == ViewType::kEditor) {
 		return new VSTGUI::VST3Editor(this, "Editor", "editor.uidesc");
+	}
 	return nullptr;
 }
 

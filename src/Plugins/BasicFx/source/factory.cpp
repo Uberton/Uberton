@@ -9,11 +9,13 @@
 // -----------------------------------------------------------------------------------------------------------------------------
 
 #include <public.sdk/source/main/pluginfactory.h>
+#include <viewcreator_globals.h>
 
 #include "ids.h"
 #include "version.h"
 #include "controller.h"
 #include "processor.h"
+
 
 #define stringSubCategory "Fx" // Subcategory for this plug-in (to be changed if needed, see PlugType in ivstaudioprocessor.h)
 
