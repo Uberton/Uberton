@@ -16,26 +16,45 @@
 #pragma once
 
 #include <public.sdk/source/vst/vsteditcontroller.h>
+#include <vstgui/plugin-bindings/vst3editor.h>
 #include <pluginterfaces/base/ustring.h>
 #include <array>
 #include "parameters.h"
+#include "ActionHistory.h"
 
 
 namespace Uberton {
 using namespace Steinberg;
 using namespace Steinberg::Vst;
 
-/*
- * - can automatically add a bypass parameter(set implementBypass to false in constructor to avoid doing so)
- */
-class ControllerBase : public EditControllerEx1
+class HistoryController;
+
+class HistoryControllerBase : public EditControllerEx1, public VSTGUI::VST3EditorDelegate
 {
+	using Parent = EditControllerEx1;
+
 public:
-	ControllerBase();
+	VSTGUI::IController* PLUGIN_API createSubController(VSTGUI::UTF8StringPtr name, const VSTGUI::IUIDescription* description, VSTGUI::VST3Editor* editor) SMTG_OVERRIDE;
 
-	tresult PLUGIN_API initialize(FUnknown* context) SMTG_OVERRIDE;
+	void PLUGIN_API editorAttached(EditorView* editor) SMTG_OVERRIDE;
+	void PLUGIN_API editorRemoved(EditorView* editor) SMTG_OVERRIDE;
 
-	bool implementBypass = true;
+	tresult beginEdit(Vst::ParamID id) override;
+	tresult endEdit(Vst::ParamID id) override;
+
+	void undo();
+	void redo();
+	void applyAction(ParamID id, ParamValue value);
+
+	void updateHistoryButtons();
+
+	ActionHistory history;
+	ParamValue startValue{ 0 };
+	ParamID currentlyEditedParam = -1;
+
+	using TheEditor = VSTGUI::VST3Editor;
+	std::vector<TheEditor*> editors;
+	std::map<EditorView*, HistoryController*> hcm;
 };
 
 /*
@@ -44,10 +63,10 @@ public:
  * The component state is set through the member function of the ParamStateClass class.
  */
 template<class ParamStateClass, bool hasBypass>
-class ControllerBaseP : public EditControllerEx1
+class ControllerBase : public HistoryControllerBase
 {
 public:
-	ControllerBaseP() {}
+	ControllerBase() {}
 
 	tresult PLUGIN_API initialize(FUnknown* context) SMTG_OVERRIDE {
 		tresult result = EditControllerEx1::initialize(context);
@@ -105,5 +124,17 @@ public:
 	const bool ReadOnly = true;
 };
 
+/*
+ * - can automatically add a bypass parameter(set implementBypass to false in constructor to avoid doing so)
+ */
+class ControllerBase1 : public EditControllerEx1
+{
+public:
+	ControllerBase1();
+
+	tresult PLUGIN_API initialize(FUnknown* context) SMTG_OVERRIDE;
+
+	bool implementBypass = true;
+};
 
 }

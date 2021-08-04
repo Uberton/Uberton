@@ -19,6 +19,13 @@ add_library(uberton_common
         source/filter.h
         source/cube_ewp_n=50.h
         source/cube_ewp_n=200.h
+        source/ActionHistory.h
+        source/ActionHistory.cpp
+        source/ui.h
+        source/ui.cpp
+        source/viewcreator.h
+        source/viewcreator.cpp
+        source/viewcreator_globals.h
 )
 
 
@@ -39,5 +46,5 @@ target_include_directories(uberton_common
         ${CMAKE_CURRENT_SOURCE_DIR}/..
 )
 
-
+target_compile_features(uberton_common PUBLIC cxx_std_17)
 smtg_setup_universal_binary(uberton_common)
