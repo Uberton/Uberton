@@ -305,4 +305,66 @@ const std::string DiagonalSliderFactory::handleBitmap = "handle-bitmap";
 const std::string DiagonalSliderFactory::pathStartPoint = "path-start-point";
 const std::string DiagonalSliderFactory::pathEndPoint = "path-end-point";
 
+
+
+StringMapLabelFactory::StringMapLabelFactory() {
+	UIViewFactory::registerViewCreator(*this);
+}
+
+IdStringPtr StringMapLabelFactory::getViewName() const { return Uberton::ViewCreator::kStringMapLabel; }
+
+IdStringPtr StringMapLabelFactory::getBaseViewName() const { return UIViewCreator::kCParamDisplay; }
+
+CView* StringMapLabelFactory::create(const UIAttributes& attributes, const IUIDescription* description) const {
+	return new Control({ 0, 0, 50, 30 });
+}
+
+bool StringMapLabelFactory::apply(CView* view, const UIAttributes& attributes, const IUIDescription* description) const {
+	Control* control = dynamic_cast<Control*>(view);
+	if (!control) return false;
+	UIAttributes::StringArray value;
+	if (attributes.getStringArrayAttribute(names, value)) {
+		std::vector<std::string> receivedNames;
+		for (const auto& string : value) {
+			receivedNames.push_back(string);
+		}
+		control->setNames(receivedNames);
+	}
+	return true;
+}
+
+bool StringMapLabelFactory::getAttributeNames(StringList& attributeNames) const {
+	attributeNames.emplace_back(names);
+	return true;
+}
+
+IViewCreator::AttrType StringMapLabelFactory::getAttributeType(const std::string& attributeName) const {
+	if (attributeName == names) return kStringType;
+	return kUnknownType;
+}
+
+bool StringMapLabelFactory::getAttributeValue(CView* view, const string& attributeName, string& stringValue, const IUIDescription* desc) const {
+	Control* control = dynamic_cast<Control*>(view);
+	if (control == 0) return false;
+	if (attributeName == names) {
+		const auto nameList = control->getNames();
+		if (nameList.size() == 0) {
+			stringValue = "";
+			return true;
+		}
+		UIAttributes::StringArray stringArray;
+
+		for (auto name : nameList) {
+			stringArray.emplace_back(name);
+		}
+
+		stringValue = UIAttributes::stringArrayToString(stringArray);
+		return true;
+	}
+	return false;
+}
+
+const std::string StringMapLabelFactory::names = "names";
+
+
 }

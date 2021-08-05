@@ -22,7 +22,16 @@ using namespace VSTGUI;
 
 class HistoryControllerBase;
 
+/*
+ * Animation that gradually sets the frame color opacity to 0. 
+ * The target type needs to be a CView and also implement the functions setFrameColor() and 
+ * getFrameColor(). 
+ */
 template<class Target>
+//requires std::derived_from<Target, CView> && requires(Target t, CColor c) {
+//	t.setFrameColor(c);
+//	{ t.getFrameColor() } -> std::convertible_to<CColor>;
+//}
 class FadingFrameAnimation : public VSTGUI::Animation::IAnimationTarget, public NonAtomicReferenceCounted
 {
 public:
@@ -66,6 +75,10 @@ private:
 };
 
 
+/* 
+ * Button that changes frame color when pressed down and fades the frame color
+ * to transparent when released. 
+ */
 class FadingFrameAnimationButton : public VSTGUI::CKickButton
 {
 public:
@@ -158,7 +171,10 @@ private:
 };
 
 
-
+/*
+ * Context menu specifically for Uberton. Allows setting zoom factors that can be controlled through the menu 
+ * or alternatively through the right click option menu. 
+ */
 class UbertonContextMenu : public COptionMenu
 {
 
@@ -208,7 +224,9 @@ private:
 };
 
 
-
+/*
+ * Special slider that places a handle bitmap along a path through two specified points inside the control. 
+ */
 class DiagonalSlider : public CSliderBase
 {
 public:
@@ -245,5 +263,31 @@ private:
 
 	CPoint p1;
 	CPoint p2;
+};
+
+
+/*
+ * A parameter label display for discrete paremeters that shows not the parameter itself 
+ * but a corresponding string that is mapped to the value. The list of strings can be 
+ * specified using setNames(). 
+ */
+class StringMapLabel : public CParamDisplay
+{
+public:
+	StringMapLabel(const CRect&);
+
+	void setNames(const std::vector<std::string>& names);
+	std::vector<std::string> getNames() const;
+
+	void draw(CDrawContext* context) override;
+
+	CLASS_METHODS(StringMapLabel, CTextLabel);
+
+protected:
+	void updateText();
+
+private:
+	std::vector<std::string> names;
+	bool initialized{ false };
 };
 }

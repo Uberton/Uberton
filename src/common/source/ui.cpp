@@ -406,3 +406,35 @@ CMouseEventResult Uberton::DiagonalSlider::onMouseCancel() {
 	}
 	return kMouseEventHandled;
 }
+
+Uberton::StringMapLabel::StringMapLabel(const CRect& size) : CParamDisplay(size){
+	setValueToStringFunction2([&](float value, std::string& result, CParamDisplay* display) {
+		int discreteValue = std::floor<int>(value);
+		if (discreteValue < 0 || discreteValue >= names.size()) return false;
+		result = names[discreteValue];
+		return true;
+	});
+
+}
+
+void Uberton::StringMapLabel::setNames(const std::vector<std::string>& names) {
+	this->names = names;
+	setDirty();
+}
+
+std::vector<std::string> Uberton::StringMapLabel::getNames() const {
+	return names;
+}
+
+void Uberton::StringMapLabel::draw(CDrawContext* context) {
+	if (!initialized) {
+		setValueToStringFunction2([&](float value, std::string& result, CParamDisplay* display) {
+			int discreteValue = std::floor<int>(value) - getMin();
+			if (discreteValue < 0 || discreteValue >= names.size()) return false;
+			result = names[discreteValue];
+			return true;
+		});
+		initialized = true;
+	}
+	CParamDisplay::draw(context);
+}

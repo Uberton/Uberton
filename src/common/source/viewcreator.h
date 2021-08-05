@@ -117,12 +117,35 @@ public:
 };
 
 
+class StringMapLabelFactory : public ViewCreatorAdapter
+{
+	using Control = StringMapLabel;
+
+	static const std::string names;
+
+public:
+	StringMapLabelFactory();
+
+	IdStringPtr getViewName() const override;
+	IdStringPtr getBaseViewName() const override;
+
+	CView* create(const UIAttributes& attributes, const IUIDescription* description) const override;
+	bool apply(CView* view, const UIAttributes& attributes, const IUIDescription* description) const override;
+
+	bool getAttributeNames(StringList& attributeNames) const override;
+	AttrType getAttributeType(const std::string& attributeName) const override;
+	bool getAttributeValue(CView* view, const string& attributeName, string& stringValue, const IUIDescription* desc) const override;
+};
+
+
+
 namespace ViewCreator {
 
 static const IdStringPtr kFadingFrameAnimationButton = "Fading Frame Animation Button";
 static const IdStringPtr kHistoryButton = "History Button";
 static const IdStringPtr kUbertonContextMenu = "Uberton Context Menu";
 static const IdStringPtr kDiagonalSlider = "Diagonal Slider";
+static const IdStringPtr kStringMapLabel = "String Mape Label";
 
 }
 

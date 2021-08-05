@@ -9,6 +9,7 @@ static const Uberton::FadingFrameAnimationButtonFactory __gFadingFrameAnimationB
 static const Uberton::UbertonContextMenuFactory __gUbertonContextMenuFactory;
 static const Uberton::HistoryButtonFactory __gHistoryButtonFactory;
 static const Uberton::DiagonalSliderFactory __gDiagonalSliderFactory;
+static const Uberton::StringMapLabelFactory __gStringMapLabelFactory;
 
 #else
 #error "viewcreator_globals.h can only be included once"
