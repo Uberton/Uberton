@@ -276,10 +276,10 @@ class StringMapLabel : public CParamDisplay
 public:
 	StringMapLabel(const CRect&);
 
+	void draw(CDrawContext* context) override;
+
 	void setNames(const std::vector<std::string>& names);
 	std::vector<std::string> getNames() const;
-
-	void draw(CDrawContext* context) override;
 
 	CLASS_METHODS(StringMapLabel, CTextLabel);
 
@@ -289,5 +289,25 @@ protected:
 private:
 	std::vector<std::string> names;
 	bool initialized{ false };
+};
+
+
+/*
+ * A TextEdit that also displays units for the values of the associated parameter. 
+ */
+class TextEditUnits : public CTextEdit
+{
+public:
+	TextEditUnits(const CRect&);
+
+	void draw(CDrawContext* context) override;
+
+	void setUnits(std::string units);
+	std::string getUnits() const;
+
+	CLASS_METHODS(TextEditUnits, CTextEdit);
+
+private:
+	std::string units = "";
 };
 }

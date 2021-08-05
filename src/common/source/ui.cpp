@@ -438,3 +438,27 @@ void Uberton::StringMapLabel::draw(CDrawContext* context) {
 	}
 	CParamDisplay::draw(context);
 }
+
+Uberton::TextEditUnits::TextEditUnits(const CRect& size) : CTextEdit(size, nullptr, -1) {
+}
+
+void Uberton::TextEditUnits::draw(CDrawContext* context) {
+	if (!text.empty() && tag != -1 && !units.empty()) {
+		std::string tmp = text;
+		text += " " + units;
+		CTextEdit::draw(context);
+		text = tmp;
+	}
+	else {
+		CTextEdit::draw(context);
+	}
+}
+
+void Uberton::TextEditUnits::setUnits(std::string units) {
+	this->units = units;
+	setDirty();
+}
+
+std::string Uberton::TextEditUnits::getUnits() const {
+	return units;
+}

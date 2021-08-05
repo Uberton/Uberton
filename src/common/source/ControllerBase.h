@@ -100,9 +100,10 @@ public:
 		return p;
 	}
 
-	RangeParameter* addRangeParam(const ParamSpec& paramDesc, const UString256& title, const UString256& shortTitle, const UString256& units, int32 flags = ParameterInfo::kCanAutomate) {
+	RangeParameter* addRangeParam(const ParamSpec& paramDesc, const UString256& title, const UString256& shortTitle, const UString256& units = "", int precision = 1, int32 flags = ParameterInfo::kCanAutomate) {
 		auto p = new RangeParameter(title, paramDesc.id, units, paramDesc.minValue, paramDesc.maxValue, paramDesc.defaultValue, 0, flags, currentUnitID, shortTitle);
 		parameters.addParameter(p);
+		p->setPrecision(precision);
 		return p;
 	}
 

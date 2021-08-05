@@ -367,4 +367,49 @@ bool StringMapLabelFactory::getAttributeValue(CView* view, const string& attribu
 const std::string StringMapLabelFactory::names = "names";
 
 
+
+TextEditUnitsFactory::TextEditUnitsFactory() {
+	UIViewFactory::registerViewCreator(*this);
+}
+
+IdStringPtr TextEditUnitsFactory::getViewName() const { return Uberton::ViewCreator::kTextEditUnits; }
+
+IdStringPtr TextEditUnitsFactory::getBaseViewName() const { return UIViewCreator::kCTextEdit; }
+
+CView* TextEditUnitsFactory::create(const UIAttributes& attributes, const IUIDescription* description) const {
+	return new Control({ 0, 0, 50, 30 });
+}
+
+bool TextEditUnitsFactory::apply(CView* view, const UIAttributes& attributes, const IUIDescription* description) const {
+	Control* control = dynamic_cast<Control*>(view);
+	if (!control) return false;
+	if (auto* s = attributes.getAttributeValue(units)) {
+		control->setUnits(*s);
+	}
+	return true;
+}
+
+bool TextEditUnitsFactory::getAttributeNames(StringList& attributeNames) const {
+	attributeNames.emplace_back(units);
+	return true;
+}
+
+IViewCreator::AttrType TextEditUnitsFactory::getAttributeType(const std::string& attributeName) const {
+	if (attributeName == units) return kStringType;
+	return kUnknownType;
+}
+
+bool TextEditUnitsFactory::getAttributeValue(CView* view, const string& attributeName, string& stringValue, const IUIDescription* desc) const {
+	Control* control = dynamic_cast<Control*>(view);
+	if (control == 0) return false;
+	if (attributeName == units) {
+		stringValue = control->getUnits();
+		return true;
+	}
+	return false;
+}
+
+const std::string TextEditUnitsFactory::units = "units";
+
+
 }

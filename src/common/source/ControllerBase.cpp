@@ -99,7 +99,7 @@ void HistoryControllerBase::applyAction(ParamID id, ParamValue value) {
 
 void HistoryControllerBase::updateHistoryButtons() {
 	for (auto& controller : hcm) {
-		controller.second->updateButtonState(history.canUndo(), history.canRedo());
+		//controller.second->updateButtonState(history.canUndo(), history.canRedo());
 	}
 }
 
