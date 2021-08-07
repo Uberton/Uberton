@@ -66,7 +66,7 @@ tresult HistoryControllerBase::endEdit(Vst::ParamID id) {
 			narrowstring += (char)c;
 		}
 
-		FDebugPrint(narrowstring.c_str());
+		//FDebugPrint(narrowstring.c_str());
 		history.execute(id, startValue, getParamNormalized(id));
 		updateHistoryButtons();
 		currentlyEditedParam = -1;
@@ -99,7 +99,7 @@ void HistoryControllerBase::applyAction(ParamID id, ParamValue value) {
 
 void HistoryControllerBase::updateHistoryButtons() {
 	for (auto& controller : hcm) {
-		//controller.second->updateButtonState(history.canUndo(), history.canRedo());
+		controller.second->updateButtonState(history.canUndo(), history.canRedo());
 	}
 }
 

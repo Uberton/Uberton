@@ -124,7 +124,8 @@ public:
 		return p.toScaled(paramState[p.id]);
 	}
 
-	int toDiscrete(const ParamSpec& p) {
+	template<class DiscreteParamSpec>
+	int toDiscrete(const DiscreteParamSpec& p) {
 		return p.toDiscrete(paramState[p.id]);
 	}
 

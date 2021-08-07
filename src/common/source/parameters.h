@@ -196,6 +196,7 @@ T volumeTodB(T volume) {
 
 
 /*
+ * @Deprecated
  * Parameter specification with id, minimum, maximum, default as well as initial value.
  * 
  * Provides helper functions for converting between normalized and scaled/discrete using the
@@ -256,9 +257,44 @@ public:
 		return (value - min) / (max - min);
 	}
 
+	double getMin() const { return min; };
+	double getMax() const { return max; };
+
 private:
 	double min;
 	double max;
+};
+
+/*
+ * Discrete scales that linearily maps from [0, 1] to [min, max] while min and max being integers. 
+ */
+class DiscreteScale
+{
+public:
+	DiscreteScale(int min = 0, int max = 1) : min(min), max(max) {}
+
+	double toScaled(double value) const {
+		return value * (max - min) + min;
+	}
+
+	double toNormalized(double value) const {
+		return (value - min) / static_cast<double>(max - min);
+	}
+
+	int toDiscrete(double value) const {
+		return normalizedToDiscrete(value, min, max);
+	}
+
+	double fromDiscrete(int value) const {
+		return discreteToNormalized(value, min, max);
+	}
+
+	int getMin() const { return min; };
+	int getMax() const { return max; };
+
+private:
+	int min;
+	int max;
 };
 
 /*
@@ -351,6 +387,18 @@ struct LinearParamSpec : public ParamSpecBase<LinearScale>
 	}
 };
 
+struct DiscreteParamSpec : public ParamSpecBase<DiscreteScale>
+{
+	DiscreteParamSpec(int32_t id, int min, int max, int defaultValue, int initialValue)
+		: ParamSpecBase<DiscreteScale>(id, defaultValue, initialValue) {
+		scale = { min, max };
+	}
+
+	int toDiscrete(double value) const {
+		return scale.toDiscrete(value);
+	}
+};
+
 struct LogParamSpec : public ParamSpecBase<LogarithmicScale>
 {
 	LogParamSpec(int32_t id, double min, double max, double defaultValue, double initialValue, double base = 10.0)
@@ -379,6 +427,7 @@ class ScaledParameter : public Vst::Parameter
 public:
 	ScaledParameter(const ParamSpec& paramSpec, const TChar* title, const TChar* shortTitle = nullptr, const TChar* units = nullptr, int32 flags = ParameterInfo::kCanAutomate, UnitID unitID = 0)
 		: Parameter(title, paramSpec.id, units, paramSpec.toNormalized(paramSpec.defaultValue), 0, flags, unitID, shortTitle), scale(paramSpec.scale) {
+		setPrecision(1);
 	}
 
 	void toString(ParamValue value, String128 string) const SMTG_OVERRIDE {
@@ -411,6 +460,12 @@ public:
 
 
 class LinearParameter : public ScaledParameter<LinearParamSpec>
+{
+public:
+	using ScaledParameter<ScaledParameter::ParamSpecType>::ScaledParameter;
+};
+
+class DiscreteParameter : public ScaledParameter<DiscreteParamSpec>
 {
 public:
 	using ScaledParameter<ScaledParameter::ParamSpecType>::ScaledParameter;
