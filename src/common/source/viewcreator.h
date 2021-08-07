@@ -101,6 +101,8 @@ class DiagonalSliderFactory : public UIViewCreator::SliderBaseCreator
 	static const std::string handleBitmap;
 	static const std::string pathStartPoint;
 	static const std::string pathEndPoint;
+	static const std::string horizontalBitmapFlip;
+	static const std::string verticalBitmapFlip;
 
 public:
 	DiagonalSliderFactory();

@@ -301,14 +301,32 @@ void Uberton::UbertonContextMenu::itemSelected(CCommandMenuItem* item) {
 
 Uberton::DiagonalSlider::DiagonalSlider(const CRect& r) : CSliderBase(r, nullptr, -1) {
 	setWantsFocus(true);
-	//kAlwaysUseZoomFactor = true;
 }
 
 void Uberton::DiagonalSlider::draw(CDrawContext* context) {
-	if (getDrawBackground()) {
-		CRect rect(0, 0, getControlSizePrivate().x, getControlSizePrivate().y);
-		rect.offset(getViewSize().left, getViewSize().top);
-		getDrawBackground()->draw(context, rect);
+	{
+		CGraphicsTransform transform;
+
+		if (bitmapHFlip) {
+			transform.translate(-getViewSize().getTopRight());
+			transform.scale(-1, 1);
+			transform.translate(getViewSize().getTopRight());
+			transform.translate(-getViewSize().getWidth(), 0);
+		}
+		if (bitmapVFlip) {
+			transform.translate(-getViewSize().getTopRight());
+			transform.scale(1, -1);
+			transform.translate(getViewSize().getTopRight());
+			transform.translate(0, getViewSize().getHeight());
+		}
+
+		CDrawContext::Transform ctxTransform(*context, transform);
+
+		if (getDrawBackground()) {
+			CRect rect(0, 0, getControlSizePrivate().x, getControlSizePrivate().y);
+			rect.offset(getViewSize().left, getViewSize().top);
+			getDrawBackground()->draw(context, rect);
+		}
 	}
 	if (handleBitmap) {
 		handleBitmap->draw(context, getHandleRect());
@@ -356,6 +374,26 @@ void Uberton::DiagonalSlider::setPathEndPoint(const CPoint& p) {
 CPoint Uberton::DiagonalSlider::getPathStartPoint() const { return p1; }
 
 CPoint Uberton::DiagonalSlider::getPathEndPoint() const { return p2; }
+
+void Uberton::DiagonalSlider::setHorizontalBitmapFlip(bool flip) {
+	if (flip == bitmapHFlip) return;
+	bitmapHFlip = flip;
+	setDirty();
+}
+
+bool Uberton::DiagonalSlider::isHorizontalBitmapFlip() const {
+	return bitmapHFlip;
+}
+
+void Uberton::DiagonalSlider::setVerticalBitmapFlip(bool flip) {
+	if (flip == bitmapVFlip) return;
+	bitmapVFlip = flip;
+	setDirty();
+}
+
+bool Uberton::DiagonalSlider::isVerticalBitmapFlip() const {
+	return bitmapVFlip;
+}
 
 CMouseEventResult Uberton::DiagonalSlider::onMouseDown(CPoint& where, const CButtonState& buttons) {
 	if (!(buttons & kLButton)) return kMouseEventNotHandled;
@@ -407,14 +445,13 @@ CMouseEventResult Uberton::DiagonalSlider::onMouseCancel() {
 	return kMouseEventHandled;
 }
 
-Uberton::StringMapLabel::StringMapLabel(const CRect& size) : CParamDisplay(size){
+Uberton::StringMapLabel::StringMapLabel(const CRect& size) : CParamDisplay(size) {
 	setValueToStringFunction2([&](float value, std::string& result, CParamDisplay* display) {
 		int discreteValue = std::floor<int>(value);
-		if (discreteValue < 0 || discreteValue >= names.size()) return false;
+		if (discreteValue < 0 || discreteValue >= static_cast<ptrdiff_t>(names.size())) return false;
 		result = names[discreteValue];
 		return true;
 	});
-
 }
 
 void Uberton::StringMapLabel::setNames(const std::vector<std::string>& names) {
@@ -430,7 +467,7 @@ void Uberton::StringMapLabel::draw(CDrawContext* context) {
 	if (!initialized) {
 		setValueToStringFunction2([&](float value, std::string& result, CParamDisplay* display) {
 			int discreteValue = std::floor<int>(value) - getMin();
-			if (discreteValue < 0 || discreteValue >= names.size()) return false;
+			if (discreteValue < 0 || discreteValue >= static_cast<ptrdiff_t>(names.size())) return false;
 			result = names[discreteValue];
 			return true;
 		});
@@ -445,7 +482,7 @@ Uberton::TextEditUnits::TextEditUnits(const CRect& size) : CTextEdit(size, nullp
 void Uberton::TextEditUnits::draw(CDrawContext* context) {
 	if (!text.empty() && tag != -1 && !units.empty()) {
 		std::string tmp = text;
-		text += " " + units;
+		text += "" + units;
 		CTextEdit::draw(context);
 		text = tmp;
 	}

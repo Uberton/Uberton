@@ -263,6 +263,13 @@ bool DiagonalSliderFactory::apply(CView* view, const UIAttributes& attributes, c
 	if (attributes.getPointAttribute(pathEndPoint, p)) {
 		control->setPathEndPoint(p);
 	}
+	bool b;
+	if (attributes.getBooleanAttribute(horizontalBitmapFlip, b)) {
+		control->setHorizontalBitmapFlip(b);
+	}
+	if (attributes.getBooleanAttribute(verticalBitmapFlip, b)) {
+		control->setVerticalBitmapFlip(b);
+	}
 	return SliderBaseCreator::apply(view, attributes, description);
 }
 
@@ -270,6 +277,8 @@ bool DiagonalSliderFactory::getAttributeNames(StringList& attributeNames) const 
 	attributeNames.emplace_back(handleBitmap);
 	attributeNames.emplace_back(pathStartPoint);
 	attributeNames.emplace_back(pathEndPoint);
+	attributeNames.emplace_back(horizontalBitmapFlip);
+	attributeNames.emplace_back(verticalBitmapFlip);
 	return SliderBaseCreator::getAttributeNames(attributeNames);
 }
 
@@ -277,6 +286,8 @@ IViewCreator::AttrType DiagonalSliderFactory::getAttributeType(const std::string
 	if (attributeName == handleBitmap) return kBitmapType;
 	if (attributeName == pathStartPoint) return kPointType;
 	if (attributeName == pathEndPoint) return kPointType;
+	if (attributeName == horizontalBitmapFlip) return kBooleanType;
+	if (attributeName == verticalBitmapFlip) return kBooleanType;
 	return SliderBaseCreator::getAttributeType(attributeName);
 }
 
@@ -298,12 +309,22 @@ bool DiagonalSliderFactory::getAttributeValue(CView* view, const string& attribu
 		stringValue = UIAttributes::pointToString(control->getPathEndPoint());
 		return true;
 	}
+	if (attributeName == horizontalBitmapFlip) {
+		stringValue = UIAttributes::boolToString(control->isHorizontalBitmapFlip());
+		return true;
+	}
+	if (attributeName == verticalBitmapFlip) {
+		stringValue = UIAttributes::boolToString(control->isVerticalBitmapFlip());
+		return true;
+	}
 	return SliderBaseCreator::getAttributeValue(view, attributeName, stringValue, desc);
 }
 
 const std::string DiagonalSliderFactory::handleBitmap = "handle-bitmap";
 const std::string DiagonalSliderFactory::pathStartPoint = "path-start-point";
 const std::string DiagonalSliderFactory::pathEndPoint = "path-end-point";
+const std::string DiagonalSliderFactory::horizontalBitmapFlip = "horizontal-bitmap-flip";
+const std::string DiagonalSliderFactory::verticalBitmapFlip = "vertical-bitmap-flip";
 
 
 

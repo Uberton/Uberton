@@ -243,11 +243,15 @@ public:
 	CPoint getPathStartPoint() const;
 	CPoint getPathEndPoint() const;
 
+	void setHorizontalBitmapFlip(bool flip);
+	bool isHorizontalBitmapFlip() const;
+	void setVerticalBitmapFlip(bool flip);
+	bool isVerticalBitmapFlip() const;
+
 	CMouseEventResult onMouseDown(CPoint& where, const CButtonState& buttons) override;
 	CMouseEventResult onMouseUp(CPoint& where, const CButtonState& buttons) override;
 	CMouseEventResult onMouseMoved(CPoint& where, const CButtonState& buttons) override;
 	CMouseEventResult onMouseCancel() override;
-
 
 	CLASS_METHODS(DiagonalSlider, CControl);
 
@@ -263,6 +267,8 @@ private:
 
 	CPoint p1;
 	CPoint p2;
+	bool bitmapHFlip{ false };
+	bool bitmapVFlip{ false };
 };
 
 

@@ -23,7 +23,8 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 	addUnit(new Unit(USTRING("Root"), rootUnitId));
 
 	setCurrentUnitID(rootUnitId);
-	addRangeParam(ParamSpecs::vol, "Volume", "Vol", "%");
+	addRangeParam(ParamSpecs::vol, "Volume", "Vol", "%", 0);
+	addRangeParam(ParamSpecs::list, "List", "List")->getInfo().stepCount = 5-1;
 
 	return kResultTrue;
 }
