@@ -18,8 +18,10 @@ namespace TesseractFx {
 
 tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 
-	tresult result = ControllerBaseP::initialize(context);
+	tresult result = ControllerBase::initialize(context);
 	if (result != kResultTrue) return result;
+
+
 
 	// Set up units
 	UnitID rootUnitId = 1;
@@ -29,37 +31,42 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 	addUnit(new Unit(USTRING("Input Position"), inputPositionUnitId, rootUnitId));
 	UnitID outputPositionUnitId = 3;
 	addUnit(new Unit(USTRING("Output Position"), outputPositionUnitId, rootUnitId));
-	UnitID postSection = 4;
-	addUnit(new Unit(USTRING("Post Filter"), postSection, rootUnitId));
+	UnitID postSectionUnitId = 4;
+	addUnit(new Unit(USTRING("Post Filter"), postSectionUnitId, rootUnitId));
 
 
 	setCurrentUnitID(rootUnitId);
 	{
-		addRangeParam(ParamSpecs::vol, "Master Volume", "MVol", "%");
-		addRangeParam(ParamSpecs::mix, "Mix", "Mix", "%");
-		addRangeParam(ParamSpecs::resonatorType, "Resonator Type", "Res Type", "")->getInfo().stepCount = 1;
-		addRangeParam(ParamSpecs::resonatorDim, "Resonator Dimension", "Res Dim", "D")->getInfo().stepCount = maxDimension - 1;
-		addRangeParam(ParamSpecs::resonatorOrder, "Resonator Order", "Res Order", "")->getInfo().stepCount = maxOrder - 1;
-		addRangeParam(ParamSpecs::resonatorFreq, "Resonator Frequency", "Res Freq", "Hz");
-		addRangeParam(ParamSpecs::resonatorDamp, "Resonator Dampening", "Res Damp", "%");
-		addRangeParam(ParamSpecs::resonatorVel, "Sonic Velocity", "Sonic Vel", "m/s");
+		//addParam<LinearParameter>(ParamSpecs::vol, L"Master Volume", L"MVol", L"", Precision(2));
+		addParam<LogParameter>(ParamSpecs::vol, L"Master Volume", L"MVol", L"", Precision(2));
+		//parameters.addParameter(new GainParameter(L"Master Volume", ParamSpecs::vol.id, L"dB"));
+		addParam<LinearParameter>(ParamSpecs::mix, L"Mix", L"Mix", L"%", Precision(0));
+		addParam<DiscreteParameter>(ParamSpecs::resonatorType, "Resonator Type", "Res Type", "")->getInfo().stepCount = 1;
+		addParam<DiscreteParameter>(ParamSpecs::resonatorDim, "Resonator Dimension", "Res Dim", "D", Precision(0))->getInfo().stepCount = maxDimension - 1;
+		addParam<DiscreteParameter>(ParamSpecs::resonatorOrder, "Resonator Order", "Res Order", "")->getInfo().stepCount = maxOrder - 1;
 
-		addRangeParam(ParamSpecs::inPosCurveL, "Input Pos Curve L", "InPos L", "%");
-		addRangeParam(ParamSpecs::inPosCurveR, "Input Pos Curve R", "InPos R", "%");
-		addRangeParam(ParamSpecs::outPosCurveL, "Output Pos Curve L", "OutPos L", "%");
-		addRangeParam(ParamSpecs::outPosCurveR, "Output Pos Curve R", "OutPos R", "%");
-		addStringListParam(ParamSpecs::linkInPosCurves, "Link In Pos Curves", "Link In C", { "Not Linked", "linked" });
-		addStringListParam(ParamSpecs::linkOutPosCurves, "Link Out Pos Curves", "Link Out C", { "Not Linked", "linked" });
+		addParam<LogParameter>(ParamSpecs::damp, L"Resonator Dampening", L"Res Damp", L"", Precision(2));
+		addParam<LogParameter>(ParamSpecs::freq, L"Resonator Frequency", L"Res Freq", L"Hz");
 
-		addRangeParam(ParamSpecs::vuPPM, "Output Level", "Level", "dB", ParameterInfo::kIsReadOnly);
+		addParam<LinearParameter>(ParamSpecs::resonatorVel, "Sonic Velocity", "Sonic Vel", "m/s");
+
+		addParam<LinearParameter>(ParamSpecs::inPosCurveL, "Input Pos Curve L", "InPos L", L"", Precision(3));
+		addParam<LinearParameter>(ParamSpecs::inPosCurveR, "Input Pos Curve R", "InPos R", L"", Precision(3));
+		addParam<LinearParameter>(ParamSpecs::outPosCurveL, "Output Pos Curve L", "OutPos L", L"", Precision(3));
+		addParam<LinearParameter>(ParamSpecs::outPosCurveR, "Output Pos Curve R", "OutPos R", L"", Precision(3));
+		addStringListParam(ParamSpecs::linkInPosCurves, "Link In Pos Curves", "Link In C", { "Not Linked", "Linked" });
+		addStringListParam(ParamSpecs::linkOutPosCurves, "Link Out Pos Curves", "Link Out C", { "Not Linked", "Linked" });
+
+		//addParam<LinearParameter>(ParamSpecs::vuPPM, "Output Level", "Level", "dB", ParameterInfo::kIsReadOnly);
+		parameters.addParameter(new GainParameter(L"Output Level", ParamSpecs::vuPPM.id, L"dB",0,ParameterInfo::kIsReadOnly,rootUnitId,L"Level"));
 	}
 
-	setCurrentUnitID(postSection);
+	setCurrentUnitID(postSectionUnitId);
 	{
-		addRangeParam(ParamSpecs::lcFreq, "Low Cut Frequency", "LC Freq", "Hz");
-		addRangeParam(ParamSpecs::lcQ, "Low Cut Q", "LC Q", "");
-		addRangeParam(ParamSpecs::hcFreq, "High Cut Frequency", "HC Freq", "Hz");
-		addRangeParam(ParamSpecs::hcQ, "High Cut Q", "HC Q", "");
+		addParam<LogParameter>(ParamSpecs::lcFreq, L"Low Cut Frequency", L"LC Freq");
+		addParam<LinearParameter>(ParamSpecs::lcQ, "Low Cut Q", "LC Q", "");
+		addParam<LogParameter>(ParamSpecs::hcFreq, L"High Cut Frequency", L"HC Freq");
+		addParam<LinearParameter>(ParamSpecs::hcQ, "High Cut Q", "HC Q", "");
 	}
 
 	setCurrentUnitID(inputPositionUnitId);
@@ -96,7 +103,7 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 }
 
 IPlugView* PLUGIN_API Controller::createView(FIDString name) {
-	//if (ConstString(name) == ViewType::kEditor) return new VSTGUI::VST3Editor(this, "Editor", "editor.uidesc");
+	if (ConstString(name) == ViewType::kEditor) return new VSTGUI::VST3Editor(this, "Editor", "editor.uidesc");
 	return nullptr;
 }
 

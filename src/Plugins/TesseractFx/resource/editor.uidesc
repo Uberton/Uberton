@@ -6,23 +6,87 @@
 		<color name="Background" rgba="#468affff"/>
 	</colors>
 	<template background-color="Background" background-color-draw-style="filled and stroked" class="CViewContainer" maxSize="380, 190" minSize="380, 190" mouse-enabled="true" name="Editor" opacity="1" origin="0, 0" size="380, 190" transparent="false" wants-focus="false">
-		<view angle-range="270" angle-start="135" circle-drawing="false" class="CKnob" control-tag="gain" corona-color="~ RedCColor" corona-dash-dot="true" corona-dash-dot-lengths="1.26,0.1" corona-drawing="true" corona-from-center="false" corona-inset="12" corona-inverted="false" corona-line-cap-butt="true" corona-outline="true" corona-outline-width-add="2" default-value="0.5" handle-color="~ WhiteCColor" handle-line-width="8" handle-shadow-color="~ BlackCColor" max-value="1" min-value="0" mouse-enabled="true" opacity="1" origin="145, 65" size="70, 70" skip-handle-drawing="true" transparent="false" value-inset="3" wants-focus="true" wheel-inc-value="0.1" zoom-factor="1.5"/>
+		<view angle-range="270" angle-start="135" circle-drawing="false" class="CKnob" control-tag="Root::MasterVolume" corona-color="~ RedCColor" corona-dash-dot="true" corona-dash-dot-lengths="1.26,0.1" corona-drawing="true" corona-from-center="false" corona-inset="12" corona-inverted="false" corona-line-cap-butt="true" corona-outline="true" corona-outline-width-add="2" default-value="0.913814" handle-color="~ WhiteCColor" handle-line-width="8" handle-shadow-color="~ BlackCColor" max-value="1" min-value="0" mouse-enabled="true" opacity="1" origin="145, 60" size="70, 70" skip-handle-drawing="true" transparent="false" value-inset="3" wants-focus="true" wheel-inc-value="0.1" zoom-factor="1.5"/>
 		<view back-color="~ BlackCColor" background-offset="0, 0" class="CTextLabel" default-value="0.5" font="~ NormalFont" font-antialias="true" font-color="~ WhiteCColor" frame-color="~ BlackCColor" frame-width="1" max-value="1" min-value="0" mouse-enabled="true" opacity="1" origin="130, 35" round-rect-radius="6" shadow-color="~ RedCColor" size="100, 20" style-3D-in="false" style-3D-out="false" style-no-draw="false" style-no-frame="false" style-no-text="false" style-round-rect="false" style-shadow-text="false" text-alignment="center" text-inset="0, 0" text-rotation="0" text-shadow-offset="1, 1" title="Gain" transparent="false" value-precision="2" wants-focus="false" wheel-inc-value="0.1"/>
-		<view back-color="None" background-offset="0, 0" class="CTextLabel" control-tag="gain" default-value="0.5" font="~ NormalFont" font-antialias="true" font-color="~ BlackCColor" frame-color="None" frame-width="1" max-value="1" min-value="0" mouse-enabled="true" opacity="1" origin="130, 130" round-rect-radius="6" shadow-color="None" size="100, 20" style-3D-in="false" style-3D-out="false" style-no-draw="false" style-no-frame="false" style-no-text="false" style-round-rect="false" style-shadow-text="false" text-alignment="center" text-inset="0, 0" text-rotation="0" text-shadow-offset="1, 1" title="0.8400" transparent="true" value-precision="2" wants-focus="false" wheel-inc-value="0.1"/>
+		<view back-color="None" background-offset="0, 0" class="CTextLabel" control-tag="Root::MasterVolume" default-value="0.913814" font="~ NormalFont" font-antialias="true" font-color="~ BlackCColor" frame-color="None" frame-width="1" max-value="1" min-value="0" mouse-enabled="true" opacity="1" origin="130, 130" round-rect-radius="6" shadow-color="None" size="100, 20" style-3D-in="false" style-3D-out="false" style-no-draw="false" style-no-frame="false" style-no-text="false" style-round-rect="false" style-shadow-text="false" text-alignment="center" text-inset="0, 0" text-rotation="0" text-shadow-offset="1, 1" title="0.80" transparent="true" value-precision="2" wants-focus="false" wheel-inc-value="0.1"/>
+		<view bitmap="vumeter_on" class="CVuMeter" control-tag="Root::OutputLevel" decrease-step-value="0.005" default-value="0" max-value="1" min-value="0" mouse-enabled="false" num-led="200" off-bitmap="vumeter_off" opacity="1" orientation="vertical" origin="325, -30" size="30, 200" transparent="false" wants-focus="true" wheel-inc-value="0.1"/>
 	</template>
 	<custom>
 		<attributes name="FocusDrawing"/>
-		<attributes Path="C:\Users\E-Bow\Documents\Code\Cplusplus\VST\Uberton\Plugins\TesseractFx\resource\editor.uidesc" name="VST3Editor"/>
+		<attributes Path="C:\Users\E-Bow\Documents\Code\Cplusplus\VST\Uberton\src\Plugins\TesseractFx\resource\editor.uidesc" name="VST3Editor"/>
 		<attributes Grids="1x 1,5x 5,10x 10,12x 12,15x 15" Size="5, 5" name="UIGridController"/>
 		<attributes SelectedTemplate="Editor" name="UITemplateController"/>
-		<attributes EditViewScale="1" EditorSize="0, 0, 1820, 1025" SplitViewSize_0_0="0.8698698698698699161013792036101222038269" SplitViewSize_0_1="0.1101101101101101126245040973117284011096" SplitViewSize_1_0="0.4874874874874874919328249234240502119064" SplitViewSize_1_1="0.5075075075075075048403050459455698728561" SplitViewSize_2_0="0.7554945054945054749850896769203245639801" SplitViewSize_2_1="0.2417582417582417597667898689905996434391" TabSwitchValue="0" Version="1" name="UIEditController"/>
+		<attributes EditViewScale="1" EditorSize="0, 0, 1820, 910" SplitViewSize_0_0="0.8529411764705882026404992757306899875402" SplitViewSize_0_1="0.1244343891402714952221231214934960007668" SplitViewSize_1_0="0.487556561085972839375557441599084995687" SplitViewSize_1_1="0.506787330316742057334522542078047990799" SplitViewSize_2_0="0.7554945054945054749850896769203245639801" SplitViewSize_2_1="0.2417582417582417597667898689905996434391" TabSwitchValue="1" Version="1" name="UIEditController"/>
 		<attributes name="UIAttributesController"/>
-		<attributes SelectedRow="8" name="UIViewCreatorDataSource"/>
+		<attributes SelectedRow="27" name="UIViewCreatorDataSource"/>
 		<attributes SelectedRow="0" name="UIColorsDataSource"/>
-		<attributes SelectedRow="0" name="UITagsDataSource"/>
+		<attributes SelectedRow="34" name="UITagsDataSource"/>
+		<attributes SelectedRow="0" name="UIBitmapsDataSource"/>
 	</custom>
 	<control-tags>
-		<control-tag name="gain" tag="0"/>
+		<control-tag name="InputPosition::LeftX0" tag="12"/>
+		<control-tag name="InputPosition::LeftX1" tag="13"/>
+		<control-tag name="InputPosition::LeftX2" tag="14"/>
+		<control-tag name="InputPosition::LeftX3" tag="15"/>
+		<control-tag name="InputPosition::LeftX4" tag="16"/>
+		<control-tag name="InputPosition::LeftX5" tag="17"/>
+		<control-tag name="InputPosition::LeftX6" tag="18"/>
+		<control-tag name="InputPosition::LeftX7" tag="19"/>
+		<control-tag name="InputPosition::LeftX8" tag="20"/>
+		<control-tag name="InputPosition::LeftX9" tag="21"/>
+		<control-tag name="InputPosition::RightX0" tag="22"/>
+		<control-tag name="InputPosition::RightX1" tag="23"/>
+		<control-tag name="InputPosition::RightX2" tag="24"/>
+		<control-tag name="InputPosition::RightX3" tag="25"/>
+		<control-tag name="InputPosition::RightX4" tag="26"/>
+		<control-tag name="InputPosition::RightX5" tag="27"/>
+		<control-tag name="InputPosition::RightX6" tag="28"/>
+		<control-tag name="InputPosition::RightX7" tag="29"/>
+		<control-tag name="InputPosition::RightX8" tag="30"/>
+		<control-tag name="InputPosition::RightX9" tag="31"/>
+		<control-tag name="OutputPosition::LeftY0" tag="32"/>
+		<control-tag name="OutputPosition::LeftY1" tag="33"/>
+		<control-tag name="OutputPosition::LeftY2" tag="34"/>
+		<control-tag name="OutputPosition::LeftY3" tag="35"/>
+		<control-tag name="OutputPosition::LeftY4" tag="36"/>
+		<control-tag name="OutputPosition::LeftY5" tag="37"/>
+		<control-tag name="OutputPosition::LeftY6" tag="38"/>
+		<control-tag name="OutputPosition::LeftY7" tag="39"/>
+		<control-tag name="OutputPosition::LeftY8" tag="40"/>
+		<control-tag name="OutputPosition::LeftY9" tag="41"/>
+		<control-tag name="OutputPosition::RightY0" tag="42"/>
+		<control-tag name="OutputPosition::RightY1" tag="43"/>
+		<control-tag name="OutputPosition::RightY2" tag="44"/>
+		<control-tag name="OutputPosition::RightY3" tag="45"/>
+		<control-tag name="OutputPosition::RightY4" tag="46"/>
+		<control-tag name="OutputPosition::RightY5" tag="47"/>
+		<control-tag name="OutputPosition::RightY6" tag="48"/>
+		<control-tag name="OutputPosition::RightY7" tag="49"/>
+		<control-tag name="OutputPosition::RightY8" tag="50"/>
+		<control-tag name="OutputPosition::RightY9" tag="51"/>
+		<control-tag name="PostFilter::HighCutFrequency" tag="10"/>
+		<control-tag name="PostFilter::HighCutQ" tag="11"/>
+		<control-tag name="PostFilter::LowCutFrequency" tag="8"/>
+		<control-tag name="PostFilter::LowCutQ" tag="9"/>
+		<control-tag name="Root::Bypass" tag="1000001"/>
+		<control-tag name="Root::InputPosCurveL" tag="52"/>
+		<control-tag name="Root::InputPosCurveR" tag="53"/>
+		<control-tag name="Root::LinkInPosCurves" tag="56"/>
+		<control-tag name="Root::LinkOutPosCurves" tag="57"/>
+		<control-tag name="Root::MasterVolume" tag="0"/>
+		<control-tag name="Root::Mix" tag="1"/>
+		<control-tag name="Root::OutputLevel" tag="58"/>
+		<control-tag name="Root::OutputPosCurveL" tag="54"/>
+		<control-tag name="Root::OutputPosCurveR" tag="55"/>
+		<control-tag name="Root::ResonatorDampening" tag="6"/>
+		<control-tag name="Root::ResonatorDimension" tag="3"/>
+		<control-tag name="Root::ResonatorFrequency" tag="5"/>
+		<control-tag name="Root::ResonatorOrder" tag="4"/>
+		<control-tag name="Root::ResonatorType" tag="2"/>
+		<control-tag name="Root::SonicVelocity" tag="7"/>
 	</control-tags>
-	<bitmaps/>
+	<bitmaps>
+		<bitmap name="vumeter_off" path="C:\Users\E-Bow\Documents\Code\Cplusplus\VST\Überton Private\New Tesseract Plugin Design\Final\vumeter_off.png"/>
+		<bitmap name="vumeter_on" path="C:\Users\E-Bow\Documents\Code\Cplusplus\VST\Überton Private\New Tesseract Plugin Design\Final\vumeter_on.png"/>
+	</bitmaps>
 </vstgui-ui-description>

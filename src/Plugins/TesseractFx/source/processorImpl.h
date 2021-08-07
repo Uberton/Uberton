@@ -90,19 +90,20 @@ public:
 		//return { static_cast<SampleType>(f1.process(tmp[0])), static_cast<SampleType>(f2.process(tmp[1])) };
 	}
 
-	void processAll(ProcessData& data, float mix, float volume) {
+	float processAll(ProcessData& data, float mix, float volume) {
 		int32 numSamples = data.numSamples;
 		
 		SampleType** in = (SampleType**)data.inputs[0].channelBuffers32;
 		SampleType** out = (SampleType**)data.outputs[0].channelBuffers32;
 
 
-		SampleType* sInL;
-		SampleType* sInR;
+		//SampleType* sInL;
+		//SampleType* sInR;
 		float wet = mix;
 		float dry = 1 - wet;
 		std::array<SampleType, numChannels> input;
 		SampleVec tmp;
+		float vuPPM = 0;
 
 		for (int32 i = 0; i < numSamples; i++) {
 			for (int ch = 0; ch < numChannels; ch++) {
@@ -114,10 +115,12 @@ public:
 				tmp[ch] = filters[ch].process(tmp[ch]) * .01; // its tooooo loud!!
 				*(out[ch] + i) = volume * tmp[ch] * wet + dry * (*(in[ch] + i));
 			}
-			
+
+			vuPPM += std::abs(tmp[0] + tmp[1]);
 			//lcFreq.step(); lcQ.step();
 			// setLCFilterFreqAndQ(normalizedToScaled(lcFreq.get(), 20, 8000), normalizedToScaled(lcQ.get(), 1, 8));
 		}
+		return vuPPM / numSamples;
 	}
 
 	//void updateFilter(double freq, double q) {
@@ -130,7 +133,7 @@ public:
 
 	Resonator resonator;
 	std::array<Filter, numChannels> filters{ Filter::Type::kHighpass, Filter::Type::kHighpass };
-	//LogScale<ParamValue> freqLogScale{ 0., 1., 80., 18000., 0.5, 1800. };
+	LogScale<ParamValue> freqLogScale{ 0., 1., 50., 18000., 0.5, 1800. };
 
 	SampleType currentResFreq = 1, currentResDamp = 1, currentResVel = 1;
 };

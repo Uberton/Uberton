@@ -18,7 +18,7 @@ namespace TesseractFx {
 Processor::Processor() {
 	setControllerClass(ControllerUID);
 
-	auto initValue = [&](const ParamSpec& p) {
+	auto initValue = [&](const auto& p) {
 		paramState[p.id] = p.toNormalized(p.initialValue);
 	};
 
@@ -29,8 +29,8 @@ Processor::Processor() {
 	initValue(ParamSpecs::resonatorType);
 	initValue(ParamSpecs::resonatorDim);
 	initValue(ParamSpecs::resonatorOrder);
-	initValue(ParamSpecs::resonatorFreq);
-	initValue(ParamSpecs::resonatorDamp);
+	initValue(ParamSpecs::freq);
+	initValue(ParamSpecs::damp);
 	initValue(ParamSpecs::resonatorVel);
 
 	initValue(ParamSpecs::inPosCurveL);
@@ -87,7 +87,7 @@ tresult PLUGIN_API Processor::setBusArrangements(SpeakerArrangement* inputs, int
 
 void Processor::processAudio(ProcessData& data) {
 	int32 numChannels = data.inputs[0].numChannels;
-	int32 numSamples = data.numSamples;
+	//int32 numSamples = data.numSamples;
 
 
 	void** in = getChannelBuffersPointer(processSetup, data.inputs[0]);
@@ -108,7 +108,12 @@ void Processor::processAudio(ProcessData& data) {
 		}
 		data.outputs[0].silenceFlags = 0;
 	}
-	processorImpl->processAll(data, mix, volume);
+	vuPPMOld = vuPPM;
+	vuPPM = processorImpl->processAll(data, mix, volume);
+	if (vuPPM != vuPPMOld) {
+		//float db = 20 * std::log10(vuPPM);
+		addOutputPoint(data, kParamVUPPM, vuPPM);
+	}
 	/*Sample32* sInL;
 	Sample32* sInR;
 	float wet = mix;
@@ -168,10 +173,10 @@ void Processor::recomputeParameters() {
 
 void Processor::recomputeInexpensiveParameters() {
 	volume = toScaled(ParamSpecs::vol);
-	mix = toScaled(ParamSpecs::mix);
+	mix = paramState[Params::kParamMix];
 	resonatorOrder = toDiscrete(ParamSpecs::resonatorOrder);
-	resonatorFreq = toScaled(ParamSpecs::resonatorFreq);
-	resonatorDamp = toScaled(ParamSpecs::resonatorDamp);
+	resonatorFreq = toScaled(ParamSpecs::freq);
+	resonatorDamp = toScaled(ParamSpecs::damp);
 	resonatorVel = toScaled(ParamSpecs::resonatorVel);
 
 	// auto& f = processorImpl->resonator.timeFunctions;
