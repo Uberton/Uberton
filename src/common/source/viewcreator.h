@@ -167,7 +167,7 @@ static const IdStringPtr kFadingFrameAnimationButton = "Fading Frame Animation B
 static const IdStringPtr kHistoryButton = "History Button";
 static const IdStringPtr kUbertonContextMenu = "Uberton Context Menu";
 static const IdStringPtr kDiagonalSlider = "Diagonal Slider";
-static const IdStringPtr kStringMapLabel = "String Mape Label";
+static const IdStringPtr kStringMapLabel = "String Map Label";
 static const IdStringPtr kTextEditUnits = "Text Edit with Units";
 
 }

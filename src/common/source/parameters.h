@@ -274,6 +274,7 @@ public:
 	DiscreteScale(int min = 0, int max = 1) : min(min), max(max) {}
 
 	double toScaled(double value) const {
+		return normalizedToDiscrete(value, min, max);
 		return value * (max - min) + min;
 	}
 

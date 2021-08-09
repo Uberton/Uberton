@@ -33,8 +33,13 @@ void Uberton::FadingFrameAnimationButton::draw(CDrawContext* context) {
 		getDrawBackground()->draw(context, getViewSize(), { offset.x, offset.y });
 	}
 	context->setFrameColor(frameColor);
-	context->setLineWidth(1);
-	context->drawRect(getViewSize(), kDrawStroked);
+	context->setLineWidth(2);
+	CRect c = getViewSize();
+	c.left++;
+	c.right--;
+	c.top++;
+	c.bottom--;
+	context->drawRect(c, kDrawStroked);
 	if (!getMouseEnabled()) {
 		context->setFillColor({ 0, 0, 0, 100 });
 		context->drawRect(getViewSize(), kDrawFilled);
@@ -198,6 +203,14 @@ void Uberton::UbertonContextMenu::draw(CDrawContext* context) {
 
 	drawBack(context);
 
+	context->setFrameColor(frameColor);
+	context->setLineWidth(2);
+	CRect c = getViewSize();
+	c.left++;
+	c.right--;
+	c.top++;
+	c.bottom--;
+	context->drawRect(c, kDrawStroked);
 	//auto p = getViewSize().getTopLeft();
 	//auto q = getViewSize().getTopRight();
 	//context->setFrameColor(symbolColor);
@@ -331,10 +344,10 @@ void Uberton::DiagonalSlider::draw(CDrawContext* context) {
 	if (handleBitmap) {
 		handleBitmap->draw(context, getHandleRect());
 	}
-	ParamValue value = getValueNormalized();
-	double x0 = p1.x + (p2.x - p1.x) * value + getViewSize().left;
-	double y0 = p1.y + (p2.y - p1.y) * value + getViewSize().top;
-	context->drawPoint({ x0, y0 }, kBlackCColor);
+	//ParamValue value = getValueNormalized();
+	//double x0 = p1.x + (p2.x - p1.x) * value + getViewSize().left;
+	//double y0 = p1.y + (p2.y - p1.y) * value + getViewSize().top;
+	//context->drawPoint({ x0, y0 }, kBlackCColor);
 	setDirty(false);
 }
 
