@@ -116,11 +116,12 @@ public:
 				*(out[ch] + i) = volume * tmp[ch] * wet + dry * (*(in[ch] + i));
 			}
 
-			vuPPM += std::abs(tmp[0] + tmp[1]);
+			float k = std::abs(tmp[0] + tmp[1]);
+			vuPPM += k*k;
 			//lcFreq.step(); lcQ.step();
 			// setLCFilterFreqAndQ(normalizedToScaled(lcFreq.get(), 20, 8000), normalizedToScaled(lcQ.get(), 1, 8));
 		}
-		return vuPPM / numSamples;
+		return vuPPM / std::sqrt(numSamples);
 	}
 
 	//void updateFilter(double freq, double q) {
@@ -133,6 +134,7 @@ public:
 
 	Resonator resonator;
 	std::array<Filter, numChannels> filters{ Filter::Type::kHighpass, Filter::Type::kHighpass };
+	//std::array<Filter, numChannels> hcfilters{ Filter::Type::kLowpass, Filter::Type::kLOwpass };
 	LogScale<ParamValue> freqLogScale{ 0., 1., 50., 18000., 0.5, 1800. };
 
 	SampleType currentResFreq = 1, currentResDamp = 1, currentResVel = 1;

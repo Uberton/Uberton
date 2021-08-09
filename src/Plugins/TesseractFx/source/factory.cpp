@@ -9,6 +9,7 @@
 // -----------------------------------------------------------------------------------------------------------------------------
 
 #include <public.sdk/source/main/pluginfactory.h>
+#include <viewcreator_globals.h>
 
 #include "ids.h"
 #include "version.h"

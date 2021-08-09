@@ -22,7 +22,6 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 	if (result != kResultTrue) return result;
 
 
-
 	// Set up units
 	UnitID rootUnitId = 1;
 	addUnit(new Unit(USTRING("Root"), rootUnitId));
@@ -35,15 +34,16 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 	addUnit(new Unit(USTRING("Post Filter"), postSectionUnitId, rootUnitId));
 
 
+
 	setCurrentUnitID(rootUnitId);
 	{
 		//addParam<LinearParameter>(ParamSpecs::vol, L"Master Volume", L"MVol", L"", Precision(2));
-		addParam<LogParameter>(ParamSpecs::vol, L"Master Volume", L"MVol", L"", Precision(2));
+		addParam<LogParameter>(ParamSpecs::vol, "Master Volume", "MVol", "", Precision(2));
 		//parameters.addParameter(new GainParameter(L"Master Volume", ParamSpecs::vol.id, L"dB"));
 		addParam<LinearParameter>(ParamSpecs::mix, L"Mix", L"Mix", L"%", Precision(0));
 		addParam<DiscreteParameter>(ParamSpecs::resonatorType, "Resonator Type", "Res Type", "")->getInfo().stepCount = 1;
 		addParam<DiscreteParameter>(ParamSpecs::resonatorDim, "Resonator Dimension", "Res Dim", "D", Precision(0))->getInfo().stepCount = maxDimension - 1;
-		addParam<DiscreteParameter>(ParamSpecs::resonatorOrder, "Resonator Order", "Res Order", "")->getInfo().stepCount = maxOrder - 1;
+		addParam<DiscreteParameter>(ParamSpecs::resonatorOrder, "Resonator Order", "Res Order", "", Precision(0))->getInfo().stepCount = maxOrder - 1;
 
 		addParam<LogParameter>(ParamSpecs::damp, L"Resonator Dampening", L"Res Damp", L"", Precision(2));
 		addParam<LogParameter>(ParamSpecs::freq, L"Resonator Frequency", L"Res Freq", L"Hz");
@@ -63,9 +63,9 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 
 	setCurrentUnitID(postSectionUnitId);
 	{
-		addParam<LogParameter>(ParamSpecs::lcFreq, L"Low Cut Frequency", L"LC Freq");
+		addParam<LogParameter>(ParamSpecs::lcFreq, L"Low Cut Frequency", L"LC Freq", L"Hz", Precision(0));
 		addParam<LinearParameter>(ParamSpecs::lcQ, "Low Cut Q", "LC Q", "");
-		addParam<LogParameter>(ParamSpecs::hcFreq, L"High Cut Frequency", L"HC Freq");
+		addParam<LogParameter>(ParamSpecs::hcFreq, L"High Cut Frequency", L"HC Freq", L"Hz", Precision(0));
 		addParam<LinearParameter>(ParamSpecs::hcQ, "High Cut Q", "HC Q", "");
 	}
 
