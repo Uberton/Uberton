@@ -433,4 +433,17 @@ bool TextEditUnitsFactory::getAttributeValue(CView* view, const string& attribut
 const std::string TextEditUnitsFactory::units = "units";
 
 
+
+LogVUMeterFactory::LogVUMeterFactory() {
+	UIViewFactory::registerViewCreator(*this);
+}
+
+IdStringPtr LogVUMeterFactory::getViewName() const { return Uberton::ViewCreator::kLogVUMeter; }
+
+IdStringPtr LogVUMeterFactory::getBaseViewName() const { return UIViewCreator::kCVuMeter; }
+
+CView* LogVUMeterFactory::create(const UIAttributes& attributes, const IUIDescription* description) const {
+	return new Control({ 0, 0, 50, 30 });
+}
+
 }

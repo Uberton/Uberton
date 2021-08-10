@@ -22,7 +22,7 @@ Processor::Processor() {
 		paramState[p.id] = p.toNormalized(p.initialValue);
 	};
 
-	paramState.version = 0;
+	paramState.version = stateVersion;
 
 	initValue(ParamSpecs::vol);
 	initValue(ParamSpecs::mix);
@@ -111,8 +111,13 @@ void Processor::processAudio(ProcessData& data) {
 	vuPPMOld = vuPPM;
 	vuPPM = processorImpl->processAll(data, mix, volume);
 	if (vuPPM != vuPPMOld) {
-		//float db = 20 * std::log10(vuPPM);
+		float db = 20 * std::log10(vuPPM);
+		db = std::max(db, -40.f);
+		//addOutputPoint(data, kParamVUPPM, (db+40)/40.0);
 		addOutputPoint(data, kParamVUPPM, vuPPM);
+		if (isBypassed()) {
+			addOutputPoint(data, kParamVUPPM, 0);
+		}
 	}
 	/*Sample32* sInL;
 	Sample32* sInR;

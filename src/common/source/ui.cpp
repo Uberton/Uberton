@@ -172,7 +172,7 @@ CMouseEventResult Uberton::UbertonContextMenu::onMouseDown(CPoint& where, const 
 	setFrameColor(pressedFrameColor);
 	removeAnimation("FrameOpacityAnimation"); // in case it is still running
 	if (editor) {
-		double zoomFactor = editor->getZoomFactor();
+		double zoomFactor = editor->getZoomFactor()*masterScaleFactor;
 		auto it = std::find(zoomFactors.begin(), zoomFactors.end(), zoomFactor);
 		if (it != zoomFactors.end()) {
 			zoomMenu->checkEntryAlone(std::distance(zoomFactors.begin(), it));
@@ -256,6 +256,10 @@ CColor Uberton::UbertonContextMenu::getPressedFrameColor() const {
 void Uberton::UbertonContextMenu::initialize() {
 	editor = dynamic_cast<VST3Editor*>(getEditor());
 	if (editor) {
+		ZoomFactors scaledZoomFactors;
+		for (const auto& zoomFactor : zoomFactors) {
+			scaledZoomFactors.push_back(zoomFactor / masterScaleFactor);
+		}
 		editor->setAllowedZoomFactors(zoomFactors);
 	}
 	initialized = true;
@@ -304,7 +308,7 @@ void Uberton::UbertonContextMenu::itemSelected(CCommandMenuItem* item) {
 	else if (item->getCommandCategory() == "Zoom") {
 		if (item->getTag() < 0 || item->getTag() >= static_cast<ptrdiff_t>(zoomFactors.size())) return;
 		if (editor) {
-			editor->setZoomFactor(zoomFactors[item->getTag()]);
+			editor->setZoomFactor(zoomFactors[item->getTag()]/masterScaleFactor);
 		}
 		return;
 	}
@@ -511,4 +515,53 @@ void Uberton::TextEditUnits::setUnits(std::string units) {
 
 std::string Uberton::TextEditUnits::getUnits() const {
 	return units;
+}
+
+Uberton::LogVUMeter::LogVUMeter(const CRect& size) : CVuMeter(size, nullptr, nullptr, 100) {
+}
+
+void Uberton::LogVUMeter::draw(CDrawContext* context) {
+	if (!getOnBitmap())
+		return;
+
+	CRect _rectOn(rectOn);
+	CRect _rectOff(rectOff);
+	CPoint pointOn;
+	CPoint pointOff;
+
+	bounceValue();
+
+	float newValue = getOldValue() / std::pow(10, decreaseValue); 
+	if (newValue < value)
+		newValue = value;
+	setOldValue(newValue);
+
+	newValue = (newValue - getMin()) / getRange(); // normalize
+
+	double logValue = 20 * std::log10(newValue);
+	const double range = maxDb - minDb;
+	double nomalizedLogValue = (std::max(logValue, minDb) + range) / range;
+
+	if (style & kHorizontal) {
+		auto tmp = (CCoord)(((int32_t)(nbLed * nomalizedLogValue + 0.5f) / (float)nbLed) * getOnBitmap()->getWidth());
+		pointOff(tmp, 0);
+
+		_rectOff.left += tmp;
+		_rectOn.right = tmp + rectOn.left;
+	}
+	else {
+		auto tmp = (CCoord)(((int32_t)(nbLed * (1.f - nomalizedLogValue) + 0.5f) / (float)nbLed) * getOnBitmap()->getHeight());
+		pointOn(0, tmp);
+
+		_rectOff.bottom = tmp + rectOff.top;
+		_rectOn.top += tmp;
+	}
+
+	if (getOffBitmap()) {
+		getOffBitmap()->draw(context, _rectOff, pointOff);
+	}
+
+	getOnBitmap()->draw(context, _rectOn, pointOn);
+
+	setDirty(false);
 }

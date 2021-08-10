@@ -221,6 +221,7 @@ private:
 	CColor pressedFrameColor = kWhiteCColor; // Frame color for when control is pressed down
 	bool initialized{ false };
 	const int animationTimeMilliseconds = 400;
+	const double masterScaleFactor = 2;
 };
 
 
@@ -315,5 +316,18 @@ public:
 
 private:
 	std::string units = "";
+};
+
+
+class LogVUMeter : public CVuMeter
+{
+public:
+	LogVUMeter(const CRect& size);
+	void draw(CDrawContext* context) override;
+
+
+private:
+	double minDb = -40;
+	double maxDb = 0;
 };
 }

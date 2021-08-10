@@ -55,6 +55,8 @@ public:
 	using TheEditor = VSTGUI::VST3Editor;
 	std::vector<TheEditor*> editors;
 	std::map<EditorView*, HistoryController*> hcm;
+
+	//double zoomFactor{ 1 };
 };
 
 /*

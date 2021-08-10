@@ -19,6 +19,7 @@
 namespace Uberton {
 namespace TesseractFx {
 
+constexpr uint64 stateVersion = 0;
 
 constexpr int maxDimension = 10;
 constexpr int maxOrder = 200;

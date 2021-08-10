@@ -104,6 +104,7 @@ public:
 		std::array<SampleType, numChannels> input;
 		SampleVec tmp;
 		float vuPPM = 0;
+		float maxSample = 0;
 
 		for (int32 i = 0; i < numSamples; i++) {
 			for (int ch = 0; ch < numChannels; ch++) {
@@ -113,14 +114,19 @@ public:
 			tmp = resonator.next();
 			for (int ch = 0; ch < numChannels; ch++) {
 				tmp[ch] = filters[ch].process(tmp[ch]) * .01; // its tooooo loud!!
-				*(out[ch] + i) = volume * tmp[ch] * wet + dry * (*(in[ch] + i));
+				tmp[ch] = volume * (tmp[ch] * wet + dry * (*(in[ch] + i)));
+				*(out[ch] + i) = tmp[ch];
 			}
 
-			float k = std::abs(tmp[0] + tmp[1]);
-			vuPPM += k*k;
+			float k = std::abs(tmp[0]);
+			//vuPPM += k*k;
+			maxSample = std::max(maxSample, k);
+
+
 			//lcFreq.step(); lcQ.step();
 			// setLCFilterFreqAndQ(normalizedToScaled(lcFreq.get(), 20, 8000), normalizedToScaled(lcQ.get(), 1, 8));
 		}
+		return maxSample;
 		return vuPPM / std::sqrt(numSamples);
 	}
 
