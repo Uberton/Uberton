@@ -180,6 +180,19 @@ public:
 	bool getAttributeValue(CView* view, const string& attributeName, string& stringValue, const IUIDescription* desc) const override;*/
 };
 
+class LinkButtonFactory : public ViewCreatorAdapter
+{
+	using Control = LinkButton;
+
+public:
+	LinkButtonFactory();
+
+	IdStringPtr getViewName() const override;
+	IdStringPtr getBaseViewName() const override;
+
+	CView* create(const UIAttributes& attributes, const IUIDescription* description) const override;
+};
+
 
 
 namespace ViewCreator {
@@ -191,6 +204,7 @@ static const IdStringPtr kDiagonalSlider = "Diagonal Slider";
 static const IdStringPtr kStringMapLabel = "String Map Label";
 static const IdStringPtr kTextEditUnits = "Text Edit with Units";
 static const IdStringPtr kLogVUMeter = "Logarithmic VU Meter";
+static const IdStringPtr kLinkButton = "Link Button";
 
 }
 

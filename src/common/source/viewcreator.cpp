@@ -446,4 +446,17 @@ CView* LogVUMeterFactory::create(const UIAttributes& attributes, const IUIDescri
 	return new Control({ 0, 0, 50, 30 });
 }
 
+
+LinkButtonFactory::LinkButtonFactory() {
+	UIViewFactory::registerViewCreator(*this);
+}
+
+IdStringPtr LinkButtonFactory::getViewName() const { return Uberton::ViewCreator::kLinkButton; }
+
+IdStringPtr LinkButtonFactory::getBaseViewName() const { return UIViewCreator::kCOnOffButton; }
+
+CView* LinkButtonFactory::create(const UIAttributes& attributes, const IUIDescription* description) const {
+	return new Control({ 0, 0, 50, 30 });
+}
+
 }

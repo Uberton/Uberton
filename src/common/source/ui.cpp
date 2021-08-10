@@ -172,7 +172,7 @@ CMouseEventResult Uberton::UbertonContextMenu::onMouseDown(CPoint& where, const 
 	setFrameColor(pressedFrameColor);
 	removeAnimation("FrameOpacityAnimation"); // in case it is still running
 	if (editor) {
-		double zoomFactor = editor->getZoomFactor()*masterScaleFactor;
+		double zoomFactor = editor->getZoomFactor() * masterScaleFactor;
 		auto it = std::find(zoomFactors.begin(), zoomFactors.end(), zoomFactor);
 		if (it != zoomFactors.end()) {
 			zoomMenu->checkEntryAlone(std::distance(zoomFactors.begin(), it));
@@ -308,7 +308,7 @@ void Uberton::UbertonContextMenu::itemSelected(CCommandMenuItem* item) {
 	else if (item->getCommandCategory() == "Zoom") {
 		if (item->getTag() < 0 || item->getTag() >= static_cast<ptrdiff_t>(zoomFactors.size())) return;
 		if (editor) {
-			editor->setZoomFactor(zoomFactors[item->getTag()]/masterScaleFactor);
+			editor->setZoomFactor(zoomFactors[item->getTag()] / masterScaleFactor);
 		}
 		return;
 	}
@@ -493,6 +493,8 @@ void Uberton::StringMapLabel::draw(CDrawContext* context) {
 	CParamDisplay::draw(context);
 }
 
+
+
 Uberton::TextEditUnits::TextEditUnits(const CRect& size) : CTextEdit(size, nullptr, -1) {
 }
 
@@ -531,7 +533,7 @@ void Uberton::LogVUMeter::draw(CDrawContext* context) {
 
 	bounceValue();
 
-	float newValue = getOldValue() / std::pow(10, decreaseValue); 
+	float newValue = getOldValue() / std::pow(10, decreaseValue);
 	if (newValue < value)
 		newValue = value;
 	setOldValue(newValue);
@@ -564,4 +566,63 @@ void Uberton::LogVUMeter::draw(CDrawContext* context) {
 	getOnBitmap()->draw(context, _rectOn, pointOn);
 
 	setDirty(false);
+}
+
+Uberton::LinkButton::LinkButton(const CRect& size) : COnOffButton(size, nullptr, -1) {
+}
+
+void Uberton::LinkButton::draw(CDrawContext* context) {
+	if (value != oldValue) {
+		valueChanged();
+		oldValue = value;
+	}
+	COnOffButton::draw(context);
+}
+
+
+Uberton::LinkController::LinkController(IController* parentController) : DelegationController(parentController) {
+	if (auto editor = dynamic_cast<VST3Editor*>(parentController)) {
+		this->editor = editor;
+	}
+}
+
+CView* Uberton::LinkController::verifyView(CView* view, const UIAttributes& attributes, const IUIDescription* description) {
+	LinkedControlType* linkedControl = dynamic_cast<LinkedControlType*>(view);
+	LinkerType* linker = dynamic_cast<LinkerType*>(view);
+	if (linker) {
+		linkerControl = linker;
+		linkerControl->registerControlListener(this);
+		updateLinkState();
+		//linkerControl->param
+	}
+	else if (linkedControl) {
+		linkedControls.push_back(linkedControl);
+		linkedControl->registerControlListener(this);
+	}
+	return view;
+}
+
+void Uberton::LinkController::valueChanged(CControl* control) {
+	if (control == linkerControl) {
+		updateLinkState();
+		DelegationController::valueChanged(control);
+		return;
+	}
+	if (link) {
+		for (const auto& c : linkedControls) {
+			if (c != control) {
+				auto z = control->getValueNormalized();
+				c->setValueNormalized(z);
+				DelegationController::valueChanged(c);
+			}
+		}
+	}
+	DelegationController::valueChanged(control);
+}
+
+void Uberton::LinkController::updateLinkState() {
+	if (linkerControl->getValueNormalized() != 0)
+		link = true;
+	else
+		link = false;
 }

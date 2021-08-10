@@ -25,6 +25,10 @@ IController* PLUGIN_API HistoryControllerBase::createSubController(VSTGUI::UTF8S
 		hcm.insert({ editor, historyController });
 		return historyController;
 	}
+	if (UTF8StringView(name) == "LinkController") {
+		LinkController* linkController = new LinkController(editor);
+		return linkController;
+	}
 	return nullptr;
 }
 

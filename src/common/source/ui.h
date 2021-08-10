@@ -319,6 +319,9 @@ private:
 };
 
 
+/*
+ * VU meter control that scales volume logarithmically (therefore the dB scale is linear).
+ */
 class LogVUMeter : public CVuMeter
 {
 public:
@@ -328,6 +331,47 @@ public:
 
 private:
 	double minDb = -40;
-	double maxDb = 0;
+	double maxDb = 0; // only works with maxDb == 0 at the moment
+};
+
+/*
+ * On-Off-Button designed for use with LinkController subcontroller. 
+ * LinkButton calls valueChanged() also when the value changed externally. 
+ * 
+ */
+class LinkButton : public COnOffButton
+{
+public:
+	LinkButton(const CRect& size);
+	void draw(CDrawContext* context) override;
+
+
+private:
+	float oldValue{ 0 };
+};
+
+
+/*
+ * Sub-controller for a container that links the states of all child CControl instances except a
+ * COnOffButton that serves as a switch to enable/disable linking. 
+ */
+class LinkController : public DelegationController
+{
+public:
+	using LinkedControlType = CControl;
+	using LinkerType = LinkButton;
+
+	LinkController(IController* parentController);
+
+	CView* verifyView(CView* view, const UIAttributes& attributes, const IUIDescription* description) override;
+	void valueChanged(CControl* control) override;
+	void updateLinkState();
+
+protected:
+	LinkerType* linkerControl{ nullptr };
+	std::vector<LinkedControlType*> linkedControls;
+
+	bool link{ false };
+	VST3Editor* editor{ nullptr };
 };
 }
