@@ -54,11 +54,12 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 		addParam<LinearParameter>(ParamSpecs::inPosCurveR, "Input Pos Curve R", "InPos R", "", Precision(3));
 		addParam<LinearParameter>(ParamSpecs::outPosCurveL, "Output Pos Curve L", "OutPos L", "", Precision(3));
 		addParam<LinearParameter>(ParamSpecs::outPosCurveR, "Output Pos Curve R", "OutPos R", "", Precision(3));
-		addStringListParam(ParamSpecs::linkInPosCurves, "Link In Pos Curves", "Link In C", { "Not Linked", "Linked" });
-		addStringListParam(ParamSpecs::linkOutPosCurves, "Link Out Pos Curves", "Link Out C", { "Not Linked", "Linked" });
+		addStringListParam(ParamSpecs::linkInPosCurves, "Link In Pos Curves", "Link In C", { "Not Linked", "Linked" }, ParameterInfo::kNoFlags);
+		addStringListParam(ParamSpecs::linkOutPosCurves, "Link Out Pos Curves", "Link Out C", { "Not Linked", "Linked" }, ParameterInfo::kNoFlags);
 
 		//addParam<LinearParameter>(ParamSpecs::vuPPM, "Output Level", "Level", "dB", ParameterInfo::kIsReadOnly);
 		parameters.addParameter(new GainParameter(L"Output Level", ParamSpecs::vuPPM.id, L"dB", 0, ParameterInfo::kIsReadOnly, rootUnitId, L"Level"));
+		addParam<LinearParameter>(ParamSpecs::processTime, "Process Time", "T", "", Precision(6), ParameterInfo::kIsReadOnly);
 	}
 
 	setCurrentUnitID(postSectionUnitId);

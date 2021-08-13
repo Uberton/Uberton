@@ -27,6 +27,7 @@ public:
 	tresult PLUGIN_API initialize(FUnknown* context) SMTG_OVERRIDE;
 	tresult PLUGIN_API setActive(TBool state) SMTG_OVERRIDE;
 	tresult PLUGIN_API setBusArrangements(SpeakerArrangement* inputs, int32 numIns, SpeakerArrangement* outputs, int32 numOuts) SMTG_OVERRIDE;
+	tresult PLUGIN_API canProcessSampleSize(int32 symbolicSampleSize) SMTG_OVERRIDE;
 
 	void processAudio(ProcessData& data) override;
 	void processParameterChanges(IParameterChanges* parameterChanges) override;
@@ -38,8 +39,8 @@ private:
 	void recomputeInexpensiveParameters();
 
 	// Expensive parameter udpates
-	void updateResonatorInputPosition();
-	void updateResonatorOutputPosition();
+	//void updateResonatorInputPosition();
+	//void updateResonatorOutputPosition();
 	void updateResonatorDimension();
 
 	// Update all parameters (expensive and inexpensive)
@@ -49,10 +50,10 @@ private:
 
 	using SpaceVec = ProcessorImpl<float>::SpaceVec;
 
-	SpaceVec inputPosSpaceCurve(ParamValue t);  // t in [0,1]; returns 0 vector for t = 0.5
-	SpaceVec outputPosSpaceCurve(ParamValue t); // t in [0,1]; returns 0 vector for t = 0.5
+	//SpaceVec inputPosSpaceCurve(ParamValue t);  // t in [0,1]; returns 0 vector for t = 0.5
+	//SpaceVec outputPosSpaceCurve(ParamValue t); // t in [0,1]; returns 0 vector for t = 0.5
 
-	std::unique_ptr<ProcessorImpl<float>> processorImpl;
+	std::unique_ptr<ProcessorImplBase> processorImpl;
 
 	float volume{ 0 };
 	float mix{ 1 };

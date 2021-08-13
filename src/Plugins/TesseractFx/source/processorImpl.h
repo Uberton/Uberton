@@ -11,7 +11,6 @@
 
 #pragma once
 
-#include <public.sdk/samples/vst/common/logscale.h>
 #include <resonator.h>
 //#include <filter.h>
 #include <../../Plugins/Synth1/source/filter.h>
@@ -25,6 +24,14 @@ class ProcessorImplBase
 {
 public:
 	virtual void init(float sampleRate) = 0;
+	virtual float processAll(ProcessData& data, float mix, float volume) = 0;
+	virtual void setResonatorDim(int resonatorDim) = 0;
+	virtual void setResonatorOrder(int resonatorOrder) = 0;
+	virtual void setResonatorFreq(float freq, float damp, float vel) = 0;
+	virtual void setLCFilterFreqAndQ(double freq, double q) = 0;
+	virtual void setHCFilterFreqAndQ(double freq, double q) = 0;
+	virtual void updateResonatorInputPosition(const ParamState& paramState) = 0;
+	virtual void updateResonatorOutputPosition(const ParamState& paramState) = 0;
 };
 
 
@@ -37,35 +44,33 @@ public:
 	using Type = SampleType;
 	using SpaceVec = Math::Vector<SampleType, maxDimension>;
 	using SampleVec = Math::Vector<SampleType, numChannels>;
-	//using Resonator = Math::CubeResonator<SampleType, resonatorDim, resonatorOrder, numChannels>;
 	using Resonator = Math::PreComputedCubeResonator<SampleType, maxDimension, maxOrder, numChannels>;
 	using Filter = Steinberg::Vst::NoteExpressionSynth::Filter;
 
 
 	void init(float sampleRate) override {
-		for (auto& filter : filters) {
-			//filter.setCutoff(.2);
-			//filter.setMode(Filter::Mode::Highpass);
+		for (auto& filter : lcFilters) {
 			filter.setSampleRate(sampleRate);
-			filter.setFreqAndQ(220, 10);
-			filter.setType(Filter::Type::kHighpass);
+		}
+		for (auto& filter : hcFilters) {
+			filter.setSampleRate(sampleRate);
 		}
 
 		resonator.setSampleRate(sampleRate);
 	}
 
-	void setResonatorDim(int resonatorDim) {
+	void setResonatorDim(int resonatorDim) override {
 		if (resonatorDim != resonator.getDim()) {
 			resonator.setDim(resonatorDim);
 			resonator.setFreqDampeningAndVelocity(currentResFreq, currentResDamp, currentResVel); // need to update this when resonatorDim changed
 		}
 	}
 
-	void setResonatorOrder(int resonatorOrder) {
+	void setResonatorOrder(int resonatorOrder) override {
 		resonator.setOrder(resonatorOrder);
 	}
 
-	void setResonatorFreq(SampleType freq, SampleType damp, SampleType vel) {
+	void setResonatorFreq(float freq, float damp, float vel) override {
 		if (freq != currentResFreq || damp != currentResDamp || vel != currentResVel) {
 			resonator.setFreqDampeningAndVelocity(freq, damp, vel);
 			currentResFreq = freq;
@@ -74,36 +79,30 @@ public:
 		}
 	}
 
-	void setLCFilterFreqAndQ(double freq, double q) {
-		for (auto& filter : filters) {
+	void setLCFilterFreqAndQ(double freq, double q) override {
+		for (auto& filter : lcFilters) {
+			filter.setFreqAndQ(freq, q);
+		}
+	}
+	
+	void setHCFilterFreqAndQ(double freq, double q) override {
+		for (auto& filter : hcFilters) {
 			filter.setFreqAndQ(freq, q);
 		}
 	}
 
-	SampleVec process(SampleType l, SampleType r) {
-		resonator.delta({ l, r });
-		SampleVec tmp = resonator.next();
-		for (int i = 0; i < numChannels; i++) {
-			tmp[i] = filters[i].process(tmp[i]);
-		}
-		return tmp;
-		//return { static_cast<SampleType>(f1.process(tmp[0])), static_cast<SampleType>(f2.process(tmp[1])) };
-	}
 
-	float processAll(ProcessData& data, float mix, float volume) {
+	float processAll(ProcessData& data, float mix, float volume) final {
 		int32 numSamples = data.numSamples;
 		
 		SampleType** in = (SampleType**)data.inputs[0].channelBuffers32;
 		SampleType** out = (SampleType**)data.outputs[0].channelBuffers32;
 
 
-		//SampleType* sInL;
-		//SampleType* sInR;
 		float wet = mix;
 		float dry = 1 - wet;
 		std::array<SampleType, numChannels> input;
 		SampleVec tmp;
-		float vuPPM = 0;
 		float maxSample = 0;
 
 		for (int32 i = 0; i < numSamples; i++) {
@@ -113,23 +112,83 @@ public:
 			resonator.delta(input);
 			tmp = resonator.next();
 			for (int ch = 0; ch < numChannels; ch++) {
-				tmp[ch] = filters[ch].process(tmp[ch]) * .01; // its tooooo loud!!
-				tmp[ch] = volume * (tmp[ch] * wet + dry * (*(in[ch] + i)));
+				tmp[ch] = volume * (tmp[ch] * wet * .01 + dry * (*(in[ch] + i)));
+				tmp[ch] = lcFilters[ch].process(tmp[ch]) ; // its tooooo loud!!
+				tmp[ch] = hcFilters[ch].process(tmp[ch]); 
 				*(out[ch] + i) = tmp[ch];
 			}
 
-			float k = std::abs(tmp[0]);
-			//vuPPM += k*k;
-			maxSample = std::max(maxSample, k);
-
-
-			//lcFreq.step(); lcQ.step();
-			// setLCFilterFreqAndQ(normalizedToScaled(lcFreq.get(), 20, 8000), normalizedToScaled(lcQ.get(), 1, 8));
+			float k = 0.5*(tmp[0]+tmp[1]);
+			maxSample = std::max(maxSample, k * k);
 		}
-		return maxSample;
-		return vuPPM / std::sqrt(numSamples);
+		return std::sqrt(maxSample);
 	}
 
+	void updateResonatorInputPosition(const ParamState& paramState) override {
+		SpaceVec inputPosL, inputPosR;
+		size_t d = inputPosL.size();
+		for (int i = 0; i < d; i++) {
+			inputPosL[i] = paramState[Params::kParamInL0 + i];
+			inputPosR[i] = paramState[Params::kParamInR0 + i];
+		}
+		inputPosL += inputPosSpaceCurve(paramState[Params::kParamInPosCurveL]);
+		inputPosR += inputPosSpaceCurve(paramState[Params::kParamInPosCurveR]);
+		resonator.setInputPositions({ inputPosL, inputPosR });
+	}
+
+	void updateResonatorOutputPosition(const ParamState& paramState) override {
+		SpaceVec outputPosL, outputPosR;
+		size_t d = outputPosL.size();
+		for (int i = 0; i < d; i++) {
+			outputPosL[i] = paramState[Params::kParamOutL0 + i];
+			outputPosR[i] = paramState[Params::kParamOutR0 + i];
+		}
+		outputPosL += outputPosSpaceCurve(paramState[Params::kParamOutPosCurveL]);
+		outputPosR += outputPosSpaceCurve(paramState[Params::kParamOutPosCurveR]);
+		resonator.setOutputPositions({ outputPosL, outputPosR });
+	}
+
+protected:
+
+	// t in [0,1]; returns 0 vector for t = 0.5
+	SpaceVec inputPosSpaceCurve(ParamValue t) {
+		constexpr float pi = Math::pi<float>();
+		const float t_ = t - .5;
+		const float phi = t_ * 1.5 * pi;
+		// for t == 0.5 this function returns the 0 vector.
+		return SpaceVec{
+			t_ * 0.5f,
+			phi / (2 * pi) * std::sinf(phi),
+			phi / (2 * pi) * std::cosf(phi + pi * 0.5f),
+			t_ * 0.5f,
+			t_ * 0.5f,
+			t_ * 0.5f,
+			t_ * 0.5f,
+			t_ * 0.5f,
+			t_ * 0.5f,
+			t_ * 0.5f
+		};
+	}
+
+	// t in [0,1]; returns 0 vector for t = 0.5
+	SpaceVec outputPosSpaceCurve(ParamValue t) {
+		constexpr float pi = Math::pi<float>();
+		const float t_ = t - .5;
+		const float phi = t_ * 1.5 * pi;
+		// for t == 0.5 this function returns the 0 vector.
+		return SpaceVec{
+			t_ * 0.5f,
+			phi / (2 * pi) * std::sinf(phi),
+			phi / (2 * pi) * std::cosf(phi + pi * 0.5f),
+			t_ * 0.5f,
+			t_ * 0.5f,
+			t_ * 0.5f,
+			t_ * 0.5f,
+			t_ * 0.5f,
+			t_ * 0.5f,
+			t_ * 0.5f
+		};
+	}
 	//void updateFilter(double freq, double q) {
 	//	lcFreq.set(freq);
 	//	lcQ.set(q);
@@ -137,11 +196,10 @@ public:
 
 	//RampedParameter<float> lcFreq{ 0, 1 };
 	//RampedParameter<float> lcQ{ 0, 1 };
-
+private:
 	Resonator resonator;
-	std::array<Filter, numChannels> filters{ Filter::Type::kHighpass, Filter::Type::kHighpass };
-	//std::array<Filter, numChannels> hcfilters{ Filter::Type::kLowpass, Filter::Type::kLOwpass };
-	LogScale<ParamValue> freqLogScale{ 0., 1., 50., 18000., 0.5, 1800. };
+	std::array<Filter, numChannels> lcFilters{ Filter::Type::kHighpass, Filter::Type::kHighpass };
+	std::array<Filter, numChannels> hcFilters{ Filter::Type::kLowpass, Filter::Type::kLowpass };
 
 	SampleType currentResFreq = 1, currentResDamp = 1, currentResVel = 1;
 };

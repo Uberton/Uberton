@@ -58,6 +58,7 @@ enum Params : Steinberg::Vst::ParamID {
 	kParamLinkOutPosCurves,
 
 	kParamVUPPM, // OUT
+	kParamProcessTime, // OUT
 	kNumGlobalParameters
 };
 
@@ -68,17 +69,17 @@ static const LogParamSpec vol{ kParamVol, 0.0, 1.0, 0.8, 0.8 };
 static const LinearParamSpec mix{ kParamMix, 0.0, 100, 100, 100 };
 
 static const DiscreteParamSpec resonatorType{ kParamResonatorType, 1, 2, 1, 1 };
-static const DiscreteParamSpec resonatorDim{ kParamResonatorDim, 1, maxDimension, 5, 3 };
-static const DiscreteParamSpec resonatorOrder{ kParamResonatorOrder, 1, maxOrder, 5, 37 };
+static const DiscreteParamSpec resonatorDim{ kParamResonatorDim, 1, maxDimension, 4, 3 };
+static const DiscreteParamSpec resonatorOrder{ kParamResonatorOrder, 1, maxOrder, 5, 128 };
 
-static const LogParamSpec freq{ kParamResonatorFreq, 100, 2000, 500, 200 };
-static const LogParamSpec damp{ kParamResonatorDamp, 0, 10, 1, 1 };
+static const LogParamSpec freq{ kParamResonatorFreq, 20, 15000, 500, 200 };
+static const LogParamSpec damp{ kParamResonatorDamp, 0, 10, 1, 2.3 };
 static const LinearParamSpec resonatorVel{ kParamResonatorVel, 0.1, 1000.0, 10.0, 10.0 };
 
-static const LogParamSpec lcFreq{ kParamLCFreq, 20, 1000, 20, 20 };
-static const LinearParamSpec lcQ{ kParamLCQ, 1, 8, 1, 10 };
-static const LogParamSpec hcFreq{ kParamHCFreq, 100, 20000, 20000, 20000 };
-static const LinearParamSpec hcQ{ kParamHCQ, 1, 8, 1, 10 };
+static const LogParamSpec lcFreq{ kParamLCFreq, 20, 5000, 200, 650 };
+static const LinearParamSpec lcQ{ kParamLCQ, 1, 8, 1, 1 };
+static const LogParamSpec hcFreq{ kParamHCFreq, 100, 18000, 18000, 18000 };
+static const LinearParamSpec hcQ{ kParamHCQ, 1, 8, 1, 1 };
 
 static const LinearParamSpec inPosCurveL{ kParamInPosCurveL, -1.0, 1.0, 0.0, 0.0 };
 static const LinearParamSpec inPosCurveR{ kParamInPosCurveR, -1.0, 1.0, 0.0, 0.0 };
@@ -88,6 +89,7 @@ static const ParamSpec linkInPosCurves{ kParamLinkInPosCurves, 0, 1, 0, 0 };
 static const ParamSpec linkOutPosCurves{ kParamLinkOutPosCurves, 0, 1, 0, 0 };
 
 static const LinearParamSpec vuPPM{ kParamVUPPM, 0.0, 1.0, 0.0, 0.0 };
+static const LinearParamSpec processTime{ kParamProcessTime, 0,10, 0.0, 0.0 };
 
 }
 
