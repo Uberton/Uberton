@@ -11,16 +11,15 @@
 // have received a copy of the GNU General Public License along with Überton. If not, see http://www.gnu.org/licenses/.
 // -----------------------------------------------------------------------------------------------------------------------------
 
+
 #pragma once
-#include <vstgui/uidescription/delegationcontroller.h>
+
 #include <vstgui/plugin-bindings/vst3editor.h>
 
 
 namespace Uberton {
 
 using namespace VSTGUI;
-
-class HistoryControllerBase;
 
 /*
  * Animation that gradually sets the frame color opacity to 0. 
@@ -136,41 +135,6 @@ private:
 };
 
 
-
-/*
- * Subcontroller for two history buttons (undo and redo). 
- * Set this controller as subcontroller of a view container and place two HistoryButtons inside 
- * (one of type HistoryButton::Type::Undo and one of HistoryButton::Type::Redo). The press events 
- * are forwarded to the controller which needs to be derived from HistoryControllerBase. 
- * 
- * The controller is responsible for telling the HistoryController if undo/redo is available at the 
- * moment (once upon creation time and then throu updateButtonState()) and the controller sets the 
- * mouse enabled state of the buttons accordingly. 
- * 
- */
-class HistoryController : public DelegationController
-{
-public:
-	HistoryController(HistoryControllerBase* hController, IController* parentController, bool initialCanUndo, bool initialCanRedo);
-
-	CView* verifyView(CView* view, const UIAttributes& attributes, const IUIDescription* description) override;
-	void updateButtonState(bool canUndo, bool canRedo);
-
-
-protected:
-	void undo();
-	void redo();
-
-
-private:
-	HistoryButton* undoButton{ nullptr };
-	HistoryButton* redoButton{ nullptr };
-	HistoryControllerBase* hController;
-	bool initialCanUndo;
-	bool initialCanRedo;
-};
-
-
 /*
  * Context menu specifically for Uberton. Allows setting zoom factors that can be controlled through the menu 
  * or alternatively through the right click option menu. 
@@ -221,7 +185,7 @@ private:
 	CColor pressedFrameColor = kWhiteCColor; // Frame color for when control is pressed down
 	bool initialized{ false };
 	const int animationTimeMilliseconds = 400;
-	const double masterScaleFactor = 2;
+	const double masterScaleFactor = 1;
 };
 
 
@@ -253,6 +217,10 @@ public:
 	CMouseEventResult onMouseUp(CPoint& where, const CButtonState& buttons) override;
 	CMouseEventResult onMouseMoved(CPoint& where, const CButtonState& buttons) override;
 	CMouseEventResult onMouseCancel() override;
+	bool onWheel(const CPoint& where, const CMouseWheelAxis& axis, const float& distance,
+		const CButtonState& buttons) override {
+		return CSliderBase::onWheel(where, axis, distance, buttons);
+	}
 
 	CLASS_METHODS(DiagonalSlider, CControl);
 
@@ -334,8 +302,9 @@ private:
 	double maxDb = 0; // only works with maxDb == 0 at the moment
 };
 
+
 /*
- * On-Off-Button designed for use with LinkController subcontroller. 
+ * On-Off-Button designed for use with ParamLinkSubcontroller subcontroller. 
  * LinkButton calls valueChanged() also when the value changed externally. 
  * 
  */
@@ -350,28 +319,4 @@ private:
 	float oldValue{ 0 };
 };
 
-
-/*
- * Sub-controller for a container that links the states of all child CControl instances except a
- * COnOffButton that serves as a switch to enable/disable linking. 
- */
-class LinkController : public DelegationController
-{
-public:
-	using LinkedControlType = CControl;
-	using LinkerType = LinkButton;
-
-	LinkController(IController* parentController);
-
-	CView* verifyView(CView* view, const UIAttributes& attributes, const IUIDescription* description) override;
-	void valueChanged(CControl* control) override;
-	void updateLinkState();
-
-protected:
-	LinkerType* linkerControl{ nullptr };
-	std::vector<LinkedControlType*> linkedControls;
-
-	bool link{ false };
-	VST3Editor* editor{ nullptr };
-};
 }

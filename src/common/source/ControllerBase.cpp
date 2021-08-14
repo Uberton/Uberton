@@ -14,19 +14,20 @@
 #include <pluginterfaces/base/ustring.h>
 #include <base/source/fstreamer.h>
 #include "ui.h"
+#include "subcontrollers.h"
 
 
 namespace Uberton {
 using namespace VSTGUI;
 
 IController* PLUGIN_API HistoryControllerBase::createSubController(VSTGUI::UTF8StringPtr name, const VSTGUI::IUIDescription* description, VSTGUI::VST3Editor* editor) {
-	if (UTF8StringView(name) == "HistoryController") {
-		HistoryController* historyController = new HistoryController(this, editor, history.canUndo(), history.canRedo());
+	if (UTF8StringView(name) == "HistorySubcontroller") {
+		HistorySubcontroller* historyController = new HistorySubcontroller(this, editor, history.canUndo(), history.canRedo());
 		hcm.insert({ editor, historyController });
 		return historyController;
 	}
-	if (UTF8StringView(name) == "LinkController") {
-		LinkController* linkController = new LinkController(editor);
+	if (UTF8StringView(name) == "ParamLinkSubcontroller") {
+		ParamLinkSubcontroller* linkController = new ParamLinkSubcontroller(editor);
 		return linkController;
 	}
 	return nullptr;
