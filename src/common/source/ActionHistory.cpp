@@ -45,11 +45,31 @@ std::optional<Action> ActionHistory::redo() {
 }
 
 void ActionHistory::execute(int id, double oldValue, double newValue) {
+	execute({ id, oldValue, newValue });
+}
+
+void Uberton::ActionHistory::execute(const Action& action) {
 	redoStack.clear();
-	undoStack.push_back({ id, oldValue, newValue });
+	undoStack.push_back(action);
+	keepBelowMaxUndoSteps();
 }
 
 void ActionHistory::clear() {
 	undoStack.clear();
 	redoStack.clear();
+}
+
+void ActionHistory::setMaxUndoSteps(int maxUndoSteps) {
+	this->maxUndoSteps = maxUndoSteps;
+	keepBelowMaxUndoSteps();
+}
+
+int ActionHistory::getMaxUndoSteps() const {
+	return maxUndoSteps;
+}
+
+void ActionHistory::keepBelowMaxUndoSteps() {
+	if (undoStack.size() > maxUndoSteps) {
+		undoStack.erase(undoStack.begin(), undoStack.begin() + (undoStack.size() - maxUndoSteps));
+	}
 }

@@ -1,20 +1,21 @@
-// -----------------------------------------------------------------------------------------------------------------------------
-// This file is part of the Überton project. Copyright (C) 2021 Überton
+ï»¿// -----------------------------------------------------------------------------------------------------------------------------
+// This file is part of the Ãœberton project. Copyright (C) 2021 Ãœberton
 //
-// Überton is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
+// Ãœberton is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-// Überton is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+// Ãœberton is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 // of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should
-// have received a copy of the GNU General Public License along with Überton. If not, see http://www.gnu.org/licenses/.
+// have received a copy of the GNU General Public License along with Ãœberton. If not, see http://www.gnu.org/licenses/.
 // -----------------------------------------------------------------------------------------------------------------------------
 
 
 #include "ControllerBase.h"
 #include "parameters.h"
-#include <pluginterfaces/base/ustring.h>
-#include <base/source/fstreamer.h>
 #include "ui.h"
 #include "subcontrollers.h"
+#include <sstream>
+#include <pluginterfaces/base/ustring.h>
+#include <base/source/fstreamer.h>
 
 
 namespace Uberton {
@@ -36,17 +37,52 @@ IController* PLUGIN_API HistoryControllerBase::createSubController(VSTGUI::UTF8S
 void PLUGIN_API HistoryControllerBase::editorAttached(EditorView* editor) {
 	auto p = dynamic_cast<TheEditor*>(editor);
 	if (p) {
+		updateCurrentZoomFactor();
 		editors.push_back(p);
+		p->setZoomFactor(currentZoomFactor);
 	}
 }
 
 void PLUGIN_API HistoryControllerBase::editorRemoved(EditorView* editor) {
+	if (auto p = dynamic_cast<VST3Editor*>(editor)) {
+		currentZoomFactor = p->getZoomFactor();
+	}
 	editors.erase(std::remove_if(editors.begin(), editors.end(), [&](EditorView* v) { return editor == v; }));
 	hcm.erase(editor);
 }
 
+tresult PLUGIN_API HistoryControllerBase::getState(IBStream* stream) {
+
+	IBStreamer s(stream, kLittleEndian);
+	if (!s.writeInt64u(stateVersion)) return kResultFalse;
+
+	updateCurrentZoomFactor();
+	if (!s.writeDouble(currentZoomFactor)) return kResultFalse;
+	return kResultOk;
+}
+
+tresult PLUGIN_API HistoryControllerBase::setState(IBStream* stream) {
+
+	IBStreamer s(stream, kLittleEndian);
+	uint64 version = 0;
+
+	if (!s.readInt64u(version)) return kResultFalse;
+	if (!s.readDouble(currentZoomFactor)) return kResultFalse;
+
+	if (!gotInitialState) {
+		for (auto editor : editors) {
+			editor->setZoomFactor(currentZoomFactor);
+		}
+		gotInitialState = true;
+	}
+
+	history.clear();
+	updateHistoryButtons();
+	return kResultOk;
+}
+
 tresult HistoryControllerBase::beginEdit(Vst::ParamID id) {
-	if (id != -1) {
+	if (id != invalidParamID) {
 		currentlyEditedParam = id;
 		startValue = getParamNormalized(id);
 	}
@@ -54,28 +90,21 @@ tresult HistoryControllerBase::beginEdit(Vst::ParamID id) {
 }
 
 tresult HistoryControllerBase::endEdit(Vst::ParamID id) {
-	if (id != -1 && id == currentlyEditedParam) {
-		Parameter* p = getParameterObject(id);
+	if (id != invalidParamID && id == currentlyEditedParam && startValue != getParamNormalized(id)) {
+		
+		Action action{ id, startValue, getParamNormalized(id) };
 
-		std::wstring s = p->getInfo().title;	std::wstringstream sstream;
-		sstream << "Changed parameter " << p->getInfo().title << " from ";
-		String128 buffer;
-		p->toString(startValue, buffer);
-		sstream << buffer << p->getInfo().units << " to ";
-		p->toString(getParamNormalized(id), buffer);
-		sstream << buffer << p->getInfo().units<< "\n";
+		history.execute(action);
+		updateHistoryButtons();
 
-		std::wstring widestring = sstream.str();
+		const std::wstring widestring = actionToString(action);
 		std::string narrowstring;
 		for (const auto c : widestring) {
 			narrowstring += (char)c;
 		}
-
 		//FDebugPrint(narrowstring.c_str());
-		history.execute(id, startValue, getParamNormalized(id));
-		updateHistoryButtons();
-		currentlyEditedParam = -1;
 	}
+	currentlyEditedParam = invalidParamID;
 	return Parent::endEdit(id);
 }
 
@@ -102,9 +131,32 @@ void HistoryControllerBase::applyAction(ParamID id, ParamValue value) {
 	Parent::endEdit(id);
 }
 
+std::wstring HistoryControllerBase::actionToString(const Action& action) {
+	const Parameter* p = getParameterObject(action.id);
+	const ParameterInfo& info = p->getInfo();
+	const std::wstring title = info.shortTitle ? info.shortTitle : info.title;
+
+	std::wstringstream sstream;
+	sstream << title << ": ";
+	String128 buffer;
+	p->toString(startValue, buffer);
+	sstream << buffer << p->getInfo().units << " -> ";
+	p->toString(getParamNormalized(action.id), buffer);
+	sstream << buffer << p->getInfo().units << "\n";
+
+	const std::wstring widestring = sstream.str();
+	return sstream.str();
+}
+
 void HistoryControllerBase::updateHistoryButtons() {
 	for (auto& controller : hcm) {
 		controller.second->updateButtonState(history.canUndo(), history.canRedo());
+	}
+}
+
+void HistoryControllerBase::updateCurrentZoomFactor() {
+	if (editors.size() > 0) {
+		currentZoomFactor = editors[0]->getZoomFactor();
 	}
 }
 

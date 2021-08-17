@@ -39,24 +39,32 @@ public:
 	void PLUGIN_API editorAttached(EditorView* editor) SMTG_OVERRIDE;
 	void PLUGIN_API editorRemoved(EditorView* editor) SMTG_OVERRIDE;
 
+	tresult PLUGIN_API getState(IBStream* stream) SMTG_OVERRIDE;
+	tresult PLUGIN_API setState(IBStream* stream) SMTG_OVERRIDE;
+
 	tresult beginEdit(Vst::ParamID id) override;
 	tresult endEdit(Vst::ParamID id) override;
 
 	void undo();
 	void redo();
 	void applyAction(ParamID id, ParamValue value);
+	std::wstring actionToString(const Action& action);
 
 	void updateHistoryButtons();
-
+	void updateCurrentZoomFactor();
 	ActionHistory history;
 	ParamValue startValue{ 0 };
-	ParamID currentlyEditedParam = -1;
+
+	static const ParamID invalidParamID = std::numeric_limits<ParamID>::max();
+	ParamID currentlyEditedParam{ invalidParamID };
 
 	using TheEditor = VSTGUI::VST3Editor;
 	std::vector<TheEditor*> editors;
 	std::map<EditorView*, HistorySubcontroller*> hcm;
 
-	//double zoomFactor{ 1 };
+	double currentZoomFactor{ 1 };
+	int64 stateVersion{ 0 };
+	bool gotInitialState{ false };
 };
 
 /*

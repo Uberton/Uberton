@@ -37,12 +37,17 @@ public:
 	std::optional<Action> redo();
 
 	void execute(int id, double oldValue, double newValue);
-
+	void execute(const Action& action);
 	void clear();
 
+	void setMaxUndoSteps(int maxUndoSteps);
+	int getMaxUndoSteps() const;
 
 private:
+	void keepBelowMaxUndoSteps();
 	std::vector<Action> undoStack;
 	std::vector<Action> redoStack;
+
+	int maxUndoSteps{ 200 };
 };
 }
