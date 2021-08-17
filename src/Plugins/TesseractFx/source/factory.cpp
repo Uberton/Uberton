@@ -16,7 +16,7 @@
 #include "controller.h"
 #include "processor.h"
 
-#define stringSubCategory "Fx" // Subcategory for this plug-in (to be changed if needed, see PlugType in ivstaudioprocessor.h)
+#define stringSubCategory "Fx|Multidimensional" // Subcategory for this plug-in (to be changed if needed, see PlugType in ivstaudioprocessor.h)
 
 BEGIN_FACTORY_DEF(stringCompanyName, stringCompanyWeb, stringCompanyEmail)
 
@@ -44,6 +44,6 @@ END_FACTORY;
 
 
 #if VST_VERSION <= VST_3_7_1_VERSION
-bool InitModule() {	return true;}
-bool DeinitModule() {	return true;}
+bool InitModule() {	return true; }
+bool DeinitModule() { return true; }
 #endif

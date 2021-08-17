@@ -28,17 +28,17 @@ DEF_CLASS2(INLINE_UID_FROM_FUID(Uberton::BasicFx::ProcessorUID),
 	stringSubCategory,							  // Subcategory for this plug-in (to be changed)
 	FULL_VERSION_STR,							  // Plug-in version (to be changed)
 	kVstVersionString,							  // the VST 3 SDK version (do not changed this, use always this define)
-	Uberton::BasicFx::Processor::createInstance); // function pointer called when this component should be instantiated
+	Uberton::BasicFx::Processor::createInstance);	  // function pointer called when this component should be instantiated
 
 DEF_CLASS2(INLINE_UID_FROM_FUID(Uberton::BasicFx::ControllerUID),
-	PClassInfo::kManyInstances,					   // cardinality
-	kVstComponentControllerClass,				   // the Controller category (do not changed this)
-	stringPluginName "Controller",				   // controller name (could be the same than component name)
-	0,											   // not used here
-	"",											   // not used here
-	FULL_VERSION_STR,							   // Plug-in version (to be changed)
-	kVstVersionString,							   // the VST 3 SDK version (do not changed this, use always this define)
-	Uberton::BasicFx::Controller::createInstance); // function pointer called when this component should be instantiated
+	PClassInfo::kManyInstances,					  // cardinality
+	kVstComponentControllerClass,					  // the Controller category (do not changed this)
+	stringPluginName "Controller",				  // controller name (could be the same than component name)
+	0,										  // not used here
+	"",										  // not used here
+	FULL_VERSION_STR,							  // Plug-in version (to be changed)
+	kVstVersionString,							  // the VST 3 SDK version (do not changed this, use always this define)
+	Uberton::BasicFx::Controller::createInstance);	  // function pointer called when this component should be instantiated
 
 END_FACTORY;
 

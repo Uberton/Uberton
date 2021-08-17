@@ -189,7 +189,6 @@ private:
 	CColor pressedFrameColor = kWhiteCColor; // Frame color for when control is pressed down
 	bool initialized{ false };
 	const int animationTimeMilliseconds = 400;
-	const double masterScaleFactor = 1;
 };
 
 
@@ -324,34 +323,28 @@ private:
 };
 
 
+/*
+ * Extension for VST3Editor that allows to set an additional "pre"-scaling factor. 
+ * The idea is to provide all bitmaps at 2x the size that they are displayed at 
+ * 100% zoom. Also, the entire UI is built twice as large. The default size, which 
+ * is then displayed as "100%" is actually 50%. 
+ *
+ * This allows the end user to enlarge the UI up to 2x without getting blurry. 
+ */
 class VST3EditorEx1 : public VST3Editor
 {
 public:
 	VST3EditorEx1(Steinberg::Vst::EditController* controller, UTF8StringPtr templateName, UTF8StringPtr xmlFile);
 
+	// Two ways to do it: 
+	// - Change getAbsScaleFactor() which is not virtual in the VSTGUI library, so the "virtual" would need to be added here. 
+	// - Or override the virtual setContentScaleFactor() member function and slide in the additional scaling factor there. 
 
-	void setZoomFactor1(double factor) {
-		if (zoomFactor == factor)
-			return;
+	//double getAbsScaleFactor() const override;
+	Steinberg::tresult PLUGIN_API setContentScaleFactor(Steinberg::IPlugViewContentScaleSupport::ScaleFactor factor) override;
 
-		zoomFactor = factor;
-
-		if (getFrame() == nullptr)
-			return;
-
-		getFrame()->setZoom(getAbsScaleFactor() / prescaleFactor);
-	}
-	double getZoomFactor1() const { return zoomFactor; }
-
-	void setAllowedZoomFactors1(std::vector<double> zoomFactors) { allowedZoomFactors = zoomFactors; }
-
-	void setCSF(double csf) {
-		setContentScaleFactor(csf);
-	}
-
-	double getAbsScaleFactor() const override {
-		return zoomFactor * contentScaleFactor * prescaleFactor;
-	}
+	void setPrescaleFactor(double f);
+	double getPrescaleFactor();
 
 private:
 	double prescaleFactor = 0.5;

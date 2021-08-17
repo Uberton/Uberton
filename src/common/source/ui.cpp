@@ -133,7 +133,7 @@ CMouseEventResult UbertonContextMenu::onMouseDown(CPoint& where, const CButtonSt
 	setFrameColor(pressedFrameColor);
 	removeAnimation("FrameOpacityAnimation"); // in case it is still running
 	if (editor) {
-		double zoomFactor = editor->getZoomFactor() * masterScaleFactor;
+		double zoomFactor = editor->getZoomFactor();
 		auto it = std::find(zoomFactors.begin(), zoomFactors.end(), zoomFactor);
 		if (it != zoomFactors.end()) {
 			zoomMenu->checkEntryAlone(std::distance(zoomFactors.begin(), it));
@@ -194,7 +194,6 @@ CColor UbertonContextMenu::getSymbolColor() const { return symbolColor; }
 
 void UbertonContextMenu::setZoomFactors(const ZoomFactors& zoomFactors) {
 	this->zoomFactors = zoomFactors;
-	this->zoomFactors.push_back(0.5);
 	editor = dynamic_cast<TheEditor*>(getEditor());
 	if (editor) {
 		editor->setAllowedZoomFactors(zoomFactors);
@@ -220,7 +219,7 @@ void UbertonContextMenu::initialize() {
 	if (editor) {
 		ZoomFactors scaledZoomFactors;
 		for (const auto& zoomFactor : zoomFactors) {
-			scaledZoomFactors.push_back(zoomFactor / masterScaleFactor);
+			scaledZoomFactors.push_back(zoomFactor);
 		}
 		editor->setAllowedZoomFactors(zoomFactors);
 	}
@@ -270,7 +269,7 @@ void UbertonContextMenu::itemSelected(CCommandMenuItem* item) {
 	else if (item->getCommandCategory() == "Zoom") {
 		if (item->getTag() < 0 || item->getTag() >= static_cast<ptrdiff_t>(zoomFactors.size())) return;
 		if (editor) {
-			editor->setZoomFactor(zoomFactors[item->getTag()] / masterScaleFactor);
+			editor->setZoomFactor(zoomFactors[item->getTag()]);
 		}
 		return;
 	}
@@ -310,10 +309,6 @@ void DiagonalSlider::draw(CDrawContext* context) {
 	if (handleBitmap) {
 		handleBitmap->draw(context, getHandleRect());
 	}
-	//ParamValue value = getValueNormalized();
-	//double x0 = p1.x + (p2.x - p1.x) * value + getViewSize().left;
-	//double y0 = p1.y + (p2.y - p1.y) * value + getViewSize().top;
-	//context->drawPoint({ x0, y0 }, kBlackCColor);
 	setDirty(false);
 }
 
@@ -547,7 +542,24 @@ void LinkButton::draw(CDrawContext* context) {
 	COnOffButton::draw(context);
 }
 
-Uberton::VST3EditorEx1::VST3EditorEx1(Steinberg::Vst::EditController* controller, UTF8StringPtr templateName, UTF8StringPtr xmlFile)
+VST3EditorEx1::VST3EditorEx1(Steinberg::Vst::EditController* controller, UTF8StringPtr templateName, UTF8StringPtr xmlFile)
 	: VST3Editor(controller, templateName, xmlFile) {
 	setContentScaleFactor(0.5);
 }
+
+Steinberg::tresult PLUGIN_API VST3EditorEx1::setContentScaleFactor(Steinberg::IPlugViewContentScaleSupport::ScaleFactor factor) {
+	return VST3Editor::setContentScaleFactor(factor * prescaleFactor);
+}
+
+void VST3EditorEx1::setPrescaleFactor(double f) {
+	prescaleFactor = f;
+	if (getFrame()) {
+		getFrame()->setZoom(getAbsScaleFactor());
+	}
+}
+
+double VST3EditorEx1::getPrescaleFactor() { return prescaleFactor; }
+
+//double Uberton::VST3EditorEx1::getAbsScaleFactor() const {
+//	return zoomFactor * contentScaleFactor * prescaleFactor;
+//}
