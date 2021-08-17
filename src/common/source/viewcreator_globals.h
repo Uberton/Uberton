@@ -11,6 +11,8 @@ static const Uberton::HistoryButtonFactory __gHistoryButtonFactory;
 static const Uberton::DiagonalSliderFactory __gDiagonalSliderFactory;
 static const Uberton::StringMapLabelFactory __gStringMapLabelFactory;
 static const Uberton::TextEditUnitsFactory __gTextEditUnitsFactory;
+static const Uberton::LogVUMeterFactory __gLogVUMeterFactory;
+static const Uberton::LinkButtonFactory __gLinkButtonFactory;
 
 #else
 #error "viewcreator_globals.h can only be included once"

@@ -1,5 +1,5 @@
 // Action history for recording parameter changes through the gui and implement an undo mechanism.
-// 
+//
 // -----------------------------------------------------------------------------------------------------------------------------
 // This file is part of the Überton project. Copyright (C) 2021 Überton
 //
@@ -14,7 +14,7 @@
 #pragma once
 
 #include <optional>
-#include <stack>
+#include <vector>
 
 namespace Uberton {
 
@@ -42,7 +42,7 @@ public:
 
 
 private:
-	std::stack<Action> undoStack;
-	std::stack<Action> redoStack;
+	std::vector<Action> undoStack;
+	std::vector<Action> redoStack;
 };
 }

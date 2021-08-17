@@ -1,5 +1,3 @@
-// Plugin name and version of BasicInstrument
-//
 // -----------------------------------------------------------------------------------------------------------------------------
 // This file is part of the Überton project. Copyright (C) 2021 Überton
 //
@@ -12,34 +10,27 @@
 
 
 #include "controller.h"
-#include "ids.h"
-
-#include <base/source/fstreamer.h>
-#include <pluginterfaces/base/ibstream.h>
 
 namespace Uberton {
 namespace BasicInstrument {
 
 tresult PLUGIN_API Controller::initialize(FUnknown* context) {
-	implementBypass = false;
-
 	tresult result = ControllerBase::initialize(context);
 	if (result != kResultTrue) return result;
 
-	parameters.addParameter(STR16("Gain 1"), STR16("dB"), 0, .5, ParameterInfo::kCanAutomate, Params::kParamVolId);
+	UnitID rootUnitId = 1;
+	addUnit(new Unit(USTRING("Root"), rootUnitId));
+
+	setCurrentUnitID(rootUnitId);
+	addParam<LinearParameter>(ParamSpecs::vol, "Gain", "%");
 
 	return kResultTrue;
 }
 
-tresult PLUGIN_API Controller::setComponentState(IBStream* state) {
-	ParamState1 paramState;
-	return paramState.setComponentState(state, *this);
-}
-
 IPlugView* PLUGIN_API Controller::createView(FIDString name) {
-	ConstString name_(name);
-	if (name_ == ViewType::kEditor)
+	if (ConstString(name) == ViewType::kEditor) {
 		return new VSTGUI::VST3Editor(this, "Editor", "editor.uidesc");
+	}
 	return nullptr;
 }
 

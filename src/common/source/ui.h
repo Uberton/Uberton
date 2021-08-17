@@ -11,8 +11,9 @@
 // have received a copy of the GNU General Public License along with Überton. If not, see http://www.gnu.org/licenses/.
 // -----------------------------------------------------------------------------------------------------------------------------
 
+
 #pragma once
-#include <vstgui/uidescription/delegationcontroller.h>
+
 #include <vstgui/plugin-bindings/vst3editor.h>
 
 
@@ -20,7 +21,7 @@ namespace Uberton {
 
 using namespace VSTGUI;
 
-class HistoryControllerBase;
+class VST3EditorEx1;
 
 /*
  * Animation that gradually sets the frame color opacity to 0. 
@@ -136,41 +137,6 @@ private:
 };
 
 
-
-/*
- * Subcontroller for two history buttons (undo and redo). 
- * Set this controller as subcontroller of a view container and place two HistoryButtons inside 
- * (one of type HistoryButton::Type::Undo and one of HistoryButton::Type::Redo). The press events 
- * are forwarded to the controller which needs to be derived from HistoryControllerBase. 
- * 
- * The controller is responsible for telling the HistoryController if undo/redo is available at the 
- * moment (once upon creation time and then throu updateButtonState()) and the controller sets the 
- * mouse enabled state of the buttons accordingly. 
- * 
- */
-class HistoryController : public DelegationController
-{
-public:
-	HistoryController(HistoryControllerBase* hController, IController* parentController, bool initialCanUndo, bool initialCanRedo);
-
-	CView* verifyView(CView* view, const UIAttributes& attributes, const IUIDescription* description) override;
-	void updateButtonState(bool canUndo, bool canRedo);
-
-
-protected:
-	void undo();
-	void redo();
-
-
-private:
-	HistoryButton* undoButton{ nullptr };
-	HistoryButton* redoButton{ nullptr };
-	HistoryControllerBase* hController;
-	bool initialCanUndo;
-	bool initialCanRedo;
-};
-
-
 /*
  * Context menu specifically for Uberton. Allows setting zoom factors that can be controlled through the menu 
  * or alternatively through the right click option menu. 
@@ -183,6 +149,8 @@ class UbertonContextMenu : public COptionMenu
 		zoom,
 		url
 	};
+
+	using TheEditor = VST3EditorEx1;
 
 public:
 	UbertonContextMenu();
@@ -213,7 +181,7 @@ protected:
 
 
 private:
-	VST3Editor* editor{ nullptr };
+	TheEditor* editor{ nullptr };
 	SharedPointer<COptionMenu> zoomMenu{ nullptr };
 
 	ZoomFactors zoomFactors = { .8, .9, 1, 1.1, 1.2, 1.5 };
@@ -252,6 +220,10 @@ public:
 	CMouseEventResult onMouseUp(CPoint& where, const CButtonState& buttons) override;
 	CMouseEventResult onMouseMoved(CPoint& where, const CButtonState& buttons) override;
 	CMouseEventResult onMouseCancel() override;
+	bool onWheel(const CPoint& where, const CMouseWheelAxis& axis, const float& distance,
+		const CButtonState& buttons) override {
+		return CSliderBase::onWheel(where, axis, distance, buttons);
+	}
 
 	CLASS_METHODS(DiagonalSlider, CControl);
 
@@ -315,5 +287,66 @@ public:
 
 private:
 	std::string units = "";
+};
+
+
+/*
+ * VU meter control that scales volume logarithmically (therefore the dB scale is linear).
+ */
+class LogVUMeter : public CVuMeter
+{
+public:
+	LogVUMeter(const CRect& size);
+	void draw(CDrawContext* context) override;
+
+
+private:
+	double minDb = -40;
+	double maxDb = 0; // only works with maxDb == 0 at the moment
+};
+
+
+/*
+ * On-Off-Button designed for use with ParamLinkSubcontroller subcontroller. 
+ * LinkButton calls valueChanged() also when the value changed externally. 
+ * 
+ */
+class LinkButton : public COnOffButton
+{
+public:
+	LinkButton(const CRect& size);
+	void draw(CDrawContext* context) override;
+
+
+private:
+	float oldValue{ 0 };
+};
+
+
+/*
+ * Extension for VST3Editor that allows to set an additional "pre"-scaling factor. 
+ * The idea is to provide all bitmaps at 2x the size that they are displayed at 
+ * 100% zoom. Also, the entire UI is built twice as large. The default size, which 
+ * is then displayed as "100%" is actually 50%. 
+ *
+ * This allows the end user to enlarge the UI up to 2x without getting blurry. 
+ */
+class VST3EditorEx1 : public VST3Editor
+{
+public:
+	VST3EditorEx1(Steinberg::Vst::EditController* controller, UTF8StringPtr templateName, UTF8StringPtr xmlFile);
+
+	// Two ways to do it: 
+	// - Change getAbsScaleFactor() which is not virtual in the VSTGUI library, so the "virtual" would need to be added here. 
+	// - Or override the virtual setContentScaleFactor() member function and slide in the additional scaling factor there. 
+
+	//double getAbsScaleFactor() const override;
+	Steinberg::tresult PLUGIN_API setContentScaleFactor(Steinberg::IPlugViewContentScaleSupport::ScaleFactor factor) override;
+
+	void setPrescaleFactor(double f);
+	double getPrescaleFactor();
+
+private:
+	double prescaleFactor = 0.5;
 };
 }

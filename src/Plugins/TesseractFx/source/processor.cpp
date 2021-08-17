@@ -11,6 +11,7 @@
 
 #include "processor.h"
 #include <public.sdk/source/vst/vstaudioprocessoralgo.h>
+#include <chrono>
 
 namespace Uberton {
 namespace TesseractFx {
@@ -22,7 +23,7 @@ Processor::Processor() {
 		paramState[p.id] = p.toNormalized(p.initialValue);
 	};
 
-	paramState.version = 0;
+	paramState.version = stateVersion;
 
 	initValue(ParamSpecs::vol);
 	initValue(ParamSpecs::mix);
@@ -64,15 +65,15 @@ tresult PLUGIN_API Processor::initialize(FUnknown* context) {
 
 tresult PLUGIN_API Processor::setActive(TBool state) {
 	if (state) {
-		processorImpl = std::make_unique<ProcessorImpl<float>>();
-		processorImpl->init(processSetup.sampleRate);
-		recomputeParameters();
+		//processorImpl = std::make_unique<ProcessorImpl<float>>();
 
-		/*if (processSetup.symbolicSampleSize == kSample32) {
+		if (processSetup.symbolicSampleSize == kSample32) {
 			processorImpl = std::make_unique<ProcessorImpl<float>>();
 		} else {
 			processorImpl = std::make_unique<ProcessorImpl<double>>();
-		}*/
+		}
+		processorImpl->init(processSetup.sampleRate);
+		recomputeParameters();
 	}
 	return kResultTrue;
 }
@@ -85,7 +86,19 @@ tresult PLUGIN_API Processor::setBusArrangements(SpeakerArrangement* inputs, int
 	return kResultFalse;
 }
 
+tresult PLUGIN_API Processor::canProcessSampleSize(int32 symbolicSampleSize) {
+	if (symbolicSampleSize == kSample32) {
+		return kResultTrue;
+	}
+	if (symbolicSampleSize == kSample64) {
+		return kResultTrue;
+	}
+	return kResultFalse;
+}
+
 void Processor::processAudio(ProcessData& data) {
+	using std::chrono::steady_clock;
+	auto t0 = steady_clock::now();
 	int32 numChannels = data.inputs[0].numChannels;
 	//int32 numSamples = data.numSamples;
 
@@ -111,9 +124,18 @@ void Processor::processAudio(ProcessData& data) {
 	vuPPMOld = vuPPM;
 	vuPPM = processorImpl->processAll(data, mix, volume);
 	if (vuPPM != vuPPMOld) {
-		//float db = 20 * std::log10(vuPPM);
+		float db = 20 * std::log10(vuPPM);
+		db = std::max(db, -40.f);
+		//addOutputPoint(data, kParamVUPPM, (db+40)/40.0);
 		addOutputPoint(data, kParamVUPPM, vuPPM);
+		if (isBypassed()) {
+			addOutputPoint(data, kParamVUPPM, 0);
+		}
 	}
+	std::chrono::duration<double> duration = steady_clock::now() - t0;
+	//auto t1 = steady_clock::now();
+	
+	addOutputPoint(data, kParamProcessTime, (duration.count() / data.numSamples)*1000.0/10.0);
 	/*Sample32* sInL;
 	Sample32* sInR;
 	float wet = mix;
@@ -151,10 +173,10 @@ void Processor::processParameterChanges(IParameterChanges* inputParameterChanges
 				paramState.params[id] = value;
 			}
 			if (id == Params::kParamInPosCurveL || id == Params::kParamInPosCurveR || (id >= Params::kParamInL0 && id <= Params::kParamInRN)) {
-				updateResonatorInputPosition();
+				processorImpl->updateResonatorInputPosition(paramState);
 			}
 			if (id == Params::kParamOutPosCurveL || id == Params::kParamOutPosCurveR || (id >= Params::kParamOutL0 && id <= Params::kParamOutRN)) {
-				updateResonatorOutputPosition();
+				processorImpl->updateResonatorOutputPosition(paramState);
 			}
 			if (id == Params::kParamResonatorDim) {
 				updateResonatorDimension();
@@ -186,10 +208,22 @@ void Processor::recomputeInexpensiveParameters() {
 		processorImpl->setResonatorFreq(resonatorFreq, resonatorDamp, resonatorVel);
 		processorImpl->setResonatorOrder(resonatorOrder);
 		processorImpl->setLCFilterFreqAndQ(toScaled(ParamSpecs::lcFreq), toScaled(ParamSpecs::lcQ));
+		processorImpl->setHCFilterFreqAndQ(toScaled(ParamSpecs::hcFreq), toScaled(ParamSpecs::hcQ));
 	}
 }
 
-void Processor::updateResonatorInputPosition() {
+void Processor::updateResonatorDimension() {
+	resonatorDim = toDiscrete(ParamSpecs::resonatorDim);
+	if (processorImpl) {
+		processorImpl->setResonatorDim(resonatorDim);
+		// Need to reevaluate all eigenfunctions
+		processorImpl->updateResonatorInputPosition(paramState);
+		processorImpl->updateResonatorOutputPosition(paramState);
+	}
+	//auto& f = processorImpl->resonator.inputPosEF[0];
+	//FDebugPrint("Out EF %i: %f, %f, %f, %f,%f, %f, %f, %f, %f, %f\n", resonatorDim, f[0].real(), f[1].real(), f[2].real(), f[3].real(), f[4].real(), f[5].real(), f[6].real(), f[7].real(), f[8].real(), f[9].real());
+}
+/*void Processor::updateResonatorInputPosition() {
 	SpaceVec inputPosL, inputPosR;
 	size_t d = inputPosL.size();
 	for (int i = 0; i < d; i++) {
@@ -198,7 +232,7 @@ void Processor::updateResonatorInputPosition() {
 	}
 	inputPosL += inputPosSpaceCurve(paramState[Params::kParamInPosCurveL]);
 	inputPosR += inputPosSpaceCurve(paramState[Params::kParamInPosCurveR]);
-	processorImpl->resonator.setInputPositions({ inputPosL, inputPosR });
+	//processorImpl->resonator.setInputPositions({ inputPosL, inputPosR });
 	// FDebugPrint("Outputpos %f, %f, %f, %f,%f, %f, %f, %f, %f, %f\n", inputPos[0], inputPos[1], inputPos[2], inputPos[3], inputPos[4], inputPos[5], inputPos[6], inputPos[7], inputPos[8], inputPos[9]);
 }
 
@@ -211,19 +245,10 @@ void Processor::updateResonatorOutputPosition() {
 	}
 	outputPosL += outputPosSpaceCurve(paramState[Params::kParamOutPosCurveL]);
 	outputPosR += outputPosSpaceCurve(paramState[Params::kParamOutPosCurveR]);
-	processorImpl->resonator.setOutputPositions({ outputPosL, outputPosR });
+	//processorImpl->resonator.setOutputPositions({ outputPosL, outputPosR });
 	// FDebugPrint("Outputpos %f, %f, %f, %f,%f, %f, %f, %f, %f, %f\n", outputPos[0], outputPos[1], outputPos[2], outputPos[3], outputPos[4], outputPos[5], outputPos[6], outputPos[7], outputPos[8], outputPos[9]);
 }
 
-void Processor::updateResonatorDimension() {
-	resonatorDim = toDiscrete(ParamSpecs::resonatorDim);
-	processorImpl->setResonatorDim(resonatorDim);
-	// Need to reevaluate all eigenfunctions
-	updateResonatorInputPosition();
-	updateResonatorOutputPosition();
-	//auto& f = processorImpl->resonator.inputPosEF[0];
-	//FDebugPrint("Out EF %i: %f, %f, %f, %f,%f, %f, %f, %f, %f, %f\n", resonatorDim, f[0].real(), f[1].real(), f[2].real(), f[3].real(), f[4].real(), f[5].real(), f[6].real(), f[7].real(), f[8].real(), f[9].real());
-}
 
 Processor::SpaceVec Processor::inputPosSpaceCurve(ParamValue t) {
 	constexpr float pi = Math::pi<float>();
@@ -261,7 +286,7 @@ Processor::SpaceVec Processor::outputPosSpaceCurve(ParamValue t) {
 		t_ * 0.5f,
 		t_ * 0.5f
 	};
-}
+}*/
 
 } // namespace TesseractFx
 } // namespace Uberton

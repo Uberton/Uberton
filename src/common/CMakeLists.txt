@@ -26,6 +26,8 @@ add_library(uberton_common
         source/viewcreator.h
         source/viewcreator.cpp
         source/viewcreator_globals.h
+        source/subcontrollers.h
+        source/subcontrollers.cpp
 )
 
 

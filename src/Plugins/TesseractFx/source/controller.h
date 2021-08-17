@@ -27,6 +27,31 @@ public:
 	IPlugView* PLUGIN_API createView(FIDString name) SMTG_OVERRIDE;
 
 	static FUnknown* createInstance(void*) { return (Vst::IEditController*)new Controller(); }
+
+	tresult PLUGIN_API getState(IBStream* stream) SMTG_OVERRIDE {
+
+		IBStreamer s(stream, kLittleEndian);
+		if (!s.writeInt64u(stateVersion)) return kResultFalse;
+
+		double zoomFactor = 0.5;
+		if (editors.size() > 1) {
+			zoomFactor = editors[0]->getZoomFactor();
+		}
+		if (!s.writeDouble(zoomFactor)) return kResultFalse;
+		return kResultOk;
+	}
+	tresult PLUGIN_API setState(IBStream* stream) SMTG_OVERRIDE {
+
+		IBStreamer s(stream, kLittleEndian);
+		uint64 version = 0;
+
+		if (!s.readInt64u(version)) return kResultFalse;
+		if (!s.readDouble(initialZoomFactor)) return kResultFalse;
+		return kResultOk;
+	}
+
+private:
+	double initialZoomFactor{ 0.5 };
 };
 
 }

@@ -12,6 +12,7 @@
 #include "controller.h"
 #include "ids.h"
 #include <vstmath.h>
+#include <ui.h>
 
 namespace Uberton {
 namespace TesseractFx {
@@ -20,7 +21,6 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 
 	tresult result = ControllerBase::initialize(context);
 	if (result != kResultTrue) return result;
-
 
 
 	// Set up units
@@ -35,37 +35,39 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 	addUnit(new Unit(USTRING("Post Filter"), postSectionUnitId, rootUnitId));
 
 
+
 	setCurrentUnitID(rootUnitId);
 	{
 		//addParam<LinearParameter>(ParamSpecs::vol, L"Master Volume", L"MVol", L"", Precision(2));
-		addParam<LogParameter>(ParamSpecs::vol, L"Master Volume", L"MVol", L"", Precision(2));
+		addParam<LogParameter>(ParamSpecs::vol, "Master Volume", "MVol", "", Precision(2));
 		//parameters.addParameter(new GainParameter(L"Master Volume", ParamSpecs::vol.id, L"dB"));
-		addParam<LinearParameter>(ParamSpecs::mix, L"Mix", L"Mix", L"%", Precision(0));
+		addParam<LinearParameter>(ParamSpecs::mix, "Mix", "Mix", "%", Precision(0));
 		addParam<DiscreteParameter>(ParamSpecs::resonatorType, "Resonator Type", "Res Type", "")->getInfo().stepCount = 1;
 		addParam<DiscreteParameter>(ParamSpecs::resonatorDim, "Resonator Dimension", "Res Dim", "D", Precision(0))->getInfo().stepCount = maxDimension - 1;
-		addParam<DiscreteParameter>(ParamSpecs::resonatorOrder, "Resonator Order", "Res Order", "")->getInfo().stepCount = maxOrder - 1;
+		addParam<DiscreteParameter>(ParamSpecs::resonatorOrder, "Resonator Order", "Res Order", "", Precision(0))->getInfo().stepCount = maxOrder - 1;
 
-		addParam<LogParameter>(ParamSpecs::damp, L"Resonator Dampening", L"Res Damp", L"", Precision(2));
-		addParam<LogParameter>(ParamSpecs::freq, L"Resonator Frequency", L"Res Freq", L"Hz");
+		addParam<LogParameter>(ParamSpecs::damp, "Resonator Dampening", "Res Damp", "", Precision(2));
+		addParam<LogParameter>(ParamSpecs::freq, "Resonator Frequency", "Res Freq", "Hz");
 
 		addParam<LinearParameter>(ParamSpecs::resonatorVel, "Sonic Velocity", "Sonic Vel", "m/s");
 
-		addParam<LinearParameter>(ParamSpecs::inPosCurveL, "Input Pos Curve L", "InPos L", L"", Precision(3));
-		addParam<LinearParameter>(ParamSpecs::inPosCurveR, "Input Pos Curve R", "InPos R", L"", Precision(3));
-		addParam<LinearParameter>(ParamSpecs::outPosCurveL, "Output Pos Curve L", "OutPos L", L"", Precision(3));
-		addParam<LinearParameter>(ParamSpecs::outPosCurveR, "Output Pos Curve R", "OutPos R", L"", Precision(3));
-		addStringListParam(ParamSpecs::linkInPosCurves, "Link In Pos Curves", "Link In C", { "Not Linked", "Linked" });
-		addStringListParam(ParamSpecs::linkOutPosCurves, "Link Out Pos Curves", "Link Out C", { "Not Linked", "Linked" });
+		addParam<LinearParameter>(ParamSpecs::inPosCurveL, "Input Pos Curve L", "InPos L", "", Precision(3));
+		addParam<LinearParameter>(ParamSpecs::inPosCurveR, "Input Pos Curve R", "InPos R", "", Precision(3));
+		addParam<LinearParameter>(ParamSpecs::outPosCurveL, "Output Pos Curve L", "OutPos L", "", Precision(3));
+		addParam<LinearParameter>(ParamSpecs::outPosCurveR, "Output Pos Curve R", "OutPos R", "", Precision(3));
+		addStringListParam(ParamSpecs::linkInPosCurves, "Link In Pos Curves", "Link In C", { "Not Linked", "Linked" }, ParameterInfo::kNoFlags);
+		addStringListParam(ParamSpecs::linkOutPosCurves, "Link Out Pos Curves", "Link Out C", { "Not Linked", "Linked" }, ParameterInfo::kNoFlags);
 
 		//addParam<LinearParameter>(ParamSpecs::vuPPM, "Output Level", "Level", "dB", ParameterInfo::kIsReadOnly);
-		parameters.addParameter(new GainParameter(L"Output Level", ParamSpecs::vuPPM.id, L"dB",0,ParameterInfo::kIsReadOnly,rootUnitId,L"Level"));
+		parameters.addParameter(new GainParameter(L"Output Level", ParamSpecs::vuPPM.id, L"dB", 0, ParameterInfo::kIsReadOnly, rootUnitId, L"Level"));
+		addParam<LinearParameter>(ParamSpecs::processTime, "Process Time", "T", "", Precision(6), ParameterInfo::kIsReadOnly);
 	}
 
 	setCurrentUnitID(postSectionUnitId);
 	{
-		addParam<LogParameter>(ParamSpecs::lcFreq, L"Low Cut Frequency", L"LC Freq");
+		addParam<LogParameter>(ParamSpecs::lcFreq, "Low Cut Frequency", "LC Freq", "Hz", Precision(0));
 		addParam<LinearParameter>(ParamSpecs::lcQ, "Low Cut Q", "LC Q", "");
-		addParam<LogParameter>(ParamSpecs::hcFreq, L"High Cut Frequency", L"HC Freq");
+		addParam<LogParameter>(ParamSpecs::hcFreq, "High Cut Frequency", "HC Freq", "Hz", Precision(0));
 		addParam<LinearParameter>(ParamSpecs::hcQ, "High Cut Q", "HC Q", "");
 	}
 
@@ -103,7 +105,10 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 }
 
 IPlugView* PLUGIN_API Controller::createView(FIDString name) {
-	if (ConstString(name) == ViewType::kEditor) return new VSTGUI::VST3Editor(this, "Editor", "editor.uidesc");
+	if (ConstString(name) == ViewType::kEditor) {
+		auto editor = new VST3EditorEx1(this, "Editor", "editor.uidesc");
+		return editor;
+	}
 	return nullptr;
 }
 

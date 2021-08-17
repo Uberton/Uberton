@@ -27,7 +27,7 @@ namespace Uberton {
 using namespace Steinberg;
 using namespace Steinberg::Vst;
 
-class HistoryController;
+class HistorySubcontroller;
 
 class HistoryControllerBase : public EditControllerEx1, public VSTGUI::VST3EditorDelegate
 {
@@ -54,7 +54,9 @@ public:
 
 	using TheEditor = VSTGUI::VST3Editor;
 	std::vector<TheEditor*> editors;
-	std::map<EditorView*, HistoryController*> hcm;
+	std::map<EditorView*, HistorySubcontroller*> hcm;
+
+	//double zoomFactor{ 1 };
 };
 
 /*

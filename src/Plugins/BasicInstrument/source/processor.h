@@ -26,8 +26,6 @@ public:
 	Processor();
 
 	tresult PLUGIN_API initialize(FUnknown* context) SMTG_OVERRIDE;
-	//tresult PLUGIN_API setState(IBStream* state) SMTG_OVERRIDE;
-	//tresult PLUGIN_API getState(IBStream* state) SMTG_OVERRIDE;
 	tresult PLUGIN_API setBusArrangements(SpeakerArrangement* inputs, int32 numIns, SpeakerArrangement* outputs, int32 numOuts) SMTG_OVERRIDE;
 	tresult PLUGIN_API setupProcessing(ProcessSetup& setup) SMTG_OVERRIDE;
 
@@ -45,7 +43,6 @@ protected:
 	bool playing{ false };
 	SineOscillatorPow5 osc;
 	Math::CubeResonator<float, 1, 5, 1> resonator;
-
 };
 
 }

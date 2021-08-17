@@ -9,11 +9,12 @@
 // -----------------------------------------------------------------------------------------------------------------------------
 
 #include "viewcreator.h"
-#include <array>
+#include "ui.h"
 
-#include "vstgui/vstgui.h"
-#include "vstgui/vstgui_uidescription.h"
-#include "vstgui/uidescription/detail/uiviewcreatorattributes.h"
+#include <array>
+#include <vstgui/vstgui.h>
+#include <vstgui/vstgui_uidescription.h>
+#include <vstgui/uidescription/detail/uiviewcreatorattributes.h>
 
 
 namespace Uberton {
@@ -432,5 +433,31 @@ bool TextEditUnitsFactory::getAttributeValue(CView* view, const string& attribut
 
 const std::string TextEditUnitsFactory::units = "units";
 
+
+
+LogVUMeterFactory::LogVUMeterFactory() {
+	UIViewFactory::registerViewCreator(*this);
+}
+
+IdStringPtr LogVUMeterFactory::getViewName() const { return Uberton::ViewCreator::kLogVUMeter; }
+
+IdStringPtr LogVUMeterFactory::getBaseViewName() const { return UIViewCreator::kCVuMeter; }
+
+CView* LogVUMeterFactory::create(const UIAttributes& attributes, const IUIDescription* description) const {
+	return new Control({ 0, 0, 50, 30 });
+}
+
+
+LinkButtonFactory::LinkButtonFactory() {
+	UIViewFactory::registerViewCreator(*this);
+}
+
+IdStringPtr LinkButtonFactory::getViewName() const { return Uberton::ViewCreator::kLinkButton; }
+
+IdStringPtr LinkButtonFactory::getBaseViewName() const { return UIViewCreator::kCOnOffButton; }
+
+CView* LinkButtonFactory::create(const UIAttributes& attributes, const IUIDescription* description) const {
+	return new Control({ 0, 0, 50, 30 });
+}
 
 }

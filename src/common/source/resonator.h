@@ -394,8 +394,7 @@ struct CubeEWPCalculator
 	std::vector<Row> data;
 
 
-	template<class U>
-	friend std::ostream& operator<<(std::ostream& os, const CubeEWPCalculator<U>& a) {
+	friend std::ostream& operator<<(std::ostream& os, const CubeEWPCalculator<T>& a) {
 		if (!a.initialized) return os;
 		int dim = a.data[0].coeffs.size();
 		os << dim << " " << a.data.size() << "\n";
@@ -409,8 +408,8 @@ struct CubeEWPCalculator
 		os << "-\n";
 		return os;
 	}
-	template<class U>
-	friend std::istream& operator>>(std::istream& is, CubeEWPCalculator<U>& a) {
+
+	friend std::istream& operator>>(std::istream& is, CubeEWPCalculator<T>& a) {
 		a.data.clear();
 		int dim;
 		int size;

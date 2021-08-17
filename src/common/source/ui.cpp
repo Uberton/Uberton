@@ -8,6 +8,7 @@
 // have received a copy of the GNU General Public License along with Überton. If not, see http://www.gnu.org/licenses/.
 // -----------------------------------------------------------------------------------------------------------------------------
 
+
 #include "ui.h"
 #include <public.sdk/source/common/openurl.h>
 #include "ControllerBase.h"
@@ -15,9 +16,9 @@
 using namespace Uberton;
 
 
-Uberton::FadingFrameAnimationButton::FadingFrameAnimationButton(const CRect& size) : CKickButton(size, nullptr, -1, nullptr) {}
+FadingFrameAnimationButton::FadingFrameAnimationButton(const CRect& size) : CKickButton(size, nullptr, -1, nullptr) {}
 
-void Uberton::FadingFrameAnimationButton::draw(CDrawContext* context) {
+void FadingFrameAnimationButton::draw(CDrawContext* context) {
 	CGraphicsTransform transform;
 
 	if (bitmapHFlip) {
@@ -47,47 +48,47 @@ void Uberton::FadingFrameAnimationButton::draw(CDrawContext* context) {
 	setDirty(false);
 }
 
-CMouseEventResult Uberton::FadingFrameAnimationButton::onMouseDown(CPoint& where, const CButtonState& buttons) {
+CMouseEventResult FadingFrameAnimationButton::onMouseDown(CPoint& where, const CButtonState& buttons) {
 	setFrameColor(pressedFrameColor);
 	removeAnimation("FrameOpacityAnimation"); // in case it is still running
 	CKickButton::onMouseDown(where, buttons);
 	return kMouseEventHandled;
 }
 
-CMouseEventResult Uberton::FadingFrameAnimationButton::onMouseUp(CPoint& where, const CButtonState& buttons) {
+CMouseEventResult FadingFrameAnimationButton::onMouseUp(CPoint& where, const CButtonState& buttons) {
 	addAnimation("FrameOpacityAnimation", new FadingFrameAnimation<FadingFrameAnimationButton>(0),
 		new VSTGUI::Animation::CubicBezierTimingFunction(animationTimeMilliseconds, CPoint(0.4, 0), CPoint(0.6, 1)));
 	return CKickButton::onMouseUp(where, buttons);
 }
 
-void Uberton::FadingFrameAnimationButton::setFrameColor(const CColor& clr) {
+void FadingFrameAnimationButton::setFrameColor(const CColor& clr) {
 	if (frameColor != clr) {
 		frameColor = clr;
 		setDirty();
 	}
 }
 
-CColor Uberton::FadingFrameAnimationButton::getFrameColor() const {
+CColor FadingFrameAnimationButton::getFrameColor() const {
 	return frameColor;
 }
 
-void Uberton::FadingFrameAnimationButton::setPressedFrameColor(const CColor& clr) {
+void FadingFrameAnimationButton::setPressedFrameColor(const CColor& clr) {
 	if (pressedFrameColor != clr) {
 		pressedFrameColor = clr;
 		setDirty();
 	}
 }
 
-CColor Uberton::FadingFrameAnimationButton::getPressedFrameColor() const {
+CColor FadingFrameAnimationButton::getPressedFrameColor() const {
 	return pressedFrameColor;
 }
 
-void Uberton::FadingFrameAnimationButton::setHorizontalBitmapFlip(bool flip) {
+void FadingFrameAnimationButton::setHorizontalBitmapFlip(bool flip) {
 	bitmapHFlip = flip;
 	setDirty();
 }
 
-bool Uberton::FadingFrameAnimationButton::isHorizontalBitmapFlip() const {
+bool FadingFrameAnimationButton::isHorizontalBitmapFlip() const {
 	return bitmapHFlip;
 }
 
@@ -95,71 +96,31 @@ bool Uberton::FadingFrameAnimationButton::isHorizontalBitmapFlip() const {
 
 
 
-Uberton::HistoryButton::HistoryButton(const CRect& size) : FadingFrameAnimationButton(size) {
+HistoryButton::HistoryButton(const CRect& size) : FadingFrameAnimationButton(size) {
 }
 
-CMouseEventResult Uberton::HistoryButton::onMouseUp(CPoint& where, const CButtonState& buttons) {
+CMouseEventResult HistoryButton::onMouseUp(CPoint& where, const CButtonState& buttons) {
 	if (hitTest(where)) {
 		if (callback) callback(type);
 	}
 	return FadingFrameAnimationButton::onMouseUp(where, buttons);
 }
 
-void Uberton::HistoryButton::setType(Type type) {
+void HistoryButton::setType(Type type) {
 	this->type = type;
 }
 
-HistoryButton::Type Uberton::HistoryButton::getType() const {
+HistoryButton::Type HistoryButton::getType() const {
 	return type;
 }
 
-void Uberton::HistoryButton::setCallback(const std::function<void(Type)>& callback) {
+void HistoryButton::setCallback(const std::function<void(Type)>& callback) {
 	this->callback = callback;
 }
 
 
-Uberton::HistoryController::HistoryController(HistoryControllerBase* hController, IController* parentController, bool initialCanUndo, bool initialCanRedo)
-	: DelegationController(parentController), hController(hController), initialCanUndo(initialCanUndo), initialCanRedo(initialCanRedo) {}
 
-CView* Uberton::HistoryController::verifyView(CView* view, const UIAttributes& attributes, const IUIDescription* description) {
-	HistoryButton* button = dynamic_cast<HistoryButton*>(view);
-	if (button) {
-		if (button->getType() == HistoryButton::Type::Undo) {
-			undoButton = button;
-			undoButton->setCallback([this](HistoryButton::Type type) { undo(); });
-			undoButton->setMouseEnabled(initialCanUndo);
-		}
-		else if (button->getType() == HistoryButton::Type::Redo) {
-			redoButton = button;
-			redoButton->setCallback([this](HistoryButton::Type type) { redo(); });
-			redoButton->setMouseEnabled(initialCanRedo);
-		}
-	}
-	return view;
-}
-
-void Uberton::HistoryController::undo() {
-	hController->undo();
-}
-
-void Uberton::HistoryController::redo() {
-	hController->redo();
-}
-
-void Uberton::HistoryController::updateButtonState(bool canUndo, bool canRedo) {
-	if (undoButton && canUndo != undoButton->getMouseEnabled()) {
-		undoButton->setMouseEnabled(canUndo);
-		undoButton->setDirty();
-	}
-	if (redoButton && canRedo != redoButton->getMouseEnabled()) {
-		redoButton->setMouseEnabled(canRedo);
-		redoButton->setDirty();
-	}
-}
-
-
-
-Uberton::UbertonContextMenu::UbertonContextMenu() : COptionMenu(CRect(0, 0, 20, 20), nullptr, -1) {
+UbertonContextMenu::UbertonContextMenu() : COptionMenu(CRect(0, 0, 20, 20), nullptr, -1) {
 	zoomMenu = makeOwned<COptionMenu>();
 	zoomMenu->setStyle(kMultipleCheckStyle);
 	initMenu();
@@ -168,7 +129,7 @@ Uberton::UbertonContextMenu::UbertonContextMenu() : COptionMenu(CRect(0, 0, 20, 
 	setSymbolColor(kWhiteCColor);
 }
 
-CMouseEventResult Uberton::UbertonContextMenu::onMouseDown(CPoint& where, const CButtonState& buttons) {
+CMouseEventResult UbertonContextMenu::onMouseDown(CPoint& where, const CButtonState& buttons) {
 	setFrameColor(pressedFrameColor);
 	removeAnimation("FrameOpacityAnimation"); // in case it is still running
 	if (editor) {
@@ -191,12 +152,12 @@ CMouseEventResult Uberton::UbertonContextMenu::onMouseDown(CPoint& where, const 
 	return kMouseEventHandled; // UbertonContextMenu handled it, even if COptionMenu didn't
 }
 
-CMouseEventResult Uberton::UbertonContextMenu::onMouseUp(CPoint& where, const CButtonState& buttons) {
+CMouseEventResult UbertonContextMenu::onMouseUp(CPoint& where, const CButtonState& buttons) {
 	startAnimation();
 	return COptionMenu::onMouseUp(where, buttons);
 }
 
-void Uberton::UbertonContextMenu::draw(CDrawContext* context) {
+void UbertonContextMenu::draw(CDrawContext* context) {
 	if (!initialized) {
 		initialize();
 	}
@@ -224,44 +185,48 @@ void Uberton::UbertonContextMenu::draw(CDrawContext* context) {
 	setDirty(false);
 }
 
-void Uberton::UbertonContextMenu::setSymbolColor(const CColor& clr) {
+void UbertonContextMenu::setSymbolColor(const CColor& clr) {
 	symbolColor = clr;
 	setDirty();
 }
 
-CColor Uberton::UbertonContextMenu::getSymbolColor() const { return symbolColor; }
+CColor UbertonContextMenu::getSymbolColor() const { return symbolColor; }
 
-void Uberton::UbertonContextMenu::setZoomFactors(const ZoomFactors& zoomFactors) {
+void UbertonContextMenu::setZoomFactors(const ZoomFactors& zoomFactors) {
 	this->zoomFactors = zoomFactors;
-	editor = dynamic_cast<VST3Editor*>(getEditor());
+	editor = dynamic_cast<TheEditor*>(getEditor());
 	if (editor) {
 		editor->setAllowedZoomFactors(zoomFactors);
 	}
 	initMenu();
 }
 
-UbertonContextMenu::ZoomFactors Uberton::UbertonContextMenu::getZoomFactors() const { return zoomFactors; }
+UbertonContextMenu::ZoomFactors UbertonContextMenu::getZoomFactors() const { return zoomFactors; }
 
-void Uberton::UbertonContextMenu::setPressedFrameColor(const CColor& clr) {
+void UbertonContextMenu::setPressedFrameColor(const CColor& clr) {
 	if (pressedFrameColor != clr) {
 		pressedFrameColor = clr;
 		setDirty();
 	}
 }
 
-CColor Uberton::UbertonContextMenu::getPressedFrameColor() const {
+CColor UbertonContextMenu::getPressedFrameColor() const {
 	return pressedFrameColor;
 }
 
-void Uberton::UbertonContextMenu::initialize() {
-	editor = dynamic_cast<VST3Editor*>(getEditor());
+void UbertonContextMenu::initialize() {
+	editor = dynamic_cast<TheEditor*>(getEditor());
 	if (editor) {
+		ZoomFactors scaledZoomFactors;
+		for (const auto& zoomFactor : zoomFactors) {
+			scaledZoomFactors.push_back(zoomFactor);
+		}
 		editor->setAllowedZoomFactors(zoomFactors);
 	}
 	initialized = true;
 }
 
-void Uberton::UbertonContextMenu::initMenu() {
+void UbertonContextMenu::initMenu() {
 	this->removeAllEntry();
 	auto addItem = [&](const UTF8String& text, int id, const UTF8String& category, COptionMenu* menu) {
 		auto c = makeOwned<CCommandMenuItem>(CCommandMenuItem::Desc{ text, id, nullptr, category, text });
@@ -287,11 +252,11 @@ void Uberton::UbertonContextMenu::initMenu() {
 	}
 }
 
-void Uberton::UbertonContextMenu::startAnimation() {
+void UbertonContextMenu::startAnimation() {
 	addAnimation("FrameOpacityAnimation", new FadingFrameAnimation<UbertonContextMenu>(0), new VSTGUI::Animation::CubicBezierTimingFunction(animationTimeMilliseconds, CPoint(0.4, 0), CPoint(0.6, 1)));
 }
 
-void Uberton::UbertonContextMenu::itemSelected(CCommandMenuItem* item) {
+void UbertonContextMenu::itemSelected(CCommandMenuItem* item) {
 	if (item->getCommandCategory() == "Base") {
 		switch (static_cast<MenuItemID>(item->getTag())) {
 		case MenuItemID::userGuide:
@@ -312,11 +277,11 @@ void Uberton::UbertonContextMenu::itemSelected(CCommandMenuItem* item) {
 
 
 
-Uberton::DiagonalSlider::DiagonalSlider(const CRect& r) : CSliderBase(r, nullptr, -1) {
+DiagonalSlider::DiagonalSlider(const CRect& r) : CSliderBase(r, nullptr, -1) {
 	setWantsFocus(true);
 }
 
-void Uberton::DiagonalSlider::draw(CDrawContext* context) {
+void DiagonalSlider::draw(CDrawContext* context) {
 	{
 		CGraphicsTransform transform;
 
@@ -344,14 +309,10 @@ void Uberton::DiagonalSlider::draw(CDrawContext* context) {
 	if (handleBitmap) {
 		handleBitmap->draw(context, getHandleRect());
 	}
-	//ParamValue value = getValueNormalized();
-	//double x0 = p1.x + (p2.x - p1.x) * value + getViewSize().left;
-	//double y0 = p1.y + (p2.y - p1.y) * value + getViewSize().top;
-	//context->drawPoint({ x0, y0 }, kBlackCColor);
 	setDirty(false);
 }
 
-CRect Uberton::DiagonalSlider::getHandleRect() const {
+CRect DiagonalSlider::getHandleRect() const {
 	CRect r;
 	ParamValue value = getValueNormalized();
 	double x0 = p1.x + (p2.x - p1.x) * value;
@@ -365,67 +326,73 @@ CRect Uberton::DiagonalSlider::getHandleRect() const {
 	return r;
 }
 
-void Uberton::DiagonalSlider::setHandleBitmap(CBitmap* handle) {
+void DiagonalSlider::setHandleBitmap(CBitmap* handle) {
 	handleBitmap = handle;
 	setDirty();
 }
 
-CBitmap* Uberton::DiagonalSlider::getHandleBitmap() const {
+CBitmap* DiagonalSlider::getHandleBitmap() const {
 	return handleBitmap;
 }
 
-void Uberton::DiagonalSlider::setPathStartPoint(const CPoint& p) {
+void DiagonalSlider::setPathStartPoint(const CPoint& p) {
 	p1 = p;
 	setDirty();
 }
 
-void Uberton::DiagonalSlider::setPathEndPoint(const CPoint& p) {
+void DiagonalSlider::setPathEndPoint(const CPoint& p) {
 	p2 = p;
 	setDirty();
 }
 
-CPoint Uberton::DiagonalSlider::getPathStartPoint() const { return p1; }
+CPoint DiagonalSlider::getPathStartPoint() const { return p1; }
 
-CPoint Uberton::DiagonalSlider::getPathEndPoint() const { return p2; }
+CPoint DiagonalSlider::getPathEndPoint() const { return p2; }
 
-void Uberton::DiagonalSlider::setHorizontalBitmapFlip(bool flip) {
+void DiagonalSlider::setHorizontalBitmapFlip(bool flip) {
 	if (flip == bitmapHFlip) return;
 	bitmapHFlip = flip;
 	setDirty();
 }
 
-bool Uberton::DiagonalSlider::isHorizontalBitmapFlip() const {
+bool DiagonalSlider::isHorizontalBitmapFlip() const {
 	return bitmapHFlip;
 }
 
-void Uberton::DiagonalSlider::setVerticalBitmapFlip(bool flip) {
+void DiagonalSlider::setVerticalBitmapFlip(bool flip) {
 	if (flip == bitmapVFlip) return;
 	bitmapVFlip = flip;
 	setDirty();
 }
 
-bool Uberton::DiagonalSlider::isVerticalBitmapFlip() const {
+bool DiagonalSlider::isVerticalBitmapFlip() const {
 	return bitmapVFlip;
 }
 
-CMouseEventResult Uberton::DiagonalSlider::onMouseDown(CPoint& where, const CButtonState& buttons) {
+CMouseEventResult DiagonalSlider::onMouseDown(CPoint& where, const CButtonState& buttons) {
 	if (!(buttons & kLButton)) return kMouseEventNotHandled;
 
 	invalidMouseWheelEditTimer(this);
+
+
+	if (checkDefaultValue(buttons)) {
+		endEdit();
+		return kMouseDownEventHandledButDontNeedMovedOrUpEvents;
+	}
 	beginEdit();
 	startValue = getValue();
 	startPoint = where;
 	return kMouseEventHandled;
 }
 
-CMouseEventResult Uberton::DiagonalSlider::onMouseUp(CPoint& where, const CButtonState& buttons) {
+CMouseEventResult DiagonalSlider::onMouseUp(CPoint& where, const CButtonState& buttons) {
 	if (isEditing()) {
 		endEdit();
 	}
 	return kMouseEventHandled;
 }
 
-CMouseEventResult Uberton::DiagonalSlider::onMouseMoved(CPoint& where, const CButtonState& buttons) {
+CMouseEventResult DiagonalSlider::onMouseMoved(CPoint& where, const CButtonState& buttons) {
 	if (buttons.isLeftButton() && isEditing()) {
 
 		float horizontalDistance = p2.x - p1.x;
@@ -446,7 +413,7 @@ CMouseEventResult Uberton::DiagonalSlider::onMouseMoved(CPoint& where, const CBu
 	return kMouseEventNotHandled;
 }
 
-CMouseEventResult Uberton::DiagonalSlider::onMouseCancel() {
+CMouseEventResult DiagonalSlider::onMouseCancel() {
 	if (isEditing()) {
 		value = startValue;
 		if (isDirty()) {
@@ -458,7 +425,7 @@ CMouseEventResult Uberton::DiagonalSlider::onMouseCancel() {
 	return kMouseEventHandled;
 }
 
-Uberton::StringMapLabel::StringMapLabel(const CRect& size) : CParamDisplay(size) {
+StringMapLabel::StringMapLabel(const CRect& size) : CParamDisplay(size) {
 	setValueToStringFunction2([&](float value, std::string& result, CParamDisplay* display) {
 		int discreteValue = std::floor<int>(value);
 		if (discreteValue < 0 || discreteValue >= static_cast<ptrdiff_t>(names.size())) return false;
@@ -467,16 +434,16 @@ Uberton::StringMapLabel::StringMapLabel(const CRect& size) : CParamDisplay(size)
 	});
 }
 
-void Uberton::StringMapLabel::setNames(const std::vector<std::string>& names) {
+void StringMapLabel::setNames(const std::vector<std::string>& names) {
 	this->names = names;
 	setDirty();
 }
 
-std::vector<std::string> Uberton::StringMapLabel::getNames() const {
+std::vector<std::string> StringMapLabel::getNames() const {
 	return names;
 }
 
-void Uberton::StringMapLabel::draw(CDrawContext* context) {
+void StringMapLabel::draw(CDrawContext* context) {
 	if (!initialized) {
 		setValueToStringFunction2([&](float value, std::string& result, CParamDisplay* display) {
 			int discreteValue = std::floor<int>(value) - getMin();
@@ -489,10 +456,12 @@ void Uberton::StringMapLabel::draw(CDrawContext* context) {
 	CParamDisplay::draw(context);
 }
 
-Uberton::TextEditUnits::TextEditUnits(const CRect& size) : CTextEdit(size, nullptr, -1) {
+
+
+TextEditUnits::TextEditUnits(const CRect& size) : CTextEdit(size, nullptr, -1) {
 }
 
-void Uberton::TextEditUnits::draw(CDrawContext* context) {
+void TextEditUnits::draw(CDrawContext* context) {
 	if (!text.empty() && tag != -1 && !units.empty()) {
 		std::string tmp = text;
 		text += "" + units;
@@ -504,11 +473,93 @@ void Uberton::TextEditUnits::draw(CDrawContext* context) {
 	}
 }
 
-void Uberton::TextEditUnits::setUnits(std::string units) {
+void TextEditUnits::setUnits(std::string units) {
 	this->units = units;
 	setDirty();
 }
 
-std::string Uberton::TextEditUnits::getUnits() const {
+std::string TextEditUnits::getUnits() const {
 	return units;
 }
+
+LogVUMeter::LogVUMeter(const CRect& size) : CVuMeter(size, nullptr, nullptr, 100) {
+}
+
+void LogVUMeter::draw(CDrawContext* context) {
+	if (!getOnBitmap())
+		return;
+
+	CRect _rectOn(rectOn);
+	CRect _rectOff(rectOff);
+	CPoint pointOn;
+	CPoint pointOff;
+
+	bounceValue();
+
+	float newValue = getOldValue() / std::pow(10, decreaseValue);
+	if (newValue < value)
+		newValue = value;
+	setOldValue(newValue);
+
+	newValue = (newValue - getMin()) / getRange(); // normalize
+
+	double logValue = 20 * std::log10(newValue);
+	const double range = maxDb - minDb;
+	double nomalizedLogValue = (std::max(logValue, minDb) + range) / range;
+
+	if (style & kHorizontal) {
+		auto tmp = (CCoord)(((int32_t)(nbLed * nomalizedLogValue + 0.5f) / (float)nbLed) * getOnBitmap()->getWidth());
+		pointOff(tmp, 0);
+
+		_rectOff.left += tmp;
+		_rectOn.right = tmp + rectOn.left;
+	}
+	else {
+		auto tmp = (CCoord)(((int32_t)(nbLed * (1.f - nomalizedLogValue) + 0.5f) / (float)nbLed) * getOnBitmap()->getHeight());
+		pointOn(0, tmp);
+
+		_rectOff.bottom = tmp + rectOff.top;
+		_rectOn.top += tmp;
+	}
+
+	if (getOffBitmap()) {
+		getOffBitmap()->draw(context, _rectOff, pointOff);
+	}
+
+	getOnBitmap()->draw(context, _rectOn, pointOn);
+
+	setDirty(false);
+}
+
+LinkButton::LinkButton(const CRect& size) : COnOffButton(size, nullptr, -1) {
+}
+
+void LinkButton::draw(CDrawContext* context) {
+	if (value != oldValue) {
+		valueChanged();
+		oldValue = value;
+	}
+	COnOffButton::draw(context);
+}
+
+VST3EditorEx1::VST3EditorEx1(Steinberg::Vst::EditController* controller, UTF8StringPtr templateName, UTF8StringPtr xmlFile)
+	: VST3Editor(controller, templateName, xmlFile) {
+	setContentScaleFactor(0.5);
+}
+
+Steinberg::tresult PLUGIN_API VST3EditorEx1::setContentScaleFactor(Steinberg::IPlugViewContentScaleSupport::ScaleFactor factor) {
+	return VST3Editor::setContentScaleFactor(factor * prescaleFactor);
+}
+
+void VST3EditorEx1::setPrescaleFactor(double f) {
+	prescaleFactor = f;
+	if (getFrame()) {
+		getFrame()->setZoom(getAbsScaleFactor());
+	}
+}
+
+double VST3EditorEx1::getPrescaleFactor() { return prescaleFactor; }
+
+//double Uberton::VST3EditorEx1::getAbsScaleFactor() const {
+//	return zoomFactor * contentScaleFactor * prescaleFactor;
+//}

@@ -12,19 +12,17 @@
 #pragma once
 
 #include <ControllerBase.h>
-#include <vstgui/plugin-bindings/vst3editor.h>
-#include <parameters.h>
+#include "ids.h"
 
 namespace Uberton {
 namespace BasicInstrument {
 using namespace Steinberg;
 using namespace Steinberg::Vst;
 
-class Controller : public ControllerBase, public VSTGUI::VST3EditorDelegate
+class Controller : public ControllerBase<ParamState, NoBypass>
 {
 public:
 	tresult PLUGIN_API initialize(FUnknown* context) SMTG_OVERRIDE;
-	tresult PLUGIN_API setComponentState(IBStream* state) SMTG_OVERRIDE;
 	IPlugView* PLUGIN_API createView(FIDString name) SMTG_OVERRIDE;
 
 	static FUnknown* createInstance(void*) { return (Vst::IEditController*)new Controller(); }
