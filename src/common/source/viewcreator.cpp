@@ -9,11 +9,12 @@
 // -----------------------------------------------------------------------------------------------------------------------------
 
 #include "viewcreator.h"
-#include <array>
+#include "ui.h"
 
-#include "vstgui/vstgui.h"
-#include "vstgui/vstgui_uidescription.h"
-#include "vstgui/uidescription/detail/uiviewcreatorattributes.h"
+#include <array>
+#include <vstgui/vstgui.h>
+#include <vstgui/vstgui_uidescription.h>
+#include <vstgui/uidescription/detail/uiviewcreatorattributes.h>
 
 
 namespace Uberton {

@@ -38,14 +38,12 @@ DEF_CLASS2(INLINE_UID_FROM_FUID(Uberton::TesseractFx::ControllerUID),
 	"",											// not used here
 	FULL_VERSION_STR,								// Plug-in version (to be changed)
 	kVstVersionString,								// the VST 3 SDK version (do not changed this, use always this define)
-	Uberton::TesseractFx::Controller::createInstance);		// function pointer called when this component should be instantiated
+	Uberton::TesseractFx::Controller::createInstance);	// function pointer called when this component should be instantiated
 
 END_FACTORY;
 
-bool InitModule() {
-	return true;
-}
 
-bool DeinitModule() {
-	return true;
-}
+#if VST_VERSION <= VST_3_7_1_VERSION
+bool InitModule() {	return true;}
+bool DeinitModule() {	return true;}
+#endif

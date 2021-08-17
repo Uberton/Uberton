@@ -19,12 +19,13 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 	tresult result = ControllerBase::initialize(context);
 	if (result != kResultTrue) return result;
 
+
 	UnitID rootUnitId = 1;
 	addUnit(new Unit(USTRING("Root"), rootUnitId));
 
 	setCurrentUnitID(rootUnitId);
-	addRangeParam(ParamSpecs::vol, "Volume", "Vol", "%", 0);
-	addRangeParam(ParamSpecs::list, "List", "List")->getInfo().stepCount = 5-1;
+	addParam<LinearParameter>(ParamSpecs::vol, "Volume", "Vol", "%", 0);
+	addParam<DiscreteParameter>(ParamSpecs::list, "List", "List")->getInfo().stepCount = 5 - 1;
 
 	return kResultTrue;
 }

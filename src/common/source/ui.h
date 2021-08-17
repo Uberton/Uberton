@@ -21,6 +21,8 @@ namespace Uberton {
 
 using namespace VSTGUI;
 
+class VST3EditorEx1;
+
 /*
  * Animation that gradually sets the frame color opacity to 0. 
  * The target type needs to be a CView and also implement the functions setFrameColor() and 
@@ -148,6 +150,8 @@ class UbertonContextMenu : public COptionMenu
 		url
 	};
 
+	using TheEditor = VST3EditorEx1;
+
 public:
 	UbertonContextMenu();
 
@@ -177,7 +181,7 @@ protected:
 
 
 private:
-	VST3Editor* editor{ nullptr };
+	TheEditor* editor{ nullptr };
 	SharedPointer<COptionMenu> zoomMenu{ nullptr };
 
 	ZoomFactors zoomFactors = { .8, .9, 1, 1.1, 1.2, 1.5 };
@@ -319,4 +323,37 @@ private:
 	float oldValue{ 0 };
 };
 
+
+class VST3EditorEx1 : public VST3Editor
+{
+public:
+	VST3EditorEx1(Steinberg::Vst::EditController* controller, UTF8StringPtr templateName, UTF8StringPtr xmlFile);
+
+
+	void setZoomFactor1(double factor) {
+		if (zoomFactor == factor)
+			return;
+
+		zoomFactor = factor;
+
+		if (getFrame() == nullptr)
+			return;
+
+		getFrame()->setZoom(getAbsScaleFactor() / prescaleFactor);
+	}
+	double getZoomFactor1() const { return zoomFactor; }
+
+	void setAllowedZoomFactors1(std::vector<double> zoomFactors) { allowedZoomFactors = zoomFactors; }
+
+	void setCSF(double csf) {
+		setContentScaleFactor(csf);
+	}
+
+	double getAbsScaleFactor() const override {
+		return zoomFactor * contentScaleFactor * prescaleFactor;
+	}
+
+private:
+	double prescaleFactor = 0.5;
+};
 }

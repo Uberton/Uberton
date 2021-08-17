@@ -21,10 +21,13 @@ namespace BasicInstrument {
 
 
 enum Params : Steinberg::Vst::ParamID {
-	kParamVolId,
+	kParamVol,
 	kNumGlobalParameters,
 };
 
+namespace ParamSpecs {
+static const LinearParamSpec vol{ kParamVol, 0, 1, 0.8, 0.8 };
+}
 using ParamState = UniformParamState<kNumGlobalParameters>;
 
 static const Steinberg::FUID ProcessorUID(0xed4cc4ff, 0x6a0846c5, 0xb07de226, 0xb01098c4);

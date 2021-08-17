@@ -12,6 +12,7 @@
 #include "controller.h"
 #include "ids.h"
 #include <vstmath.h>
+#include <ui.h>
 
 namespace Uberton {
 namespace TesseractFx {
@@ -105,8 +106,7 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 
 IPlugView* PLUGIN_API Controller::createView(FIDString name) {
 	if (ConstString(name) == ViewType::kEditor) {
-		auto editor = new VSTGUI::VST3Editor(this, "Editor", "editor.uidesc");
-		editor->setZoomFactor(initialZoomFactor);
+		auto editor = new VST3EditorEx1(this, "Editor", "editor.uidesc");
 		return editor;
 	}
 	return nullptr;

@@ -13,7 +13,7 @@
 
 #include <resonator.h>
 //#include <filter.h>
-#include <../../Plugins/Synth1/source/filter.h>
+#include <public.sdk/samples/vst/note_expression_synth/source/filter.h>
 #include "ids.h"
 
 
@@ -32,6 +32,7 @@ public:
 	virtual void setHCFilterFreqAndQ(double freq, double q) = 0;
 	virtual void updateResonatorInputPosition(const ParamState& paramState) = 0;
 	virtual void updateResonatorOutputPosition(const ParamState& paramState) = 0;
+	virtual ~ProcessorImplBase() {}
 };
 
 
@@ -84,7 +85,7 @@ public:
 			filter.setFreqAndQ(freq, q);
 		}
 	}
-	
+
 	void setHCFilterFreqAndQ(double freq, double q) override {
 		for (auto& filter : hcFilters) {
 			filter.setFreqAndQ(freq, q);
@@ -94,7 +95,7 @@ public:
 
 	float processAll(ProcessData& data, float mix, float volume) final {
 		int32 numSamples = data.numSamples;
-		
+
 		SampleType** in = (SampleType**)data.inputs[0].channelBuffers32;
 		SampleType** out = (SampleType**)data.outputs[0].channelBuffers32;
 
@@ -113,12 +114,12 @@ public:
 			tmp = resonator.next();
 			for (int ch = 0; ch < numChannels; ch++) {
 				tmp[ch] = volume * (tmp[ch] * wet * .01 + dry * (*(in[ch] + i)));
-				tmp[ch] = lcFilters[ch].process(tmp[ch]) ; // its tooooo loud!!
-				tmp[ch] = hcFilters[ch].process(tmp[ch]); 
+				tmp[ch] = lcFilters[ch].process(tmp[ch]); // its tooooo loud!!
+				tmp[ch] = hcFilters[ch].process(tmp[ch]);
 				*(out[ch] + i) = tmp[ch];
 			}
 
-			float k = 0.5*(tmp[0]+tmp[1]);
+			float k = 0.5 * (tmp[0] + tmp[1]);
 			maxSample = std::max(maxSample, k * k);
 		}
 		return std::sqrt(maxSample);
@@ -126,7 +127,7 @@ public:
 
 	void updateResonatorInputPosition(const ParamState& paramState) override {
 		SpaceVec inputPosL, inputPosR;
-		size_t d = inputPosL.size();
+		int d = static_cast<int>(inputPosL.size());
 		for (int i = 0; i < d; i++) {
 			inputPosL[i] = paramState[Params::kParamInL0 + i];
 			inputPosR[i] = paramState[Params::kParamInR0 + i];
@@ -138,7 +139,7 @@ public:
 
 	void updateResonatorOutputPosition(const ParamState& paramState) override {
 		SpaceVec outputPosL, outputPosR;
-		size_t d = outputPosL.size();
+		int d = static_cast<int>(outputPosL.size());
 		for (int i = 0; i < d; i++) {
 			outputPosL[i] = paramState[Params::kParamOutL0 + i];
 			outputPosR[i] = paramState[Params::kParamOutR0 + i];
@@ -149,7 +150,6 @@ public:
 	}
 
 protected:
-
 	// t in [0,1]; returns 0 vector for t = 0.5
 	SpaceVec inputPosSpaceCurve(ParamValue t) {
 		constexpr float pi = Math::pi<float>();

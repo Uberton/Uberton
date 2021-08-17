@@ -13,16 +13,22 @@
 
 #pragma once
 
-
 #include <vstgui/uidescription/detail/uiviewcreatorattributes.h>
 #include <vstgui/vstgui_uidescription.h>
 #include <vstgui/uidescription/viewcreator/sliderviewcreator.h>
-#include "ui.h"
 
 
 namespace Uberton {
 
 using namespace VSTGUI;
+class FadingFrameAnimationButton;
+class HistoryButton;
+class UbertonContextMenu;
+class DiagonalSlider;
+class StringMapLabel;
+class TextEditUnits;
+class LogVUMeter;
+class LinkButton;
 
 
 class FadingFrameAnimationButtonFactory : public ViewCreatorAdapter

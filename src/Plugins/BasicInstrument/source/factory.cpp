@@ -1,5 +1,3 @@
-// Plugin name and version of BasicInstrument
-//
 // -----------------------------------------------------------------------------------------------------------------------------
 // This file is part of the Überton project. Copyright (C) 2021 Überton
 //
@@ -10,8 +8,8 @@
 // have received a copy of the GNU General Public License along with Überton. If not, see http://www.gnu.org/licenses/.
 // -----------------------------------------------------------------------------------------------------------------------------
 
-
 #include <public.sdk/source/main/pluginfactory.h>
+#include <viewcreator_globals.h>
 
 #include "ids.h"
 #include "version.h"
@@ -23,31 +21,29 @@
 BEGIN_FACTORY_DEF(stringCompanyName, stringCompanyWeb, stringCompanyEmail)
 
 DEF_CLASS2(INLINE_UID_FROM_FUID(Uberton::BasicInstrument::ProcessorUID),
-	PClassInfo::kManyInstances,								// cardinality
-	kVstAudioEffectClass,									// the component category (do not changed this)
-	stringPluginName,										// here the plug-in name (to be changed)
-	Vst::kDistributable,									// means that component and controller could be distributed on different computers
-	stringSubCategory,										// Subcategory for this plug-in (to be changed)
-	FULL_VERSION_STR,										// Plug-in version (to be changed)
-	kVstVersionString,										// the VST 3 SDK version (do not changed this, use always this define)
-	Uberton::BasicInstrument::Processor::createInstance);			// function pointer called when this component should be instantiated
+	PClassInfo::kManyInstances,							  // cardinality
+	kVstAudioEffectClass,								  // the component category (do not changed this)
+	stringPluginName,									  // here the plug-in name (to be changed)
+	Vst::kDistributable,								  // means that component and controller could be distributed on different computers
+	stringSubCategory,									  // Subcategory for this plug-in (to be changed)
+	FULL_VERSION_STR,									  // Plug-in version (to be changed)
+	kVstVersionString,									  // the VST 3 SDK version (do not changed this, use always this define)
+	Uberton::BasicInstrument::Processor::createInstance); // function pointer called when this component should be instantiated
 
 DEF_CLASS2(INLINE_UID_FROM_FUID(Uberton::BasicInstrument::ControllerUID),
-	PClassInfo::kManyInstances,								// cardinality
-	kVstComponentControllerClass,								// the Controller category (do not changed this)
-	stringPluginName "Controller",							// controller name (could be the same than component name)
-	0,													// not used here
-	"",													// not used here
-	FULL_VERSION_STR,										// Plug-in version (to be changed)
-	kVstVersionString,										// the VST 3 SDK version (do not changed this, use always this define)
-	Uberton::BasicInstrument::Controller::createInstance);			// function pointer called when this component should be instantiated
+	PClassInfo::kManyInstances,							   // cardinality
+	kVstComponentControllerClass,						   // the Controller category (do not changed this)
+	stringPluginName "Controller",						   // controller name (could be the same than component name)
+	0,													   // not used here
+	"",													   // not used here
+	FULL_VERSION_STR,									   // Plug-in version (to be changed)
+	kVstVersionString,									   // the VST 3 SDK version (do not changed this, use always this define)
+	Uberton::BasicInstrument::Controller::createInstance); // function pointer called when this component should be instantiated
 
 END_FACTORY;
 
-bool InitModule() {
-	return true;
-}
 
-bool DeinitModule() {
-	return true;
-}
+#if VST_VERSION <= VST_3_7_1_VERSION
+bool InitModule() { return true; }
+bool DeinitModule() { return true; }
+#endif

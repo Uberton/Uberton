@@ -194,7 +194,8 @@ CColor UbertonContextMenu::getSymbolColor() const { return symbolColor; }
 
 void UbertonContextMenu::setZoomFactors(const ZoomFactors& zoomFactors) {
 	this->zoomFactors = zoomFactors;
-	editor = dynamic_cast<VST3Editor*>(getEditor());
+	this->zoomFactors.push_back(0.5);
+	editor = dynamic_cast<TheEditor*>(getEditor());
 	if (editor) {
 		editor->setAllowedZoomFactors(zoomFactors);
 	}
@@ -215,7 +216,7 @@ CColor UbertonContextMenu::getPressedFrameColor() const {
 }
 
 void UbertonContextMenu::initialize() {
-	editor = dynamic_cast<VST3Editor*>(getEditor());
+	editor = dynamic_cast<TheEditor*>(getEditor());
 	if (editor) {
 		ZoomFactors scaledZoomFactors;
 		for (const auto& zoomFactor : zoomFactors) {
@@ -378,7 +379,7 @@ CMouseEventResult DiagonalSlider::onMouseDown(CPoint& where, const CButtonState&
 
 	invalidMouseWheelEditTimer(this);
 
-	
+
 	if (checkDefaultValue(buttons)) {
 		endEdit();
 		return kMouseDownEventHandledButDontNeedMovedOrUpEvents;
@@ -546,3 +547,7 @@ void LinkButton::draw(CDrawContext* context) {
 	COnOffButton::draw(context);
 }
 
+Uberton::VST3EditorEx1::VST3EditorEx1(Steinberg::Vst::EditController* controller, UTF8StringPtr templateName, UTF8StringPtr xmlFile)
+	: VST3Editor(controller, templateName, xmlFile) {
+	setContentScaleFactor(0.5);
+}

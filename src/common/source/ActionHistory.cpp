@@ -22,9 +22,9 @@ bool ActionHistory::canRedo() const {
 
 std::optional<Action> ActionHistory::undo() {
 	if (canUndo()) {
-		Action action = undoStack.top();
-		undoStack.pop();
-		redoStack.push(action);
+		Action action = undoStack.back();
+		undoStack.pop_back();
+		redoStack.push_back(action);
 		return action;
 	}
 	else {
@@ -34,9 +34,9 @@ std::optional<Action> ActionHistory::undo() {
 
 std::optional<Action> ActionHistory::redo() {
 	if (canRedo()) {
-		Action action = redoStack.top();
-		redoStack.pop();
-		undoStack.push(action);
+		Action action = redoStack.back();
+		redoStack.pop_back();
+		undoStack.push_back(action);
 		return action;
 	}
 	else {
@@ -45,18 +45,11 @@ std::optional<Action> ActionHistory::redo() {
 }
 
 void ActionHistory::execute(int id, double oldValue, double newValue) {
-
-	while (!redoStack.empty()) {
-		redoStack.pop();
-	}
-	undoStack.push({ id, oldValue, newValue });
+	redoStack.clear();
+	undoStack.push_back({ id, oldValue, newValue });
 }
 
 void ActionHistory::clear() {
-	while (!undoStack.empty()) {
-		undoStack.pop();
-	}
-	while (!redoStack.empty()) {
-		redoStack.pop();
-	}
+	undoStack.clear();
+	redoStack.clear();
 }
