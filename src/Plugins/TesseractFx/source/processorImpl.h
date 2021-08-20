@@ -69,6 +69,7 @@ public:
 
 	void setResonatorOrder(int resonatorOrder) override {
 		resonator.setOrder(resonatorOrder);
+		currentResonatorOrder = resonatorOrder;
 	}
 
 	void setResonatorFreq(float freq, float damp, float vel) override {
@@ -104,7 +105,10 @@ public:
 		float dry = 1 - wet;
 		std::array<SampleType, numChannels> input;
 		SampleVec tmp;
-		float maxSample = 0;
+		SampleType maxSampleLSq = 0;
+		SampleType maxSampleRSq = 0;
+		static_assert(numChannels >= 2);
+		float compensation = 0.05f / std::sqrt(currentResonatorOrder);
 
 		for (int32 i = 0; i < numSamples; i++) {
 			for (int ch = 0; ch < numChannels; ch++) {
@@ -113,17 +117,29 @@ public:
 			resonator.delta(input);
 			tmp = resonator.next();
 			for (int ch = 0; ch < numChannels; ch++) {
-				tmp[ch] = volume * (tmp[ch] * wet * .01 + dry * (*(in[ch] + i)));
+				tmp[ch] = volume * (tmp[ch] * wet * compensation + dry * (*(in[ch] + i)));
 				tmp[ch] = lcFilters[ch].process(tmp[ch]); // its tooooo loud!!
 				tmp[ch] = hcFilters[ch].process(tmp[ch]);
 				*(out[ch] + i) = tmp[ch];
 			}
 
-			float k = 0.5 * (tmp[0] + tmp[1]);
-			maxSample = std::max(maxSample, k * k);
+			//float k = 0.5 * (tmp[0] + tmp[1]);
+			//maxSample = std::max(maxSample, k * k);
+			maxSampleLSq = std::max(maxSampleLSq, tmp[0] * tmp[0]);
+			maxSampleRSq = std::max(maxSampleRSq, tmp[1] * tmp[1]);
 		}
-		return std::sqrt(maxSample);
+		if (vuPPMLSq != maxSampleLSq || vuPPMRSq != maxSampleRSq) {
+			Processor::addOutputPoint(data, kParamVUPPM_L, std::sqrt(maxSampleLSq));
+			Processor::addOutputPoint(data, kParamVUPPM_R, std::sqrt(maxSampleRSq));
+			vuPPMLSq = maxSampleLSq;
+			vuPPMRSq = maxSampleRSq;
+		}
+		return std::max(maxSampleLSq, maxSampleRSq);
 	}
+
+	//SampleVec output
+	SampleType vuPPMLSq{ 0 };
+	SampleType vuPPMRSq{ 0 };
 
 	void updateResonatorInputPosition(const ParamState& paramState) override {
 		SpaceVec inputPosL, inputPosR;
@@ -202,6 +218,7 @@ private:
 	std::array<Filter, numChannels> hcFilters{ Filter::Type::kLowpass, Filter::Type::kLowpass };
 
 	SampleType currentResFreq = 1, currentResDamp = 1, currentResVel = 1;
+	int currentResonatorOrder = 1;
 };
 
 }

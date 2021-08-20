@@ -25,7 +25,7 @@ public:
 	tresult PLUGIN_API initialize(FUnknown* context) SMTG_OVERRIDE;
 	IPlugView* PLUGIN_API createView(FIDString name) SMTG_OVERRIDE;
 
-	static FUnknown* createInstance(void*) { return (Vst::IEditController*)new Controller(); }
+	//static FUnknown* createInstance(void*) { return (Vst::IEditController*)new Controller(); }
 
 };
 

@@ -32,26 +32,19 @@ public:
 	void processAudio(ProcessData& data) override;
 	void processParameterChanges(IParameterChanges* parameterChanges) override;
 
-	static FUnknown* createInstance(void*) { return (Vst::IAudioProcessor*)new Processor(); }
+	//static FUnknown* createInstance(void*) { return (Vst::IAudioProcessor*)new Processor(); }
 
 private:
 	// Inexpensive parameter udpates
 	void recomputeInexpensiveParameters();
 
 	// Expensive parameter udpates
-	//void updateResonatorInputPosition();
-	//void updateResonatorOutputPosition();
 	void updateResonatorDimension();
 
 	// Update all parameters (expensive and inexpensive)
 	void recomputeParameters() override;
 
 
-
-	using SpaceVec = ProcessorImpl<float>::SpaceVec;
-
-	//SpaceVec inputPosSpaceCurve(ParamValue t);  // t in [0,1]; returns 0 vector for t = 0.5
-	//SpaceVec outputPosSpaceCurve(ParamValue t); // t in [0,1]; returns 0 vector for t = 0.5
 
 	std::unique_ptr<ProcessorImplBase> processorImpl;
 

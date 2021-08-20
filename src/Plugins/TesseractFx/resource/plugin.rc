@@ -7,8 +7,8 @@
 // Version
 /////////////////////////////////////////////////////////////////////////////
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION MAJOR_VERSION_INT,MINOR_VERSION_INT,PATCH_NUMBER_INT,BUILD_NUMBER_INT
- PRODUCTVERSION MAJOR_VERSION_INT,MINOR_VERSION_INT,PATCH_NUMBER_INT,BUILD_NUMBER_INT
+ FILEVERSION  TESSERACTFX_MAJOR_VERSION_INT, TESSERACTFX_MINOR_VERSION_INT, TESSERACTFX_PATCH_NUMBER_INT, TESSERACTFX_BUILD_NUMBER_INT
+ PRODUCTVERSION  TESSERACTFX_MAJOR_VERSION_INT, TESSERACTFX_MINOR_VERSION_INT, TESSERACTFX_PATCH_NUMBER_INT, TESSERACTFX_BUILD_NUMBER_INT
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -23,12 +23,12 @@ BEGIN
     BEGIN
         BLOCK "040004e4"
         BEGIN
-            VALUE "FileVersion",      FULL_VERSION_STR"\0"
-            VALUE "ProductVersion",   FULL_VERSION_STR"\0"
-            VALUE "OriginalFilename", stringOriginalFilename"\0"
-            VALUE "FileDescription",  stringFileDescription"\0"
-            VALUE "InternalName",     stringFileDescription"\0"
-            VALUE "ProductName",      stringFileDescription"\0"
+            VALUE "FileVersion",      TESSERACTFX_FULL_VERSION_STR"\0"
+            VALUE "ProductVersion",   TESSERACTFX_FULL_VERSION_STR"\0"
+            VALUE "OriginalFilename", TESSERACTFX_stringOriginalFilename"\0"
+            VALUE "FileDescription",  TESSERACTFX_stringFileDescription"\0"
+            VALUE "InternalName",     TESSERACTFX_stringFileDescription"\0"
+            VALUE "ProductName",      TESSERACTFX_stringFileDescription"\0"
             VALUE "CompanyName",      stringCompanyName"\0"
             VALUE "LegalCopyright",   stringLegalCopyright"\0"
             VALUE "LegalTrademarks",  stringLegalTrademarks"\0"

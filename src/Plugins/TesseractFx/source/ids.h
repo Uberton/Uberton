@@ -57,7 +57,8 @@ enum Params : Steinberg::Vst::ParamID {
 	kParamLinkInPosCurves,
 	kParamLinkOutPosCurves,
 
-	kParamVUPPM, // OUT
+	kParamVUPPM_L, // OUT
+	kParamVUPPM_R, // OUT
 	kParamProcessTime, // OUT
 	kNumGlobalParameters
 };
@@ -88,7 +89,8 @@ static const LinearParamSpec outPosCurveR{ kParamOutPosCurveR, -1.0, 1.0, 0.0, 0
 static const ParamSpec linkInPosCurves{ kParamLinkInPosCurves, 0, 1, 0, 0 };
 static const ParamSpec linkOutPosCurves{ kParamLinkOutPosCurves, 0, 1, 0, 0 };
 
-static const LinearParamSpec vuPPM{ kParamVUPPM, 0.0, 1.0, 0.0, 0.0 };
+static const LinearParamSpec vuPPML{ kParamVUPPM_L, 0.0, 1.0, 0.0, 0.0 };
+static const LinearParamSpec vuPPMR{ kParamVUPPM_R, 0.0, 1.0, 0.0, 0.0 };
 static const LinearParamSpec processTime{ kParamProcessTime, 0,10, 0.0, 0.0 };
 
 }
@@ -97,6 +99,9 @@ using ParamState = UniformParamState<kNumGlobalParameters>;
 
 static const Steinberg::FUID ProcessorUID(0x81b3f1ba, 0x02024999, 0x837809e4, 0xa0be69d0);
 static const Steinberg::FUID ControllerUID(0x10f2c668, 0x566d47e6, 0xbd8950d1, 0x9aed5c60);
+
+FUnknown* createProcessorInstance(void*);
+FUnknown* createControllerInstance(void*);
 
 }
 }

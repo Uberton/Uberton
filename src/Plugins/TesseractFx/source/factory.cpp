@@ -9,41 +9,28 @@
 // -----------------------------------------------------------------------------------------------------------------------------
 
 #include <public.sdk/source/main/pluginfactory.h>
+#include <pluginterfaces/vst/ivstaudioprocessor.h>
 #include <viewcreator_globals.h>
 
 #include "ids.h"
 #include "version.h"
-#include "controller.h"
-#include "processor.h"
 
 #define stringSubCategory "Fx|Multidimensional" // Subcategory for this plug-in (to be changed if needed, see PlugType in ivstaudioprocessor.h)
 
 BEGIN_FACTORY_DEF(stringCompanyName, stringCompanyWeb, stringCompanyEmail)
 
-DEF_CLASS2(INLINE_UID_FROM_FUID(Uberton::TesseractFx::ProcessorUID),
-	PClassInfo::kManyInstances,						// cardinality
-	kVstAudioEffectClass,							// the component category (do not changed this)
-	stringPluginName,								// here the plug-in name (to be changed)
-	Vst::kDistributable,							// means that component and controller could be distributed on different computers
-	stringSubCategory,								// Subcategory for this plug-in (to be changed)
-	FULL_VERSION_STR,								// Plug-in version (to be changed)
-	kVstVersionString,								// the VST 3 SDK version (do not changed this, use always this define)
-	Uberton::TesseractFx::Processor::createInstance);		// function pointer called when this component should be instantiated
+DEF_CLASS2(INLINE_UID_FROM_FUID(Uberton::TesseractFx::ProcessorUID), PClassInfo::kManyInstances, kVstAudioEffectClass,
+	TESSERACTFX_stringPluginName, Vst::kDistributable, stringSubCategory, TESSERACTFX_FULL_VERSION_STR, kVstVersionString,
+	Uberton::TesseractFx::createProcessorInstance);
 
-DEF_CLASS2(INLINE_UID_FROM_FUID(Uberton::TesseractFx::ControllerUID),
-	PClassInfo::kManyInstances,						// cardinality
-	kVstComponentControllerClass,						// the Controller category (do not changed this)
-	stringPluginName "Controller",					// controller name (could be the same than component name)
-	0,											// not used here
-	"",											// not used here
-	FULL_VERSION_STR,								// Plug-in version (to be changed)
-	kVstVersionString,								// the VST 3 SDK version (do not changed this, use always this define)
-	Uberton::TesseractFx::Controller::createInstance);	// function pointer called when this component should be instantiated
+DEF_CLASS2(INLINE_UID_FROM_FUID(Uberton::TesseractFx::ControllerUID), PClassInfo::kManyInstances, kVstComponentControllerClass,
+	TESSERACTFX_stringPluginName "Controller", 0, "", TESSERACTFX_FULL_VERSION_STR, kVstVersionString,
+	Uberton::TesseractFx::createControllerInstance);
 
 END_FACTORY;
 
 
-#if VST_VERSION <= VST_3_7_1_VERSION
-bool InitModule() {	return true; }
+#if VST_VERSION <= 0x030701 // VST_VERSION <= VST_3_7_1_VERSION
+bool InitModule() { return true; }
 bool DeinitModule() { return true; }
 #endif

@@ -17,27 +17,27 @@
 #include <pluginterfaces/base/fplatform.h>
 #include <uberton.h>
 
-#define MAJOR_VERSION_STR "1"
-#define MAJOR_VERSION_INT 1
+#define TESSERACTFX_MAJOR_VERSION_STR "1"
+#define TESSERACTFX_MAJOR_VERSION_INT 1
 
-#define MINOR_VERSION_STR "0"
-#define MINOR_VERSION_INT 0
+#define TESSERACTFX_MINOR_VERSION_STR "0"
+#define TESSERACTFX_MINOR_VERSION_INT 0
 
-#define PATCH_NUMBER_STR "0"
-#define PATCH_NUMBER_INT 0
+#define TESSERACTFX_PATCH_NUMBER_STR "0"
+#define TESSERACTFX_PATCH_NUMBER_INT 0
 
-#define BUILD_NUMBER_STR "1"
-#define BUILD_NUMBER_INT 1
+#define TESSERACTFX_BUILD_NUMBER_STR "1"
+#define TESSERACTFX_BUILD_NUMBER_INT 1
 
-#define FULL_VERSION_STR MAJOR_VERSION_STR "." MINOR_VERSION_STR "." PATCH_NUMBER_STR "." BUILD_NUMBER_STR
+#define TESSERACTFX_FULL_VERSION_STR TESSERACTFX_MAJOR_VERSION_STR "." TESSERACTFX_MINOR_VERSION_STR "." TESSERACTFX_PATCH_NUMBER_STR "." TESSERACTFX_BUILD_NUMBER_STR
 
-#define VERSION_STR MAJOR_VERSION_STR "." MINOR_VERSION_STR "." PATCH_NUMBER_STR
+#define TESSERACTFX_VERSION_STR TESSERACTFX_MAJOR_VERSION_STR "." TESSERACTFX_MINOR_VERSION_STR "." TESSERACTFX_PATCH_NUMBER_STR
 
-#define stringPluginName "TesseractFx"
+#define TESSERACTFX_stringPluginName "TesseractFx"
 
-#define stringOriginalFilename "TesseractFx.vst3"
+#define TESSERACTFX_stringOriginalFilename "TesseractFx.vst3"
 #if SMTG_PLATFORM_64
-#define stringFileDescription stringPluginName " (64Bit)"
+#define TESSERACTFX_stringFileDescription TESSERACTFX_stringPluginName " (64Bit)"
 #else
-#define stringFileDescription stringPluginName
+#define TESSERACTFX_stringFileDescription TESSERACTFX_stringPluginName
 #endif

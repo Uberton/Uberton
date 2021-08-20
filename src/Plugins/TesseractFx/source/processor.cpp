@@ -65,11 +65,10 @@ tresult PLUGIN_API Processor::initialize(FUnknown* context) {
 
 tresult PLUGIN_API Processor::setActive(TBool state) {
 	if (state) {
-		//processorImpl = std::make_unique<ProcessorImpl<float>>();
-
 		if (processSetup.symbolicSampleSize == kSample32) {
 			processorImpl = std::make_unique<ProcessorImpl<float>>();
-		} else {
+		}
+		else {
 			processorImpl = std::make_unique<ProcessorImpl<double>>();
 		}
 		processorImpl->init(processSetup.sampleRate);
@@ -87,24 +86,16 @@ tresult PLUGIN_API Processor::setBusArrangements(SpeakerArrangement* inputs, int
 }
 
 tresult PLUGIN_API Processor::canProcessSampleSize(int32 symbolicSampleSize) {
-	if (symbolicSampleSize == kSample32) {
-		return kResultTrue;
-	}
-	if (symbolicSampleSize == kSample64) {
-		return kResultTrue;
-	}
+	if (symbolicSampleSize == kSample32) return kResultTrue;
+	if (symbolicSampleSize == kSample64) return kResultTrue;
 	return kResultFalse;
 }
 
 void Processor::processAudio(ProcessData& data) {
 	using std::chrono::steady_clock;
 	auto t0 = steady_clock::now();
-	int32 numChannels = data.inputs[0].numChannels;
-	//int32 numSamples = data.numSamples;
 
 
-	void** in = getChannelBuffersPointer(processSetup, data.inputs[0]);
-	void** out = getChannelBuffersPointer(processSetup, data.outputs[0]);
 
 	// Handle silence flags
 	{
@@ -112,6 +103,9 @@ void Processor::processAudio(ProcessData& data) {
 			data.outputs[0].silenceFlags = data.inputs[0].silenceFlags;
 
 			uint32 sampleFramesSize = getSampleFramesSizeInBytes(processSetup, data.numSamples);
+			int32 numChannels = data.inputs[0].numChannels;
+			void** in = getChannelBuffersPointer(processSetup, data.inputs[0]);
+			void** out = getChannelBuffersPointer(processSetup, data.outputs[0]);
 			for (int32 i = 0; i < numChannels; ++i) {
 				if (in[i] != out[i]) {
 					memset(out[i], 0, sampleFramesSize);
@@ -123,42 +117,19 @@ void Processor::processAudio(ProcessData& data) {
 	}
 	vuPPMOld = vuPPM;
 	vuPPM = processorImpl->processAll(data, mix, volume);
-	if (vuPPM != vuPPMOld) {
-		float db = 20 * std::log10(vuPPM);
-		db = std::max(db, -40.f);
-		//addOutputPoint(data, kParamVUPPM, (db+40)/40.0);
-		addOutputPoint(data, kParamVUPPM, vuPPM);
-		if (isBypassed()) {
-			addOutputPoint(data, kParamVUPPM, 0);
-		}
+	if (isBypassed()) { // add "last" point, before this function is not called anymore
+		Processor::addOutputPoint(data, kParamVUPPM_L, 0);
+		Processor::addOutputPoint(data, kParamVUPPM_R, 0);
 	}
+	//if (vuPPM != vuPPMOld) {
+	//	addOutputPoint(data, kParamVUPPM, vuPPM);
+	//	if (isBypassed()) { // add "last" point, before this function is not called anymore
+	//		addOutputPoint(data, kParamVUPPM, 0);
+	//	}
+	//}
 	std::chrono::duration<double> duration = steady_clock::now() - t0;
-	//auto t1 = steady_clock::now();
-	
-	addOutputPoint(data, kParamProcessTime, (duration.count() / data.numSamples)*1000.0/10.0);
-	/*Sample32* sInL;
-	Sample32* sInR;
-	float wet = mix;
-	float dry = 1 - wet;
-	Math::Vector<float, ProcessorImpl<float>::numChannels> tmp;
 
-	vuPPMOld = vuPPM;
-
-	for (int32 i = 0; i < numSamples; i++) {
-		sInL = (Sample32*)in[0] + i;
-		sInR = (Sample32*)in[1] + i;
-
-		tmp = processorImpl->process(*sInL, *sInR);
-
-		*((Sample32*)out[0] + i) = volume * tmp[0] * wet + dry * (*sInL);
-		*((Sample32*)out[1] + i) = volume * tmp[1] * wet + dry * (*sInR);
-		vuPPM += std::abs(tmp[0] + tmp[1]);
-	}
-	vuPPM /= 2 * numSamples;
-	if (vuPPM != vuPPMOld) {
-		//float db = 20 * std::log10(vuPPM);
-		addOutputPoint(data, kParamVUPPM, vuPPM);
-	}*/
+	addOutputPoint(data, kParamProcessTime, (duration.count() / data.numSamples) * 1000.0 / 10.0);
 }
 
 void Processor::processParameterChanges(IParameterChanges* inputParameterChanges) {
@@ -223,70 +194,8 @@ void Processor::updateResonatorDimension() {
 	//auto& f = processorImpl->resonator.inputPosEF[0];
 	//FDebugPrint("Out EF %i: %f, %f, %f, %f,%f, %f, %f, %f, %f, %f\n", resonatorDim, f[0].real(), f[1].real(), f[2].real(), f[3].real(), f[4].real(), f[5].real(), f[6].real(), f[7].real(), f[8].real(), f[9].real());
 }
-/*void Processor::updateResonatorInputPosition() {
-	SpaceVec inputPosL, inputPosR;
-	size_t d = inputPosL.size();
-	for (int i = 0; i < d; i++) {
-		inputPosL[i] = paramState[Params::kParamInL0 + i];
-		inputPosR[i] = paramState[Params::kParamInR0 + i];
-	}
-	inputPosL += inputPosSpaceCurve(paramState[Params::kParamInPosCurveL]);
-	inputPosR += inputPosSpaceCurve(paramState[Params::kParamInPosCurveR]);
-	//processorImpl->resonator.setInputPositions({ inputPosL, inputPosR });
-	// FDebugPrint("Outputpos %f, %f, %f, %f,%f, %f, %f, %f, %f, %f\n", inputPos[0], inputPos[1], inputPos[2], inputPos[3], inputPos[4], inputPos[5], inputPos[6], inputPos[7], inputPos[8], inputPos[9]);
+FUnknown* createProcessorInstance(void*) {
+	return static_cast<IAudioProcessor*>(new Processor);
 }
-
-void Processor::updateResonatorOutputPosition() {
-	SpaceVec outputPosL, outputPosR;
-	size_t d = outputPosL.size();
-	for (int i = 0; i < d; i++) {
-		outputPosL[i] = paramState[Params::kParamOutL0 + i];
-		outputPosR[i] = paramState[Params::kParamOutR0 + i];
-	}
-	outputPosL += outputPosSpaceCurve(paramState[Params::kParamOutPosCurveL]);
-	outputPosR += outputPosSpaceCurve(paramState[Params::kParamOutPosCurveR]);
-	//processorImpl->resonator.setOutputPositions({ outputPosL, outputPosR });
-	// FDebugPrint("Outputpos %f, %f, %f, %f,%f, %f, %f, %f, %f, %f\n", outputPos[0], outputPos[1], outputPos[2], outputPos[3], outputPos[4], outputPos[5], outputPos[6], outputPos[7], outputPos[8], outputPos[9]);
-}
-
-
-Processor::SpaceVec Processor::inputPosSpaceCurve(ParamValue t) {
-	constexpr float pi = Math::pi<float>();
-	const float t_ = t - .5;
-	const float phi = t_ * 1.5 * pi;
-	// for t == 0.5 this function returns the 0 vector.
-	return SpaceVec{
-		t_ * 0.5f,
-		phi / (2 * pi) * std::sinf(phi),
-		phi / (2 * pi) * std::cosf(phi + pi * 0.5f),
-		t_ * 0.5f,
-		t_ * 0.5f,
-		t_ * 0.5f,
-		t_ * 0.5f,
-		t_ * 0.5f,
-		t_ * 0.5f,
-		t_ * 0.5f
-	};
-}
-
-Processor::SpaceVec Processor::outputPosSpaceCurve(ParamValue t) {
-	constexpr float pi = Math::pi<float>();
-	const float t_ = t - .5;
-	const float phi = t_ * 1.5 * pi;
-	// for t == 0.5 this function returns the 0 vector.
-	return SpaceVec{
-		t_ * 0.5f,
-		phi / (2 * pi) * std::sinf(phi),
-		phi / (2 * pi) * std::cosf(phi + pi * 0.5f),
-		t_ * 0.5f,
-		t_ * 0.5f,
-		t_ * 0.5f,
-		t_ * 0.5f,
-		t_ * 0.5f,
-		t_ * 0.5f,
-		t_ * 0.5f
-	};
-}*/
-
 } // namespace TesseractFx
 } // namespace Uberton

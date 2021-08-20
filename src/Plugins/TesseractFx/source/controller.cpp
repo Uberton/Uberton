@@ -38,9 +38,7 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 
 	setCurrentUnitID(rootUnitId);
 	{
-		//addParam<LinearParameter>(ParamSpecs::vol, L"Master Volume", L"MVol", L"", Precision(2));
 		addParam<LogParameter>(ParamSpecs::vol, "Master Volume", "MVol", "", Precision(2));
-		//parameters.addParameter(new GainParameter(L"Master Volume", ParamSpecs::vol.id, L"dB"));
 		addParam<LinearParameter>(ParamSpecs::mix, "Mix", "Mix", "%", Precision(0));
 		addParam<DiscreteParameter>(ParamSpecs::resonatorType, "Resonator Type", "Res Type", "")->getInfo().stepCount = 1;
 		addParam<DiscreteParameter>(ParamSpecs::resonatorDim, "Resonator Dimension", "Res Dim", "D", Precision(0))->getInfo().stepCount = maxDimension - 1;
@@ -58,8 +56,8 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 		addStringListParam(ParamSpecs::linkInPosCurves, "Link In Pos Curves", "Link In C", { "Not Linked", "Linked" }, ParameterInfo::kNoFlags);
 		addStringListParam(ParamSpecs::linkOutPosCurves, "Link Out Pos Curves", "Link Out C", { "Not Linked", "Linked" }, ParameterInfo::kNoFlags);
 
-		//addParam<LinearParameter>(ParamSpecs::vuPPM, "Output Level", "Level", "dB", ParameterInfo::kIsReadOnly);
-		parameters.addParameter(new GainParameter(L"Output Level", ParamSpecs::vuPPM.id, L"dB", 0, ParameterInfo::kIsReadOnly, rootUnitId, L"Level"));
+		parameters.addParameter(new GainParameter(L"Output Level L", ParamSpecs::vuPPML.id, L"dB", 0, ParameterInfo::kIsReadOnly, rootUnitId, L"Level"));
+		parameters.addParameter(new GainParameter(L"Output Level R", ParamSpecs::vuPPMR.id, L"dB", 0, ParameterInfo::kIsReadOnly, rootUnitId, L"Level"));
 		addParam<LinearParameter>(ParamSpecs::processTime, "Process Time", "T", "", Precision(6), ParameterInfo::kIsReadOnly);
 	}
 
@@ -112,5 +110,8 @@ IPlugView* PLUGIN_API Controller::createView(FIDString name) {
 	return nullptr;
 }
 
+FUnknown* createControllerInstance(void*) {
+	return static_cast<IEditController*>(new Controller);
+}
 } // namespace TesseractFx
 } // namespace Uberton
