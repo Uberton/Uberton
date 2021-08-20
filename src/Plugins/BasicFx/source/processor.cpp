@@ -42,11 +42,11 @@ tresult PLUGIN_API Processor::initialize(FUnknown* context) {
 }
 
 void Processor::processAudio(ProcessData& data) {
-	int32 numChannels = data.inputs[0].numChannels;
+	//int32 numChannels = data.inputs[0].numChannels;
 	int32 numSamples = data.numSamples;
 
-	Sample32** in = data.inputs[0].channelBuffers32;
-	Sample32** out = data.outputs[0].channelBuffers32;
+	//Sample32** in = data.inputs[0].channelBuffers32;
+	//Sample32** out = data.outputs[0].channelBuffers32;
 
 	float volume = paramState[Params::kParamVol];
 

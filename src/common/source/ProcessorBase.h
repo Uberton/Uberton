@@ -130,7 +130,7 @@ public:
 	}
 
 	/// Add data point to data.outputParameterChanges
-	void addOutputPoint(ProcessData& data, ParamID id, ParamValue value) {
+	static void addOutputPoint(ProcessData& data, ParamID id, ParamValue value) {
 		if (data.outputParameterChanges) {
 			int32 index;
 			IParamValueQueue* queue = data.outputParameterChanges->addParameterData(id, index);

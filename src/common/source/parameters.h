@@ -275,7 +275,6 @@ public:
 
 	double toScaled(double value) const {
 		return normalizedToDiscrete(value, min, max);
-		return value * (max - min) + min;
 	}
 
 	double toNormalized(double value) const {

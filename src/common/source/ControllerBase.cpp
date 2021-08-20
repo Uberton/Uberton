@@ -16,6 +16,8 @@
 #include <sstream>
 #include <pluginterfaces/base/ustring.h>
 #include <base/source/fstreamer.h>
+#include <pluginterfaces/vst/ivstattributes.h>
+#include <public.sdk/source/vst/vsthelpers.h>
 
 
 namespace Uberton {
@@ -62,18 +64,15 @@ tresult PLUGIN_API HistoryControllerBase::getState(IBStream* stream) {
 }
 
 tresult PLUGIN_API HistoryControllerBase::setState(IBStream* stream) {
-
 	IBStreamer s(stream, kLittleEndian);
 	uint64 version = 0;
 
 	if (!s.readInt64u(version)) return kResultFalse;
 	if (!s.readDouble(currentZoomFactor)) return kResultFalse;
-
-	if (!gotInitialState) {
+	if (Helpers::isProjectState(stream) == kResultTrue) {
 		for (auto editor : editors) {
 			editor->setZoomFactor(currentZoomFactor);
 		}
-		gotInitialState = true;
 	}
 
 	history.clear();

@@ -64,7 +64,6 @@ public:
 
 	double currentZoomFactor{ 1 };
 	int64 stateVersion{ 0 };
-	bool gotInitialState{ false };
 };
 
 /*
