@@ -56,9 +56,11 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 		addStringListParam(ParamSpecs::linkInPosCurves, "Link In Pos Curves", "Link In C", { "Not Linked", "Linked" }, ParameterInfo::kNoFlags);
 		addStringListParam(ParamSpecs::linkOutPosCurves, "Link Out Pos Curves", "Link Out C", { "Not Linked", "Linked" }, ParameterInfo::kNoFlags);
 
-		parameters.addParameter(new GainParameter(L"Output Level L", ParamSpecs::vuPPML.id, L"dB", 0, ParameterInfo::kIsReadOnly, rootUnitId, L"Level"));
-		parameters.addParameter(new GainParameter(L"Output Level R", ParamSpecs::vuPPMR.id, L"dB", 0, ParameterInfo::kIsReadOnly, rootUnitId, L"Level"));
+		parameters.addParameter(new GainParameter(L"Output Level L", ParamSpecs::vuPPML.id, L"dB", 0, ParameterInfo::kIsReadOnly, rootUnitId, L"Level", vuPPMOverheadDB));
+		parameters.addParameter(new GainParameter(L"Output Level R", ParamSpecs::vuPPMR.id, L"dB", 0, ParameterInfo::kIsReadOnly, rootUnitId, L"Level", vuPPMOverheadDB));
 		addParam<LinearParameter>(ParamSpecs::processTime, "Process Time", "T", "", Precision(6), ParameterInfo::kIsReadOnly);
+
+		addStringListParam(ParamSpecs::limiterOn, "Output Limiter", "Out Lim", { "Off", "On" });
 	}
 
 	setCurrentUnitID(postSectionUnitId);

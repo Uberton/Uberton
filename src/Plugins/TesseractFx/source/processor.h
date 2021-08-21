@@ -55,6 +55,7 @@ private:
 	float resonatorFreq{ 0 };
 	float resonatorDamp{ 0 };
 	float resonatorVel{ 0 };
+	bool limiterOn{ false };
 
 	double vuPPM = 0;
 	double vuPPMOld = 0;

@@ -24,7 +24,7 @@ class ProcessorImplBase
 {
 public:
 	virtual void init(float sampleRate) = 0;
-	virtual float processAll(ProcessData& data, float mix, float volume) = 0;
+	virtual float processAll(ProcessData& data, float mix, float volume, bool limit) = 0;
 	virtual void setResonatorDim(int resonatorDim) = 0;
 	virtual void setResonatorOrder(int resonatorOrder) = 0;
 	virtual void setResonatorFreq(float freq, float damp, float vel) = 0;
@@ -92,9 +92,13 @@ public:
 			filter.setFreqAndQ(freq, q);
 		}
 	}
+	template<typename T>
+	inline T tanh_approx(T x) {
+		T sq = x * x;
+		return x * (27 + sq) / (27 + 9 * sq);
+	}
 
-
-	float processAll(ProcessData& data, float mix, float volume) final {
+	float processAll(ProcessData& data, float mix, float volume, bool limit) final {
 		int32 numSamples = data.numSamples;
 
 		SampleType** in = (SampleType**)data.inputs[0].channelBuffers32;
@@ -108,7 +112,8 @@ public:
 		SampleType maxSampleLSq = 0;
 		SampleType maxSampleRSq = 0;
 		static_assert(numChannels >= 2);
-		float compensation = 0.05f / std::sqrt(currentResonatorOrder);
+		// higher resonator orders result in considerably higher volumes
+		float compensation = 0.03f / std::sqrt(currentResonatorOrder);
 
 		for (int32 i = 0; i < numSamples; i++) {
 			for (int ch = 0; ch < numChannels; ch++) {
@@ -117,9 +122,16 @@ public:
 			resonator.delta(input);
 			tmp = resonator.next();
 			for (int ch = 0; ch < numChannels; ch++) {
-				tmp[ch] = volume * (tmp[ch] * wet * compensation + dry * (*(in[ch] + i)));
-				tmp[ch] = lcFilters[ch].process(tmp[ch]); // its tooooo loud!!
+				tmp[ch] = lcFilters[ch].process(tmp[ch]); 
 				tmp[ch] = hcFilters[ch].process(tmp[ch]);
+				tmp[ch] = volume * (tmp[ch] * wet * compensation + dry * (*(in[ch] + i)));
+				if (limit) {
+					tmp[ch] = std::tanh(tmp[ch]);
+					// the tanh approximation is a few times faster but already for higher than the lowest few
+					// resonator orders the actual processing takes much more time than the limiting. 
+					// And the approximation is softer / can exceed 1. 
+					//tmp[ch] = tanh_approx(tmp[ch]); 
+				}
 				*(out[ch] + i) = tmp[ch];
 			}
 
@@ -129,8 +141,8 @@ public:
 			maxSampleRSq = std::max(maxSampleRSq, tmp[1] * tmp[1]);
 		}
 		if (vuPPMLSq != maxSampleLSq || vuPPMRSq != maxSampleRSq) {
-			Processor::addOutputPoint(data, kParamVUPPM_L, std::sqrt(maxSampleLSq));
-			Processor::addOutputPoint(data, kParamVUPPM_R, std::sqrt(maxSampleRSq));
+			Processor::addOutputPoint(data, kParamVUPPM_L, std::sqrt(maxSampleLSq) * vuPPMNormalizedMultiplicatorInv);
+			Processor::addOutputPoint(data, kParamVUPPM_R, std::sqrt(maxSampleRSq) * vuPPMNormalizedMultiplicatorInv);
 			vuPPMLSq = maxSampleLSq;
 			vuPPMRSq = maxSampleRSq;
 		}

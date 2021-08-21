@@ -23,6 +23,9 @@ constexpr uint64 stateVersion = 0;
 
 constexpr int maxDimension = 10;
 constexpr int maxOrder = 200;
+constexpr double vuPPMOverheadDB = 2;
+const double vuPPMNormalizedMultiplicator = std::pow(10, vuPPMOverheadDB / 20.0);
+const double vuPPMNormalizedMultiplicatorInv = 1.0 / vuPPMNormalizedMultiplicator;
 
 
 enum Params : Steinberg::Vst::ParamID {
@@ -60,6 +63,8 @@ enum Params : Steinberg::Vst::ParamID {
 	kParamVUPPM_L, // OUT
 	kParamVUPPM_R, // OUT
 	kParamProcessTime, // OUT
+
+	kParamLimiterOn,
 	kNumGlobalParameters
 };
 
@@ -93,6 +98,7 @@ static const LinearParamSpec vuPPML{ kParamVUPPM_L, 0.0, 1.0, 0.0, 0.0 };
 static const LinearParamSpec vuPPMR{ kParamVUPPM_R, 0.0, 1.0, 0.0, 0.0 };
 static const LinearParamSpec processTime{ kParamProcessTime, 0,10, 0.0, 0.0 };
 
+static const ParamSpec limiterOn{ kParamLimiterOn, 0, 1, 0, 0 };
 }
 
 using ParamState = UniformParamState<kNumGlobalParameters>;

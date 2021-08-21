@@ -169,8 +169,8 @@ class LogVUMeterFactory : public ViewCreatorAdapter
 {
 	using Control = LogVUMeter;
 
-	//static const std::string minDb;
-	//static const std::string maxDb;
+	static const std::string dezibelMin;
+	static const std::string dezibelMax;
 
 public:
 	LogVUMeterFactory();
@@ -179,11 +179,11 @@ public:
 	IdStringPtr getBaseViewName() const override;
 
 	CView* create(const UIAttributes& attributes, const IUIDescription* description) const override;
-	/*bool apply(CView* view, const UIAttributes& attributes, const IUIDescription* description) const override;
+	bool apply(CView* view, const UIAttributes& attributes, const IUIDescription* description) const override;
 
 	bool getAttributeNames(StringList& attributeNames) const override;
 	AttrType getAttributeType(const std::string& attributeName) const override;
-	bool getAttributeValue(CView* view, const string& attributeName, string& stringValue, const IUIDescription* desc) const override;*/
+	bool getAttributeValue(CView* view, const string& attributeName, string& stringValue, const IUIDescription* desc) const override;
 };
 
 class LinkButtonFactory : public ViewCreatorAdapter

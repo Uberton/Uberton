@@ -446,6 +446,50 @@ IdStringPtr LogVUMeterFactory::getBaseViewName() const { return UIViewCreator::k
 CView* LogVUMeterFactory::create(const UIAttributes& attributes, const IUIDescription* description) const {
 	return new Control({ 0, 0, 50, 30 });
 }
+bool LogVUMeterFactory::apply(CView* view, const UIAttributes& attributes, const IUIDescription* description) const {
+	Control* control = dynamic_cast<Control*>(view);
+	if (!control) return false;
+	double value;
+	if (attributes.getDoubleAttribute(dezibelMin, value)) {
+		control->setDezibelMin(value);
+	}
+	if (attributes.getDoubleAttribute(dezibelMax, value)) {
+		control->setDezibelMax(value);
+	}
+	return true;
+}
+
+bool LogVUMeterFactory::getAttributeNames(StringList& attributeNames) const {
+	attributeNames.emplace_back(dezibelMin);
+	attributeNames.emplace_back(dezibelMax);
+	return true;
+}
+
+IViewCreator::AttrType LogVUMeterFactory::getAttributeType(const std::string& attributeName) const {
+	if (attributeName == dezibelMin) return kFloatType;
+	if (attributeName == dezibelMax) return kFloatType;
+	return kUnknownType;
+}
+
+bool LogVUMeterFactory::getAttributeValue(CView* view, const string& attributeName, string& stringValue, const IUIDescription* desc) const {
+	Control* control = dynamic_cast<Control*>(view);
+	if (control == 0) return false;
+	if (attributeName == dezibelMin) {
+		stringValue = UIAttributes::doubleToString(control->getDezibelMin());
+		return true;
+	}
+	if (attributeName == dezibelMax) {
+		stringValue = UIAttributes::doubleToString(control->getDezibelMax());
+		return true;
+	}
+
+	return false;
+}
+
+const std::string LogVUMeterFactory::dezibelMin = "dezibel-min";
+const std::string LogVUMeterFactory::dezibelMax = "dezibel-max";
+
+
 
 
 LinkButtonFactory::LinkButtonFactory() {

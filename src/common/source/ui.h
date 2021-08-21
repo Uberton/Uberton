@@ -299,10 +299,17 @@ public:
 	LogVUMeter(const CRect& size);
 	void draw(CDrawContext* context) override;
 
+	// set max dB value for scale (i.e. 0 or 6)
+	void setDezibelMin(double dezibelMin);
+	double getDezibelMin() const;
+	// set min dB value for scale (i.e. -40 or -60)
+	void setDezibelMax(double dezibelMax);
+	double getDezibelMax() const;
+
 
 private:
 	double minDb = -40;
-	double maxDb = 0; // only works with maxDb == 0 at the moment
+	double maxDb = 0;
 };
 
 

@@ -503,9 +503,11 @@ void LogVUMeter::draw(CDrawContext* context) {
 
 	newValue = (newValue - getMin()) / getRange(); // normalize
 
-	double logValue = 20 * std::log10(newValue);
+	double overhead = maxDb;
+	double normalizedMax = std::pow(10, overhead / 20.0);
+	double logValue = 20 * std::log10(newValue*normalizedMax);
 	const double range = maxDb - minDb;
-	double nomalizedLogValue = (std::max(logValue, minDb) + range) / range;
+	double nomalizedLogValue = (std::max(logValue, minDb) - minDb) / range;
 
 	if (style & kHorizontal) {
 		auto tmp = (CCoord)(((int32_t)(nbLed * nomalizedLogValue + 0.5f) / (float)nbLed) * getOnBitmap()->getWidth());
@@ -529,6 +531,22 @@ void LogVUMeter::draw(CDrawContext* context) {
 	getOnBitmap()->draw(context, _rectOn, pointOn);
 
 	setDirty(false);
+}
+
+void LogVUMeter::setDezibelMin(double dezibelMin) {
+	this->minDb = dezibelMin;
+}
+
+double LogVUMeter::getDezibelMin() const {
+	return minDb;
+}
+
+void LogVUMeter::setDezibelMax(double dezibelMax) {
+	this->maxDb = dezibelMax;
+}
+
+double Uberton::LogVUMeter::getDezibelMax() const {
+	return maxDb;
 }
 
 LinkButton::LinkButton(const CRect& size) : COnOffButton(size, nullptr, -1) {

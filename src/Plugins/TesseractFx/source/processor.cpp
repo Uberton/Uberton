@@ -43,6 +43,7 @@ Processor::Processor() {
 	initValue(ParamSpecs::lcQ);
 	initValue(ParamSpecs::hcFreq);
 	initValue(ParamSpecs::hcQ);
+	initValue(ParamSpecs::limiterOn);
 
 	for (int i = 0; i < maxDimension; i++) {
 		paramState[Params::kParamInL0 + i] = .5;
@@ -73,6 +74,9 @@ tresult PLUGIN_API Processor::setActive(TBool state) {
 		}
 		processorImpl->init(processSetup.sampleRate);
 		recomputeParameters();
+	}
+	else {
+		processorImpl.release();
 	}
 	return kResultTrue;
 }
@@ -116,7 +120,7 @@ void Processor::processAudio(ProcessData& data) {
 		data.outputs[0].silenceFlags = 0;
 	}
 	vuPPMOld = vuPPM;
-	vuPPM = processorImpl->processAll(data, mix, volume);
+	vuPPM = processorImpl->processAll(data, mix, volume, limiterOn);
 	if (isBypassed()) { // add "last" point, before this function is not called anymore
 		Processor::addOutputPoint(data, kParamVUPPM_L, 0);
 		Processor::addOutputPoint(data, kParamVUPPM_R, 0);
@@ -171,6 +175,7 @@ void Processor::recomputeInexpensiveParameters() {
 	resonatorFreq = toScaled(ParamSpecs::freq);
 	resonatorDamp = toScaled(ParamSpecs::damp);
 	resonatorVel = toScaled(ParamSpecs::resonatorVel);
+	limiterOn = paramState[Params::kParamLimiterOn] != 0;
 
 	// auto& f = processorImpl->resonator.timeFunctions;
 	// FDebugPrint("Out EF %i %i: %f, %f, %f, %f,%f, %f, %f, %f, %f, %f\n", resonatorDim, resonatorOrder, f[0].real(), f[1].real(), f[2].real(), f[3].real(), f[4].real(), f[5].real(), f[6].real(), f[7].real(), f[8].real(), f[9].real());

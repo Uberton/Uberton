@@ -490,13 +490,14 @@ public:
 class GainParameter : public Vst::Parameter
 {
 public:
-	GainParameter(const TChar* title, ParamID tag, const TChar* units, ParamValue defaultValue = 0.0, int32 flags = ParameterInfo::kCanAutomate, UnitID unitID = 0, const TChar* shortTitle = nullptr)
+	GainParameter(const TChar* title, ParamID tag, const TChar* units, ParamValue defaultValue = 0.0, int32 flags = ParameterInfo::kCanAutomate, UnitID unitID = 0, const TChar* shortTitle = nullptr, double overheadDB = 0)
 		: Parameter(title, tag, units, defaultValue, 0, flags, unitID, shortTitle) {
+		setOverheadDB(overheadDB);
 	}
 
 	void toString(ParamValue value, String128 string) const SMTG_OVERRIDE {
 		UString128 wrapper;
-		double dB = volumeTodB(value);
+		double dB = volumeTodB(value * multiplicator);
 		if (value > 0.0001) {
 			wrapper.printFloat(dB, precision);
 		}
@@ -511,11 +512,19 @@ public:
 
 		if (wrapper.scanFloat(value)) {
 			if (value > 0.0) value = 0.0;
-			value = dBtoVolume(value);
+			value = dBtoVolume(value) / multiplicator;
 			return true;
 		}
 		return false;
 	}
+
+	void setOverheadDB(double overhead) {
+		overheadDB = overhead;
+		multiplicator = std::pow(10, overhead / 20.0);
+	}
+
+	double overheadDB{ 0 };
+	double multiplicator{ 1 };
 };
 
 } // namespace Uberton
