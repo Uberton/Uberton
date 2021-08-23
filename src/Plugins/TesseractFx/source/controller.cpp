@@ -13,6 +13,7 @@
 #include "ids.h"
 #include <vstmath.h>
 #include <ui.h>
+#include <subcontrollers.h>
 
 namespace Uberton {
 namespace TesseractFx {
@@ -44,8 +45,8 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 		addParam<DiscreteParameter>(ParamSpecs::resonatorDim, "Resonator Dimension", "Res Dim", "D", Precision(0))->getInfo().stepCount = maxDimension - 1;
 		addParam<DiscreteParameter>(ParamSpecs::resonatorOrder, "Resonator Order", "Res Order", "", Precision(0))->getInfo().stepCount = maxOrder - 1;
 
-		addParam<LogParameter>(ParamSpecs::damp, "Resonator Dampening", "Res Damp", "", Precision(2));
-		addParam<LogParameter>(ParamSpecs::freq, "Resonator Frequency", "Res Freq", "Hz");
+		addParam<LogParameter>(ParamSpecs::resonatorDamp, "Resonator Dampening", "Res Damp", "", Precision(2));
+		addParam<LogParameter>(ParamSpecs::resonatorFreq, "Resonator Frequency", "Res Freq", "Hz");
 
 		addParam<LinearParameter>(ParamSpecs::resonatorVel, "Sonic Velocity", "Sonic Vel", "m/s");
 
@@ -61,6 +62,7 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 		addParam<LinearParameter>(ParamSpecs::processTime, "Process Time", "T", "", Precision(6), ParameterInfo::kIsReadOnly);
 
 		addStringListParam(ParamSpecs::limiterOn, "Output Limiter", "Out Lim", { "Off", "On" });
+		addParam<LinearParameter>(ParamSpecs::resonatorLength, "Resonator Length", "Res Len", "m", Precision(3), ParameterInfo::kIsReadOnly);
 	}
 
 	setCurrentUnitID(postSectionUnitId);

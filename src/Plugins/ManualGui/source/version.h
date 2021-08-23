@@ -1,3 +1,6 @@
+
+// Plugin name and version of ManualGui
+//
 // -----------------------------------------------------------------------------------------------------------------------------
 // This file is part of the Überton project. Copyright (C) 2021 Überton
 //
@@ -11,21 +14,30 @@
 
 #pragma once
 
-#include "ids.h"
-#include <ControllerBase.h>
+#include <pluginterfaces/base/fplatform.h>
+#include <uberton.h>
 
-namespace Uberton {
-namespace TesseractFx {
-using namespace Steinberg;
-using namespace Steinberg::Vst;
+#define MAJOR_VERSION_STR "1"
+#define MAJOR_VERSION_INT 1
 
-class Controller : public ControllerBase<ParamState, ImplementBypass>
-{
-public:
-	tresult PLUGIN_API initialize(FUnknown* context) SMTG_OVERRIDE;
-	IPlugView* PLUGIN_API createView(FIDString name) SMTG_OVERRIDE;
+#define MINOR_VERSION_STR "0"
+#define MINOR_VERSION_INT 0
 
-};
+#define PATCH_NUMBER_STR "0"
+#define PATCH_NUMBER_INT 0
 
-}
-}
+#define BUILD_NUMBER_STR "1"
+#define BUILD_NUMBER_INT 1
+
+#define FULL_VERSION_STR MAJOR_VERSION_STR "." MINOR_VERSION_STR "." PATCH_NUMBER_STR "." BUILD_NUMBER_STR
+
+#define VERSION_STR MAJOR_VERSION_STR "." MINOR_VERSION_STR "." PATCH_NUMBER_STR
+
+#define stringPluginName "ManualGui"
+
+#define stringOriginalFilename "ManualGui.vst3"
+#if SMTG_PLATFORM_64
+#define stringFileDescription stringPluginName " (64Bit)"
+#else
+#define stringFileDescription stringPluginName
+#endif

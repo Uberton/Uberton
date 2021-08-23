@@ -37,6 +37,7 @@ smtg_add_vst3_resource(${target} "resource/Knob10.png")
 smtg_add_vst3_resource(${target} "resource/Knob61.png")
 smtg_add_vst3_resource(${target} "resource/Knob91.png")
 smtg_add_vst3_resource(${target} "resource/ncube_projections.png")
+smtg_add_vst3_resource(${target} "resource/led.png")
 
 if(SMTG_MAC)
     smtg_set_bundle(${target} INFOPLIST "${CMAKE_CURRENT_LIST_DIR}/resource/Info.plist" PREPROCESS)

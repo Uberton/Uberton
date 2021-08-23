@@ -32,6 +32,7 @@ public:
 	virtual void setHCFilterFreqAndQ(double freq, double q) = 0;
 	virtual void updateResonatorInputPosition(const ParamState& paramState) = 0;
 	virtual void updateResonatorOutputPosition(const ParamState& paramState) = 0;
+	virtual double getResonatorLength() const = 0;
 	virtual ~ProcessorImplBase() {}
 };
 
@@ -175,6 +176,11 @@ public:
 		outputPosL += outputPosSpaceCurve(paramState[Params::kParamOutPosCurveL]);
 		outputPosR += outputPosSpaceCurve(paramState[Params::kParamOutPosCurveR]);
 		resonator.setOutputPositions({ outputPosL, outputPosR });
+	}
+
+
+	double getResonatorLength() const override {
+		return resonator.getLength();
 	}
 
 protected:

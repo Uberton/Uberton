@@ -14,9 +14,6 @@
 #include "ui.h"
 #include "subcontrollers.h"
 #include <sstream>
-#include <pluginterfaces/base/ustring.h>
-#include <base/source/fstreamer.h>
-#include <pluginterfaces/vst/ivstattributes.h>
 #include <public.sdk/source/vst/vsthelpers.h>
 
 

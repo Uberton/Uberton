@@ -60,9 +60,10 @@ enum Params : Steinberg::Vst::ParamID {
 	kParamLinkInPosCurves,
 	kParamLinkOutPosCurves,
 
-	kParamVUPPM_L, // OUT
-	kParamVUPPM_R, // OUT
-	kParamProcessTime, // OUT
+	kParamVUPPM_L,		   // OUT
+	kParamVUPPM_R,		   // OUT
+	kParamProcessTime,	   // OUT
+	kParamResonatorLength, // OUT
 
 	kParamLimiterOn,
 	kNumGlobalParameters
@@ -78,9 +79,10 @@ static const DiscreteParamSpec resonatorType{ kParamResonatorType, 1, 2, 1, 1 };
 static const DiscreteParamSpec resonatorDim{ kParamResonatorDim, 1, maxDimension, 4, 3 };
 static const DiscreteParamSpec resonatorOrder{ kParamResonatorOrder, 1, maxOrder, 5, 128 };
 
-static const LogParamSpec freq{ kParamResonatorFreq, 20, 15000, 500, 200 };
-static const LogParamSpec damp{ kParamResonatorDamp, 0, 10, 1, 2.3 };
-static const LinearParamSpec resonatorVel{ kParamResonatorVel, 0.1, 1000.0, 10.0, 10.0 };
+static const LogParamSpec resonatorFreq{ kParamResonatorFreq, 20, 15000, 500, 200 };
+static const LogParamSpec resonatorDamp{ kParamResonatorDamp, 0, 10, 1, 2.3 };
+static const LinearParamSpec resonatorVel{ kParamResonatorVel, 0.1, 1000.0, 343, 343 };
+static const LinearParamSpec resonatorLength{ kParamResonatorLength, 0, 100, 1, 1 }; // just for reading
 
 static const LogParamSpec lcFreq{ kParamLCFreq, 20, 5000, 200, 650 };
 static const LinearParamSpec lcQ{ kParamLCQ, 1, 8, 1, 1 };
@@ -96,9 +98,9 @@ static const ParamSpec linkOutPosCurves{ kParamLinkOutPosCurves, 0, 1, 0, 0 };
 
 static const LinearParamSpec vuPPML{ kParamVUPPM_L, 0.0, 1.0, 0.0, 0.0 };
 static const LinearParamSpec vuPPMR{ kParamVUPPM_R, 0.0, 1.0, 0.0, 0.0 };
-static const LinearParamSpec processTime{ kParamProcessTime, 0,10, 0.0, 0.0 };
+static const LinearParamSpec processTime{ kParamProcessTime, 0, 10, 0.0, 0.0 };
 
-static const ParamSpec limiterOn{ kParamLimiterOn, 0, 1, 0, 0 };
+static const ParamSpec limiterOn{ kParamLimiterOn, 0, 1, 1, 1 };
 }
 
 using ParamState = UniformParamState<kNumGlobalParameters>;

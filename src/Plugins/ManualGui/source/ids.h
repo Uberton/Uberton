@@ -1,3 +1,6 @@
+
+// Plugin ids (for processor, controller and parameters) for ManualGui
+//
 // -----------------------------------------------------------------------------------------------------------------------------
 // This file is part of the Überton project. Copyright (C) 2021 Überton
 //
@@ -10,22 +13,25 @@
 
 
 #pragma once
-
-#include "ids.h"
-#include <ControllerBase.h>
+#include <pluginterfaces/vst/vsttypes.h>
+#include <parameters.h>
 
 namespace Uberton {
-namespace TesseractFx {
-using namespace Steinberg;
-using namespace Steinberg::Vst;
+namespace ManualGui {
 
-class Controller : public ControllerBase<ParamState, ImplementBypass>
-{
-public:
-	tresult PLUGIN_API initialize(FUnknown* context) SMTG_OVERRIDE;
-	IPlugView* PLUGIN_API createView(FIDString name) SMTG_OVERRIDE;
 
+enum Params : Steinberg::Vst::ParamID {
+	kParamVolId,
+	kParamSlider1,
+	kParamSlider2,
+	kParamLink,
+	kNumGlobalParameters
 };
+
+using ParamState = UniformParamState<kNumGlobalParameters>;
+
+static const Steinberg::FUID ProcessorUID(0x7dacc5d7, 0x715d4863, 0x85b997d6, 0x7efed6b4);
+static const Steinberg::FUID ControllerUID(0x848e66f5, 0xc0254b8c, 0xabfcb0f2, 0x06b2940c);
 
 }
 }

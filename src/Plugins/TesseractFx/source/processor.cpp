@@ -30,8 +30,8 @@ Processor::Processor() {
 	initValue(ParamSpecs::resonatorType);
 	initValue(ParamSpecs::resonatorDim);
 	initValue(ParamSpecs::resonatorOrder);
-	initValue(ParamSpecs::freq);
-	initValue(ParamSpecs::damp);
+	initValue(ParamSpecs::resonatorFreq);
+	initValue(ParamSpecs::resonatorDamp);
 	initValue(ParamSpecs::resonatorVel);
 
 	initValue(ParamSpecs::inPosCurveL);
@@ -76,7 +76,7 @@ tresult PLUGIN_API Processor::setActive(TBool state) {
 		recomputeParameters();
 	}
 	else {
-		processorImpl.release();
+		processorImpl.reset();
 	}
 	return kResultTrue;
 }
@@ -99,7 +99,11 @@ void Processor::processAudio(ProcessData& data) {
 	using std::chrono::steady_clock;
 	auto t0 = steady_clock::now();
 
-
+	
+	if (resonatorLengthChanged) {
+		Processor::addOutputPoint(data, kParamResonatorLength, ParamSpecs::resonatorLength.toNormalized(resonatorLength));
+		resonatorLengthChanged = false;
+	}
 
 	// Handle silence flags
 	{
@@ -172,8 +176,8 @@ void Processor::recomputeInexpensiveParameters() {
 	volume = toScaled(ParamSpecs::vol);
 	mix = paramState[Params::kParamMix];
 	resonatorOrder = toDiscrete(ParamSpecs::resonatorOrder);
-	resonatorFreq = toScaled(ParamSpecs::freq);
-	resonatorDamp = toScaled(ParamSpecs::damp);
+	resonatorFreq = toScaled(ParamSpecs::resonatorFreq);
+	resonatorDamp = toScaled(ParamSpecs::resonatorDamp);
 	resonatorVel = toScaled(ParamSpecs::resonatorVel);
 	limiterOn = paramState[Params::kParamLimiterOn] != 0;
 
@@ -182,6 +186,10 @@ void Processor::recomputeInexpensiveParameters() {
 
 	if (processorImpl) {
 		processorImpl->setResonatorFreq(resonatorFreq, resonatorDamp, resonatorVel);
+		if (resonatorLength != processorImpl->getResonatorLength()) {
+			resonatorLength = processorImpl->getResonatorLength();
+			resonatorLengthChanged = true;
+		}
 		processorImpl->setResonatorOrder(resonatorOrder);
 		processorImpl->setLCFilterFreqAndQ(toScaled(ParamSpecs::lcFreq), toScaled(ParamSpecs::lcQ));
 		processorImpl->setHCFilterFreqAndQ(toScaled(ParamSpecs::hcFreq), toScaled(ParamSpecs::hcQ));

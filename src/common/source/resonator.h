@@ -503,7 +503,8 @@ public:
 			dim = newDim;
 	}
 
-	int getDim() { return dim; }
+	int getDim() const { return dim; }
+	real getLength() const { return length; }
 
 protected:
 	scalar eigenValueSqrt(int i) const {
