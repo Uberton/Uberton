@@ -153,7 +153,6 @@ protected:
 	void evolve() {
 		absoluteTime += deltaT;
 		for (int i = 0; i < order; i++) {
-			constexpr scalar imagUnit = scalar(0, 1);
 			amplitudes[i] *= timeFunctions[i]; // precomputing these is up to 20 times faster
 		}
 	}
