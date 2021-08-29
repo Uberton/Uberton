@@ -108,8 +108,7 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 
 IPlugView* PLUGIN_API Controller::createView(FIDString name) {
 	if (ConstString(name) == ViewType::kEditor) {
-		auto editor = new VST3EditorEx1(this, "Editor", "editor.uidesc");
-		return editor;
+		return new VST3EditorEx1(this, "Editor", "editor.uidesc");
 	}
 	return nullptr;
 }
