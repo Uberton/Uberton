@@ -14,12 +14,12 @@ set(BasicInstrument_sources
 set(target BasicInstrument)
 
 smtg_add_vst3plugin(${target} ${BasicInstrument_sources})
-set_target_properties(${target} PROPERTIES ${SDK_IDE_UBERTON_FOLDER})
+set_target_properties(${target} PROPERTIES ${UBERTON_FOLDER})
 
 target_link_libraries(${target} PRIVATE sdk)
 target_link_libraries(${target} PRIVATE sdk vstgui_support)
 target_link_libraries(${target} PRIVATE uberton_common)
-target_include_directories(${target} PUBLIC "${SMTG_UBERTON_SRC_PATH}/src/common/source")
+target_include_directories(${target} PUBLIC "${UBERTON_SRC_PATH}/src/common/source")
 
 smtg_add_vst3_resource(${target} "resource/editor.uidesc")
 

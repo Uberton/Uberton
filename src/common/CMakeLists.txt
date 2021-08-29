@@ -3,8 +3,10 @@ cmake_minimum_required(VERSION 3.4.3)
 
 project(common_lib)
 
+set(target uberton_common)
+
 # --- common ------
-add_library(uberton_common 
+add_library(${target} 
     STATIC
         source/uberton.h
         source/ControllerBase.cpp
@@ -32,7 +34,7 @@ add_library(uberton_common
 
 
 # add the dependencies (are they all needed?)
-target_link_libraries(uberton_common
+target_link_libraries(${target} 
     PUBLIC
         base
         sdk
@@ -43,10 +45,12 @@ target_link_libraries(uberton_common
         vstgui_support
 )
 
-target_include_directories(uberton_common
+target_include_directories(${target} 
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/..
 )
 
-target_compile_features(uberton_common PUBLIC cxx_std_17)
-smtg_setup_universal_binary(uberton_common)
+set_target_properties(${target} PROPERTIES ${UBERTON_FOLDER})
+target_compile_features(${target} PUBLIC cxx_std_17)
+
+smtg_setup_universal_binary(${target})
