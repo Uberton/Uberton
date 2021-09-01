@@ -10,6 +10,33 @@
 // have received a copy of the GNU General Public License along with Überton. If not, see http://www.gnu.org/licenses/.
 // -----------------------------------------------------------------------------------------------------------------------------
 
-#define UBERTON_PLUGIN_NAME @UBERTON_PLUGIN_NAME@
-#define UBERTON_PLUGIN_VERSION @UBERTON_PLUGIN_VERSION@
-//#define UBERTON_PLUGIN_OUTPUT_PATH @UBERTON_PLUGIN_OUTPUT_PATH@
+#define UBERTON_PLUGIN_NAME "@UBERTON_PLUGIN_NAME@"
+#define UBERTON_PLUGIN_VERSION "@UBERTON_PLUGIN_VERSION@"
+#define UBERTON_PLUGIN_VST_LOCATION "@UBERTON_PLUGIN_RELEASE_DIR@"
+#define UBERTON_PLUGIN_HAS_USERGUIDE_PDF @UBERTON_PLUGIN_HAS_USERGUIDE_PDF@
+#define UBERTON_PLUGIN_USERGUIDE_PDF "@UBERTON_PLUGIN_USERGUIDE_PDF@"
+#define UBERTON_PLUGIN_HAS_FACTORY_PRESETS @UBERTON_PLUGIN_HAS_FACTORY_PRESETS@
+#define UBERTON_PLUGIN_FACTORY_PRESETS_PATH "@UBERTON_PLUGIN_FACTORY_PRESETS_PATH@"
+
+
+#include <cmrc/cmrc.hpp>
+#if(UBERTON_PLUGIN_HAS_USERGUIDE_PDF)
+CMRC_DECLARE(userguide_pdf);
+#endif
+
+#if(UBERTON_PLUGIN_HAS_FACTORY_PRESETS)
+CMRC_DECLARE(factory_presets);
+#endif
+
+
+void copyUserGuide(){
+#if(UBERTON_PLUGIN_HAS_USERGUIDE_PDF)
+	auto fs = cmrc::userguide_pdf::get_filesystem();
+#endif
+}
+
+void copyFactoryPresets(){
+#if(UBERTON_PLUGIN_HAS_FACTORY_PRESETS)
+	auto fs = cmrc::factory_presets::get_filesystem();
+#endif
+}
