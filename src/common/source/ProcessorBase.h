@@ -17,6 +17,7 @@
 #include <public.sdk/source/vst/vstaudioeffect.h>
 #include <public.sdk/source/vst/vsteditcontroller.h>
 #include <public.sdk/source/vst/vstaudioprocessoralgo.h>
+#include <public.sdk/source/vst/utility/rttransfer.h>
 #include "parameters.h"
 
 
@@ -93,7 +94,18 @@ template<class ParamState>
 class ProcessorBaseCommon : public AudioEffect
 {
 public:
-	tresult PLUGIN_API getState(IBStream* state) SMTG_OVERRIDE { return paramState.getState(state); }
+	tresult PLUGIN_API getState(IBStream* state) SMTG_OVERRIDE {
+		if (!state) return kInvalidArgument;
+		return paramState.getState(state);
+	}
+
+	tresult PLUGIN_API setState(IBStream* state) SMTG_OVERRIDE {
+		if (!state) return kInvalidArgument;
+		auto paramChanges = std::make_unique<ParamState>();
+		tresult result = paramChanges->setState(state);
+		this->stateTransfer.transferObject_ui(std::move(paramChanges));
+		return result;
+	}
 
 	virtual void processAudio(ProcessData& data) = 0;
 	virtual void processParameterChanges(IParameterChanges* parameterChanges) = 0;
@@ -140,8 +152,11 @@ public:
 		}
 	}
 
+
 protected:
 	ParamState paramState;
+	using RTTransfer = RTTransferT<ParamState>;
+	RTTransfer stateTransfer;
 };
 
 
@@ -162,6 +177,9 @@ class ProcessorBase<ParamState, ImplementBypass> : public ProcessorBaseCommon<Pa
 {
 public:
 	tresult PLUGIN_API process(ProcessData& data) SMTG_OVERRIDE {
+		stateTransfer.accessTransferObject_rt([this](const ParamState& stateChanges) {
+			paramState = stateChanges;
+		});
 		this->processParameterChanges(data.inputParameterChanges);
 		this->processEvents(data.inputEvents);
 
@@ -172,11 +190,6 @@ public:
 		return kResultTrue;
 	}
 
-	tresult PLUGIN_API setState(IBStream* state) SMTG_OVERRIDE {
-		tresult r = this->paramState.setState(state);
-		recomputeParameters();
-		return r;
-	}
 
 	bool bypassProcessing(ProcessData& data) {
 		if (data.numSamples == 0) return true;
@@ -261,6 +274,9 @@ class ProcessorBase<ParamState, NoBypass> : public ProcessorBaseCommon<ParamStat
 {
 public:
 	tresult PLUGIN_API process(ProcessData& data) SMTG_OVERRIDE {
+		stateTransfer.accessTransferObject_rt([this](const ParamState& stateChanges) {
+			paramState = stateChanges;
+		});
 		this->processParameterChanges(data.inputParameterChanges);
 		this->processEvents(data.inputEvents);
 
@@ -269,12 +285,6 @@ public:
 			this->checkSilence(data);
 		}
 		return kResultTrue;
-	}
-
-	tresult PLUGIN_API setState(IBStream* state) SMTG_OVERRIDE {
-		tresult r = this->paramState.setState(state);
-		this->recomputeParameters();
-		return r;
 	}
 };
 
