@@ -15,6 +15,21 @@ function(uberton_add_cmrc_resource)
 	set_target_properties(rc_${ARG_NAME} PROPERTIES ${UBERTON_INSTALLER_RESOURCE_FOLDER})
 endfunction()
 
+
+function(uberton_add_cmrc_resource)
+	set(args NAME FILE WHENCE)
+    cmake_parse_arguments(PARSE_ARGV 0 ARG "${options}" "${args}" "${list_args}")
+    message(STATUS "adding file to resources from folder \"${ARG_FOLDER}\": ${ARG_FILE}")
+	
+    if(DEFINED ARG_WHENCE)
+        set(whence_arg WHENCE "${ARG_WHENCE}")
+    endif()
+
+    cmrc_add_resource_library(rc_${ARG_NAME} ALIAS ${ARG_NAME} NAMESPACE ${ARG_NAME} ${ARG_FILE})
+    target_link_libraries(${target} PUBLIC ${ARG_NAME})
+	set_target_properties(rc_${ARG_NAME} PROPERTIES ${UBERTON_INSTALLER_RESOURCE_FOLDER})
+endfunction()
+
 function(uberton_add_cmrc_resource_folder)
     set(args NAME FOLDER WHENCE)
     cmake_parse_arguments(PARSE_ARGV 0 ARG "${options}" "${args}" "${list_args}")
