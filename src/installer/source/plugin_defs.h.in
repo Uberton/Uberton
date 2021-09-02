@@ -21,22 +21,25 @@
 
 #include <cmrc/cmrc.hpp>
 #if(UBERTON_PLUGIN_HAS_USERGUIDE_PDF)
-CMRC_DECLARE(userguide_pdf);
+CMRC_DECLARE(@UBERTON_PLUGIN_NAME@_userguide_pdf);
 #endif
 
 #if(UBERTON_PLUGIN_HAS_FACTORY_PRESETS)
-CMRC_DECLARE(factory_presets);
+CMRC_DECLARE(@UBERTON_PLUGIN_NAME@_factory_presets);
 #endif
+
+
+namespace userguide_pdf = cmrc::ManualGui_userguide_pdf;
+namespace factory_presets = cmrc::ManualGui_factory_presets;
 
 
 void copyUserGuide(){
 #if(UBERTON_PLUGIN_HAS_USERGUIDE_PDF)
-	auto fs = cmrc::userguide_pdf::get_filesystem();
+	auto fs = userguide_pdf::get_filesystem();
 #endif
 }
-
 void copyFactoryPresets(){
 #if(UBERTON_PLUGIN_HAS_FACTORY_PRESETS)
-	auto fs = cmrc::factory_presets::get_filesystem();
+	auto fs = factory_presets::get_filesystem();
 #endif
 }

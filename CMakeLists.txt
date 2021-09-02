@@ -1,6 +1,7 @@
 
 set(UBERTON_FOLDER FOLDER "Uberton")
 set(UBERTON_INSTALLER_FOLDER FOLDER "Uberton/Installers")
+set(UBERTON_INSTALLER_RESOURCE_FOLDER FOLDER "Uberton/Installers/Resource_Projects")
 
 option(UBERTON_BUILD_INSTALLERS OFF)
 
