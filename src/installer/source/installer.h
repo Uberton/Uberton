@@ -17,6 +17,7 @@
 #include <vstgui/standalone/include/helpers/windowlistener.h>
 #include <vstgui/standalone/include/helpers/windowcontroller.h>
 #include <vstgui/lib/controls/cbuttons.h>
+#include <vstgui/lib/controls/ctextlabel.h>
 
 #include "wincontroller.h"
 
@@ -60,7 +61,11 @@ private:
 class Installer : public DelegateAdapter, public WindowListenerAdapter
 {
 public:
-	Installer(UTF8String pluginName, UTF8String version) : DelegateAdapter({ pluginName, version, "com.uberton." + pluginName }) {
+	using InstallCallback = std::function<void(std::string&)>;
+
+	Installer(UTF8String pluginName, UTF8String version, InstallCallback installCallback)
+		: DelegateAdapter({ pluginName, version, "com.uberton." + pluginName }),
+		  installCallback(installCallback) {
 	}
 
 	void finishLaunching() override;
@@ -77,6 +82,7 @@ private:
 	bool previousPage();
 	bool changePage(CViewContainer* newPage);
 
+	void doInstall();
 	void finish();
 	void cancel();
 
@@ -87,6 +93,8 @@ private:
 	int pageIndex{ 0 };
 	SharedPointer<TextButton> button;
 
+	CMultiLineTextLabel* resultLabel;
+
 	InstallerWindowController* controller{ nullptr };
 	WindowPtr window{ nullptr };
 	CFrame* frame{ nullptr };
@@ -96,6 +104,8 @@ private:
 	SharedPointer<CFontDesc> buttonFont;
 	SharedPointer<CGradient> buttonGradient;
 	SharedPointer<CGradient> buttonGradientHighlighted;
+
+	InstallCallback installCallback;
 };
 
 }

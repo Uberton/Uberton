@@ -11,7 +11,7 @@
 
 #include "installer.h"
 #include "terms_and_conditions.h"
-#include <vstgui/lib/controls/ctextlabel.h>
+#include "locations.h"
 #include <vstgui/lib/controls/cscrollbar.h>
 #include <vstgui/lib/cscrollview.h>
 
@@ -80,6 +80,7 @@ void Installer::finishLaunching() {
 		generatePages();
 		firstPage();
 		//nextPage();
+		//doInstall();
 	}
 	else {
 		IApplication::instance().quit();
@@ -106,8 +107,10 @@ void Installer::generatePages() {
 	buttonGradient = owned(CGradient::create(0, 1, CColor(251, 251, 251), CColor(231, 231, 240)));
 	buttonGradientHighlighted = owned(CGradient::create(0, 1, CColor(85, 85, 104), CColor(85, 85, 85)));
 
-
-	//CBitmap b;
+	std::string a;
+	a = getVSTLocation();
+	a = getFactoryPresetLocation();
+	a = getUserguideLocation();
 
 	CPoint button1Position{ frame->getWidth() - buttonSize.x - rightMargin, frame->getHeight() - buttonSize.y - bottomMargin };
 	CRect button1Rect{ button1Position, buttonSize };
@@ -150,7 +153,7 @@ void Installer::generatePages() {
 		return label;
 	};
 	auto makeMainTextA = [&](CViewContainer* parent, UTF8StringPtr text) {
-		makeMainText(parent, text, mainTextRect);
+		return makeMainText(parent, text, mainTextRect);
 	};
 
 	auto page = addPage();
@@ -161,7 +164,7 @@ void Installer::generatePages() {
 
 
 	auto licensePage = addPage();
-	makeButton(licensePage, button1Rect, "Next", [&](CControl* p) { nextPage(); });
+	makeButton(licensePage, button1Rect, "Accept", [&](CControl* p) { nextPage(); });
 	makeButton(licensePage, button2Rect, "Back", [&](CControl* p) { previousPage(); });
 	makeHeader(licensePage, "License Agreement");
 	CScrollView* scrollView = new CScrollView(mainTextRect.extend(-20, 50), { 0, 0, 500, 500 }, CScrollView::CScrollViewStyle::kVerticalScrollbar, 12);
@@ -172,12 +175,22 @@ void Installer::generatePages() {
 	scrollView->getVerticalScrollbar()->setScrollerColor(CColor(130, 130, 130));
 
 	float viewPadding = 7;
-	auto licenseText = makeMainText(scrollView, TERMS_AND_CONDITIONS, { viewPadding, viewPadding, mainTextRect.getWidth() - 2 * viewPadding - 5, mainTextRect.getHeight() - 2 * viewPadding });
+	auto licenseText = makeMainText(scrollView, "", { viewPadding, viewPadding, mainTextRect.getWidth() - 2 * viewPadding - 5, mainTextRect.getHeight() - 2 * viewPadding });
 	licenseText->setAutoHeight(true);
 
 	scrollView->setContainerSize({ viewPadding, viewPadding, viewPadding + scrollView->getWidth(), licenseText->getHeight() - viewPadding });
+
+	page = addPage();
+	makeButton(page, button1Rect, "Install", [&](CControl* p) { doInstall(); });
+	makeButton(page, button2Rect, "Back", [&](CControl* p) { previousPage(); });
+	makeHeader(page, "Setup Prepared");
+	makeMainTextA(page, "Click Install to proceed. ");
+
+
 	page = addPage();
 	makeButton(page, button1Rect, "Finish", [&](CControl* p) { finish(); });
+	makeHeader(page, "Installation finished");
+	resultLabel = makeMainTextA(page, "Installation results");
 }
 
 void Installer::createFonts() {
@@ -223,6 +236,13 @@ bool Installer::changePage(CViewContainer* newPage) {
 	return true;
 }
 
+void Installer::doInstall() {
+	nextPage();
+	std::string result;
+	if (installCallback) installCallback(result);
+	resultLabel->setText(UTF8String(result));
+}
+
 void Installer::finish() {
 	IApplication::instance().quit();
 }
@@ -234,6 +254,7 @@ void Installer::cancel() {
 void Installer::onClosed(const IWindow& window) {
 	IApplication::instance().quit();
 }
+
 
 }
 }
