@@ -8,10 +8,10 @@ option(UBERTON_BUILD_INSTALLERS OFF)
 get_filename_component(ABSOLUTE_INSTALLER_PATH "./src/installer" ABSOLUTE)
 include(cmake/Properties.cmake)
 
-add_subdirectory(src/common "${UBERTON_SRC_PATH}/build/common")
+add_subdirectory(src/common)
 
 if(UBERTON_BUILD_INSTALLERS)
-	add_subdirectory(src/installer "${UBERTON_SRC_PATH}/build/installer")
+	add_subdirectory(src/installer)
 endif()
 
 add_subdirectory(src/Plugins)

@@ -27,6 +27,7 @@ smtg_add_vst3_resource(${target} "resource/editor.uidesc")
 smtg_add_vst3_resource(${target} "resource/background.png")
 smtg_add_vst3_resource(${target} "resource/knobbg.png")
 
+
 uberton_add_userguide_pdf(TARGET ${target} USERGUIDE_PDF "User_Guide/Manual.pdf")
 uberton_add_factory_presets(TARGET ${target} FACTORY_PRESETS "Factory_Presets")
 

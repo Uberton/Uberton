@@ -20,17 +20,21 @@
 
 
 #include <cmrc/cmrc.hpp>
+
+CMRC_DECLARE(@UBERTON_PLUGIN_NAME@_vst_plugin);
+namespace vst_plugin = cmrc::@UBERTON_PLUGIN_NAME@_vst_plugin;
+
+
 #if(UBERTON_PLUGIN_HAS_USERGUIDE_PDF)
 CMRC_DECLARE(@UBERTON_PLUGIN_NAME@_userguide_pdf);
+namespace userguide_pdf = cmrc::@UBERTON_PLUGIN_NAME@_userguide_pdf;
 #endif
 
 #if(UBERTON_PLUGIN_HAS_FACTORY_PRESETS)
 CMRC_DECLARE(@UBERTON_PLUGIN_NAME@_factory_presets);
+namespace factory_presets = cmrc::@UBERTON_PLUGIN_NAME@_factory_presets;
 #endif
 
-
-namespace userguide_pdf = cmrc::ManualGui_userguide_pdf;
-namespace factory_presets = cmrc::ManualGui_factory_presets;
 
 
 void copyUserGuide(){

@@ -175,7 +175,7 @@ void Installer::generatePages() {
 	scrollView->getVerticalScrollbar()->setScrollerColor(CColor(130, 130, 130));
 
 	float viewPadding = 7;
-	auto licenseText = makeMainText(scrollView, "", { viewPadding, viewPadding, mainTextRect.getWidth() - 2 * viewPadding - 5, mainTextRect.getHeight() - 2 * viewPadding });
+	auto licenseText = makeMainText(scrollView, TERMS_AND_CONDITIONS, { viewPadding, viewPadding, mainTextRect.getWidth() - 2 * viewPadding - 5, mainTextRect.getHeight() - 2 * viewPadding });
 	licenseText->setAutoHeight(true);
 
 	scrollView->setContainerSize({ viewPadding, viewPadding, viewPadding + scrollView->getWidth(), licenseText->getHeight() - viewPadding });

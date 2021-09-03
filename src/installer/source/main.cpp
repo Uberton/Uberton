@@ -59,8 +59,8 @@ void writeFilesystemToDrive(const cmrc::embedded_filesystem& fs, const std::stri
 
 void installVST(std::string& result) {
 	result += "\nCopying VST3 Plugin ...";
-	//auto fs = vst::get_filesystem();
-	//writeFilesystemToDrive(fs, getVSTLocation() + UBERTON_PLUGIN_NAME + "/");
+	auto fs = vst_plugin::get_filesystem();
+	writeFilesystemToDrive(fs, getVSTLocation() + "Uberton/");
 }
 
 void installPresets(std::string& result) {
@@ -75,9 +75,39 @@ void installUserGuide(std::string& result) {
 #if (UBERTON_PLUGIN_HAS_USERGUIDE_PDF)
 	result += "\nCopying User Guide ...";
 	auto fs = userguide_pdf::get_filesystem();
-	writeFilesystemToDrive(fs, getUserguideLocation() + UBERTON_PLUGIN_NAME + "/");
+	const std::string location = getUserguideLocation() + UBERTON_PLUGIN_NAME + "/";
+	writeFilesystemToDrive(fs, location);
+	std::ofstream file(location + "version.txt");
+	file << UBERTON_PLUGIN_VERSION;
 #endif
 }
+
+//struct InstallationState
+//{
+//	bool pdf;
+//	bool vst;
+//	std::string version;
+//
+//};
+//void checkInstallation() {
+//	const std::string vstLoc = getVSTLocation() + "Uberton/" + UBERTON_PLUGIN_NAME + ".vst3";
+//	const std::string programLoc = getUserguideLocation() + UBERTON_PLUGIN_NAME + "/";
+//	InstallationState state;
+//	
+//	if (std::filesystem::exists(programLoc)) {
+//		for (const auto& entry : std::filesystem::directory_iterator(programLoc)) {
+//
+//		}
+//		std::ifstream file(programLoc + "version.txt");
+//		if (file) {
+//			std::string version;
+//			file >> version;
+//			if (!version.empty()) {
+//				state.version = version;
+//			}
+//		}
+//	}
+//}
 
 void doInstall(std::string& result) {
 	result += "\nInstallation started";

@@ -10,7 +10,7 @@ function(uberton_add_cmrc_resource)
 		set(whence_arg WHENCE "${ARG_WHENCE}")
 	endif()
 
-	cmrc_add_resource_library(rc_${ARG_NAME} ALIAS ${ARG_NAME} NAMESPACE ${ARG_NAME} ${ARG_FILE})
+	cmrc_add_resource_library(rc_${ARG_NAME} ALIAS ${ARG_NAME} NAMESPACE ${ARG_NAME} ${whence_arg} ${ARG_FILE})
 	target_link_libraries(${target} PUBLIC ${ARG_NAME})
 	set_target_properties(rc_${ARG_NAME} PROPERTIES ${UBERTON_INSTALLER_RESOURCE_FOLDER})
 endfunction()
@@ -25,7 +25,7 @@ function(uberton_add_cmrc_resource)
 		set(whence_arg WHENCE "${ARG_WHENCE}")
 	endif()
 
-	cmrc_add_resource_library(rc_${ARG_NAME} ALIAS ${ARG_NAME} NAMESPACE ${ARG_NAME} ${ARG_FILE})
+	cmrc_add_resource_library(rc_${ARG_NAME} ALIAS ${ARG_NAME} NAMESPACE ${ARG_NAME} ${whence_arg} ${ARG_FILE})
 	target_link_libraries(${target} PUBLIC ${ARG_NAME})
 	set_target_properties(rc_${ARG_NAME} PROPERTIES ${UBERTON_INSTALLER_RESOURCE_FOLDER})
 endfunction()
@@ -44,7 +44,7 @@ function(uberton_add_cmrc_resource_folder)
 		set(whence_arg WHENCE "${ARG_WHENCE}")
 	endif()
 
-	cmrc_add_resource_library(rc_${ARG_NAME} ALIAS ${ARG_NAME} NAMESPACE ${ARG_NAME} ${file_list})
+	cmrc_add_resource_library(rc_${ARG_NAME} ALIAS ${ARG_NAME} NAMESPACE ${ARG_NAME} ${whence_arg} ${file_list})
 	target_link_libraries(${target} PUBLIC ${ARG_NAME})
 	set_target_properties(rc_${ARG_NAME} PROPERTIES ${UBERTON_INSTALLER_RESOURCE_FOLDER})
 endfunction()
@@ -96,9 +96,11 @@ function (uberton_add_plugin_installer)
 		uberton_add_cmrc_resource_folder(NAME "${ARG_NAME}_${factory_presets}" FOLDER ${UBERTON_PLUGIN_FACTORY_PRESETS_PATH})
 	endif()
 	
+	set(vst_plugin "vst_plugin")
+	uberton_add_cmrc_resource_folder(NAME "${ARG_NAME}_${vst_plugin}" WHENCE "${PLUGIN_BINARY_DIR}/Release/" FOLDER ${UBERTON_PLUGIN_RELEASE_DIR})
+
+
 	configure_file("${ABSOLUTE_INSTALLER_PATH}/source/plugin_defs.h.in" plugin_defs.h)
-	
-	#uberton_add_cmrc_resource_folder(NAME ${vst} FOLDER ${UBERTON_PLUGIN_RELEASE_DIR})
 
 	target_link_libraries(${target} PUBLIC installer_lib)
 	add_dependencies(${target} ${ARG_NAME})
