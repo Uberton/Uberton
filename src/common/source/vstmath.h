@@ -58,6 +58,8 @@ class Vector
 	array<T, d> values;
 
 public:
+	using Index = ptrdiff_t;
+
 	Vector(const T (&elems)[d]) {
 		std::copy(std::begin(elems), std::end(elems), values.begin());
 	}
@@ -82,11 +84,11 @@ public:
 	}
 
 	// Unchecked access (faster)
-	const T& operator[](int i) const { return values[i]; }
-	T& operator[](int i) { return values[i]; }
+	const T& operator[](Index i) const { return values[i]; }
+	T& operator[](Index i) { return values[i]; }
 	// Runtime checked access (saver)
-	const T& at(int i) const { values.at(i); }
-	T& at(int i) { return values.at(i); }
+	const T& at(Index i) const { values.at(i); }
+	T& at(Index i) { return values.at(i); }
 
 	Vector& operator+=(const T& c) { return apply(std::plus<T>(), c); }
 	Vector& operator-=(const T& c) { return apply(std::minus<T>(), c); }
@@ -125,7 +127,7 @@ public:
 
 	friend std::ostream& operator<<(std::ostream& os, const Vector<T, d>& v) {
 		os << "(";
-		for (int i = 0; i < d - 1; i++)
+		for (Index i = 0; i < d - 1; i++)
 			os << v.values[i] << ",";
 		return os << v.values[d - 1] << ")";
 	}
@@ -135,7 +137,8 @@ public:
 
 template<class T, int d>
 bool operator==(const Vector<T, d>& a, const Vector<T, d>& b) {
-	for (int i = 0; i < d; i++)
+	using Index = typename Vector<T, d>::Index;
+	for (Index i = 0; i < d; i++)
 		if (a[i] != b[i]) return false;
 	return true;
 }
@@ -154,15 +157,16 @@ Vector<T, d> operator*(T c, const Vector<T, d>& v) { return v * c; }
 
 
 
-
-inline int factorial(int n) {
-	return n <= 1 ? 1 : factorial(n - 1) * n;
+template<class T = double>
+inline T factorial(int n) {
+	return n <= 1 ? 1 : factorial<T>(n - 1) * n;
 }
 
 // Product of all integers from 1 to n with same parity (odd/even) as n
-inline int doublefactorial(int n) {
+template<class T = double>
+inline T doublefactorial(int n) {
 	if (n == 0 || n == 1) return 1;
-	return n * doublefactorial(n - 2);
+	return n * doublefactorial<T>(n - 2);
 }
 
 
@@ -247,13 +251,13 @@ inline T assoc_legendre_impl(int l, int m, T x, T sin_theta_power) {
 		++n;
 	}
 
-	if ((m & 1u) != 0) {
-		p1 = -p1;
-	}
+	//if ((m & 1u) != 0) {
+	//	p1 = -p1;
+	//}
 	return p1;
 }
 
-// Associated Legendre polynom
+// Associated Legendre polynom (including Condon-Shortley phase (-1)^m)
 template<class T>
 inline auto assoc_legendre(int l, int m, T x) noexcept {
 	auto d = static_cast<T>(pow(1 - x * x, T(abs(m)) / 2));

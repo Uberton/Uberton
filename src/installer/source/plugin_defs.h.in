@@ -1,0 +1,49 @@
+// Installer window controller for creating plugin installers. 
+//
+// -----------------------------------------------------------------------------------------------------------------------------
+// This file is part of the Überton project. Copyright (C) 2021 Überton
+//
+// Überton is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+// Überton is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+// of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should
+// have received a copy of the GNU General Public License along with Überton. If not, see http://www.gnu.org/licenses/.
+// -----------------------------------------------------------------------------------------------------------------------------
+
+#define UBERTON_PLUGIN_NAME "@UBERTON_PLUGIN_NAME@"
+#define UBERTON_PLUGIN_VERSION "@UBERTON_PLUGIN_VERSION@"
+#define UBERTON_PLUGIN_VST_LOCATION "@UBERTON_PLUGIN_RELEASE_DIR@"
+#define UBERTON_PLUGIN_HAS_USERGUIDE_PDF @UBERTON_PLUGIN_HAS_USERGUIDE_PDF@
+#define UBERTON_PLUGIN_USERGUIDE_PDF "@UBERTON_PLUGIN_USERGUIDE_PDF@"
+#define UBERTON_PLUGIN_HAS_FACTORY_PRESETS @UBERTON_PLUGIN_HAS_FACTORY_PRESETS@
+#define UBERTON_PLUGIN_FACTORY_PRESETS_PATH "@UBERTON_PLUGIN_FACTORY_PRESETS_PATH@"
+
+
+#include <cmrc/cmrc.hpp>
+
+CMRC_DECLARE(@UBERTON_PLUGIN_NAME@_vst_plugin);
+namespace vst_plugin = cmrc::@UBERTON_PLUGIN_NAME@_vst_plugin;
+
+
+#if(UBERTON_PLUGIN_HAS_USERGUIDE_PDF)
+CMRC_DECLARE(@UBERTON_PLUGIN_NAME@_userguide_pdf);
+namespace userguide_pdf = cmrc::@UBERTON_PLUGIN_NAME@_userguide_pdf;
+#endif
+
+#if(UBERTON_PLUGIN_HAS_FACTORY_PRESETS)
+CMRC_DECLARE(@UBERTON_PLUGIN_NAME@_factory_presets);
+namespace factory_presets = cmrc::@UBERTON_PLUGIN_NAME@_factory_presets;
+#endif
+
+
+
+void copyUserGuide(){
+#if(UBERTON_PLUGIN_HAS_USERGUIDE_PDF)
+	auto fs = userguide_pdf::get_filesystem();
+#endif
+}
+void copyFactoryPresets(){
+#if(UBERTON_PLUGIN_HAS_FACTORY_PRESETS)
+	auto fs = factory_presets::get_filesystem();
+#endif
+}

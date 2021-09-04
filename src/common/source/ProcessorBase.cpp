@@ -15,9 +15,9 @@
 
 namespace Uberton {
 
-ProcessorBase::ProcessorBase() {}
+ProcessorBaseA::ProcessorBaseA() {}
 
-tresult PLUGIN_API ProcessorBase::process(ProcessData& data) {
+tresult PLUGIN_API ProcessorBaseA::process(ProcessData& data) {
 	processParameterChanges(data.inputParameterChanges);
 	processEvents(data.inputEvents);
 
@@ -28,7 +28,7 @@ tresult PLUGIN_API ProcessorBase::process(ProcessData& data) {
 	return kResultTrue;
 }
 
-bool ProcessorBase::bypassProcessing(ProcessData& data) {
+bool ProcessorBaseA::bypassProcessing(ProcessData& data) {
 	if (data.numSamples == 0) return true;
 
 	if (bypassingState != BypassingState::None) {
@@ -98,7 +98,7 @@ bool ProcessorBase::bypassProcessing(ProcessData& data) {
 	return false;
 }
 
-void ProcessorBase::checkSilence(ProcessData& data) {
+void ProcessorBaseA::checkSilence(ProcessData& data) {
 	for (int32 i = 0; i < data.numOutputs; i++) {
 		auto& bus = data.outputs[i];
 		bus.silenceFlags = 0;
@@ -118,9 +118,9 @@ void ProcessorBase::checkSilence(ProcessData& data) {
 	}
 }
 
-void ProcessorBase::processParameterChanges(IParameterChanges* parameterChanges) {}
+void ProcessorBaseA::processParameterChanges(IParameterChanges* parameterChanges) {}
 
-void ProcessorBase::setBypassed(bool bypass) {
+void ProcessorBaseA::setBypassed(bool bypass) {
 	if (bypass != this->bypass) {
 		this->bypass = bypass;
 		if (bypass)
@@ -130,22 +130,22 @@ void ProcessorBase::setBypassed(bool bypass) {
 	}
 }
 
-tresult PLUGIN_API ProcessorBase::setActive(TBool state) {
+tresult PLUGIN_API ProcessorBaseA::setActive(TBool state) {
 	return kResultOk;
 }
 
-tresult PLUGIN_API ProcessorBase::setBusArrangements(SpeakerArrangement* inputs, int32 numIns, SpeakerArrangement* outputs, int32 numOuts) {
+tresult PLUGIN_API ProcessorBaseA::setBusArrangements(SpeakerArrangement* inputs, int32 numIns, SpeakerArrangement* outputs, int32 numOuts) {
 	if (numIns == 1 && numOuts == 1 && inputs[0] == outputs[0]) {
 		return AudioEffect::setBusArrangements(inputs, numIns, outputs, numOuts);
 	}
 	return kResultOk;
 }
 
-tresult PLUGIN_API ProcessorBase::setState(IBStream* state) {
+tresult PLUGIN_API ProcessorBaseA::setState(IBStream* state) {
 	return kResultOk;
 }
 
-tresult PLUGIN_API ProcessorBase::getState(IBStream* state) {
+tresult PLUGIN_API ProcessorBaseA::getState(IBStream* state) {
 	return kResultOk;
 }
 

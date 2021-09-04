@@ -1,7 +1,17 @@
-set(SDK_IDE_UBERTON_FOLDER FOLDER "Uberton")
-add_subdirectory("${SMTG_UBERTON_SRC_PATH}/src/common" "${SMTG_UBERTON_SRC_PATH}/build/common")
 
+set(UBERTON_FOLDER FOLDER "Uberton")
+set(UBERTON_INSTALLER_FOLDER FOLDER "Uberton/Installers")
+set(UBERTON_INSTALLER_RESOURCE_FOLDER FOLDER "Uberton/Installers/Resource_Projects")
 
-set_target_properties(uberton_common PROPERTIES ${SDK_IDE_UBERTON_FOLDER})
+option(UBERTON_BUILD_INSTALLERS OFF)
+
+get_filename_component(ABSOLUTE_INSTALLER_PATH "./src/installer" ABSOLUTE)
+include(cmake/Properties.cmake)
+
+add_subdirectory(src/common)
+
+if(UBERTON_BUILD_INSTALLERS)
+	add_subdirectory(src/installer)
+endif()
 
 add_subdirectory(src/Plugins)

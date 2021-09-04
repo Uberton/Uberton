@@ -1,5 +1,3 @@
-// Plugin name and version of BasicInstrument
-//
 // -----------------------------------------------------------------------------------------------------------------------------
 // This file is part of the Überton project. Copyright (C) 2021 Überton
 //
@@ -12,7 +10,6 @@
 
 
 #include "processor.h"
-#include "ids.h"
 
 #include <public.sdk/source/vst/vstaudioprocessoralgo.h>
 #include <vstmath.h>
@@ -22,7 +19,14 @@ namespace BasicInstrument {
 
 Processor::Processor() {
 	setControllerClass(ControllerUID);
-	paramState[Params::kParamVolId] = .8;
+
+	paramState.version = 0;
+
+	auto initValue = [&](const auto& p) {
+		paramState[p.id] = p.toNormalized(p.initialValue);
+	};
+
+	initValue(ParamSpecs::vol);
 }
 
 tresult PLUGIN_API Processor::initialize(FUnknown* context) {
@@ -38,6 +42,9 @@ tresult PLUGIN_API Processor::initialize(FUnknown* context) {
 
 tresult PLUGIN_API Processor::setupProcessing(ProcessSetup& setup) {
 	osc.setSampleRate(setup.sampleRate);
+	resonator.setSampleRate(setup.sampleRate);
+	resonator.setInputPositions({ .3 });
+	resonator.setOutputPositions({ .7 });
 	return ProcessorBase::setupProcessing(setup);
 }
 
@@ -46,14 +53,15 @@ void Processor::processAudio(ProcessData& data) {
 	int32 numSamples = data.numSamples;
 
 	Sample32** out = data.outputs[0].channelBuffers32;
-	float gain = paramState.params[kParamVolId];
+	float volume = paramState.params[kParamVol];
 
 	if (playing) {
 		for (int32 i = 0; i < numSamples; i++) {
 			float sample = osc.get();
+			sample = resonator.next()[0];
 
 			for (int32 channel = 0; channel < numChannels; channel++) {
-				out[channel][i] = sample * gain;
+				out[channel][i] = sample * volume;
 			}
 		}
 	}
@@ -84,9 +92,12 @@ void Processor::processEvents(IEventList* eventList) {
 			playing = true;
 			osc.setPhase(0.0);
 			osc.setFrequency(Math::frequencyTable[event.noteOn.pitch]);
+			resonator.setFreqDampeningAndVelocity(Math::frequencyTable[event.noteOn.pitch], .1, 10);
+			resonator.delta({ .5 });
 			break;
 		case Event::kNoteOffEvent:
-			playing = false;
+			//playing = false;
+
 			break;
 		case Event::kNoteExpressionValueEvent:
 			break;
@@ -101,14 +112,6 @@ tresult PLUGIN_API Processor::setBusArrangements(SpeakerArrangement* inputs, int
 	}
 	return kResultFalse;
 }
-
-/*tresult PLUGIN_API Processor::setState(IBStream* state) {
-	return paramState.setState(state);
-}
-
-tresult PLUGIN_API Processor::getState(IBStream* state) {
-	return paramState.getState(state);
-}*/
 
 } // namespace BasicInstrument
 } // namespace Uberton

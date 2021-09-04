@@ -10,28 +10,32 @@
 
 
 #include "controller.h"
-#include "ids.h"
-#include <vstmath.h>
+#include <ui.h>
 
 namespace Uberton {
 namespace BasicFx {
 
 tresult PLUGIN_API Controller::initialize(FUnknown* context) {
-	//implementBypass = true;
-
-	tresult result = ControllerBaseP::initialize(context);
+	tresult result = ControllerBase::initialize(context);
 	if (result != kResultTrue) return result;
 
-	//parameters.addParameter(STR16("Bypass"), 0, 1, 0, ParameterInfo::kCanAutomate | ParameterInfo::kIsBypass, Params::kBypassId);
-	parameters.addParameter(STR16("Gain 1"), STR16("dB"), 0, .5, ParameterInfo::kCanAutomate, Params::kParamVolId);
+
+	UnitID rootUnitId = 1;
+	addUnit(new Unit(USTRING("Root"), rootUnitId));
+
+	setCurrentUnitID(rootUnitId);
+	addParam<LinearParameter>(ParamSpecs::vol, "Volumea", "Vol", "%", 0);
+	addParam<DiscreteParameter>(ParamSpecs::list, "List", "List")->getInfo().stepCount = 5 - 1;
 
 	return kResultTrue;
 }
 
 IPlugView* PLUGIN_API Controller::createView(FIDString name) {
-	ConstString name_(name);
-	if (name_ == ViewType::kEditor)
-		return new VSTGUI::VST3Editor(this, "Editor", "editor.uidesc");
+	if (ConstString(name) == ViewType::kEditor) {
+		auto editor = new VST3EditorEx1(this, "Editor", "editor.uidesc");
+		editor->setPrescaleFactor(1);
+		return editor;
+	}
 	return nullptr;
 }
 

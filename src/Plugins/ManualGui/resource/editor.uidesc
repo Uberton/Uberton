@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<vstgui-ui-description version="1">
+	<fonts>
+	</fonts>
+	<colors>
+		<color name="Background" rgba="#468affff"/>
+	</colors>
+	<template background-color="~ BlackCColor" background-color-draw-style="filled and stroked" class="CViewContainer" maxSize="395, 190" minSize="395, 190" mouse-enabled="true" name="Editor" opacity="1" origin="0, 0" size="395, 190" transparent="false" wants-focus="false">
+		<view back-color="~ BlackCColor" background-offset="0, 0" class="CTextLabel" default-value="0.5" font="~ NormalFont" font-antialias="true" font-color="~ WhiteCColor" frame-color="~ BlackCColor" frame-width="1" max-value="1" min-value="0" mouse-enabled="true" opacity="1" origin="125, 35" round-rect-radius="6" shadow-color="~ RedCColor" size="100, 20" style-3D-in="false" style-3D-out="false" style-no-draw="false" style-no-frame="false" style-no-text="false" style-round-rect="false" style-shadow-text="false" text-alignment="center" text-inset="0, 0" text-rotation="0" text-shadow-offset="1, 1" title="Gain" transparent="false" value-precision="2" wants-focus="false" wheel-inc-value="0.1"/>
+		<view background-color="~ WhiteCColor" background-color-draw-style="filled and stroked" class="CViewContainer" mouse-enabled="true" opacity="0.637725" origin="10, 55" size="220, 100" sub-controller="LinkController" transparent="false" wants-focus="false">
+			<view bitmap="background" class="COnOffButton" control-tag="Link" default-value="0" max-value="1" min-value="0" mouse-enabled="true" opacity="1" origin="30, 25" size="20, 20" transparent="false" wants-focus="true" wheel-inc-value="0.1"/>
+			<view bitmap-offset="0, 0" class="CSlider" control-tag="Slider2" default-value="0.5" draw-back="false" draw-back-color="~ BlackCColor" draw-frame="true" draw-frame-color="~ GreyCColor" draw-value="true" draw-value-color="~ WhiteCColor" draw-value-from-center="false" draw-value-inverted="false" frame-width="1" handle-offset="0, 0" max-value="1" min-value="0" mode="use global" mouse-enabled="true" opacity="1" orientation="horizontal" origin="60, 55" reverse-orientation="false" size="35, 20" transparent="false" wants-focus="true" wheel-inc-value="0.1" zoom-factor="10"/>
+			<view bitmap-offset="0, 0" class="CSlider" control-tag="Slider1" default-value="0.5" draw-back="false" draw-back-color="~ BlackCColor" draw-frame="true" draw-frame-color="~ BlackCColor" draw-value="true" draw-value-color="~ WhiteCColor" draw-value-from-center="false" draw-value-inverted="false" frame-width="1" handle-offset="0, 0" max-value="1" min-value="0" mode="use global" mouse-enabled="true" opacity="1" orientation="horizontal" origin="60, 20" reverse-orientation="false" size="35, 20" transparent="false" wants-focus="true" wheel-inc-value="0.1" zoom-factor="10"/>
+		</view>
+		<view bitmap="background" class="Diagonal Slider" default-value="0.5" handle-bitmap="handle" handle-offset="0, 0" max-value="1" min-value="0" mode="use global" mouse-enabled="true" opacity="1" orientation="horizontal" origin="305, 50" path-end-point="80, 30" path-start-point="10, 10" reverse-orientation="false" size="80, 35" transparent="false" wants-focus="true" wheel-inc-value="0.1" zoom-factor="10"/>
+		<view bitmap="button" class="History Button" default-value="0.5" height-of-one-image="30" horizontal-bitmap-flip="false" max-value="1" min-value="0" mouse-enabled="true" opacity="1" origin="255, 145" pressed-frame-color="~ WhiteCColor" size="26, 16" sub-pixmaps="0" transparent="false" type="Undo" wants-focus="true" wheel-inc-value="0.1"/>
+		<view background-color="~ WhiteCColor" background-color-draw-style="filled and stroked" class="CViewContainer" mouse-enabled="true" opacity="1" origin="25, 3" size="52, 16" sub-controller="HistoryController" transparent="false" wants-focus="false">
+			<view bitmap="button" class="History Button" default-value="0.5" height-of-one-image="16" horizontal-bitmap-flip="true" max-value="1" min-value="0" mouse-enabled="false" opacity="1" origin="0, 0" pressed-frame-color="~ WhiteCColor" size="26, 16" sub-pixmaps="0" transparent="false" type="Undo" wants-focus="true" wheel-inc-value="0.1"/>
+			<view bitmap="button" class="History Button" default-value="0.5" height-of-one-image="16" horizontal-bitmap-flip="false" max-value="1" min-value="0" mouse-enabled="true" opacity="1" origin="26, 0" pressed-frame-color="~ WhiteCColor" size="26, 16" sub-pixmaps="0" transparent="false" type="Redo" wants-focus="true" wheel-inc-value="0.1"/>
+		</view>
+		<view back-color="~ BlackCColor" background-offset="0, 0" class="Uberton Context Menu" default-value="0.5" font="~ NormalFont" font-antialias="true" font-color="~ WhiteCColor" frame-color="~ TransparentCColor" frame-width="1" max-value="2" menu-check-style="false" menu-popup-style="false" min-value="0" mouse-enabled="true" opacity="1" origin="0, 0" pressed-frame-color="~ WhiteCColor" round-rect-radius="6" shadow-color="~ RedCColor" size="20, 20" style-3D-in="false" style-3D-out="false" style-no-draw="false" style-no-frame="false" style-no-text="false" style-round-rect="false" style-shadow-text="false" symbol-color="~ WhiteCColor" text-alignment="center" text-inset="0, 0" text-rotation="0" text-shadow-offset="1, 1" transparent="false" value-precision="2" wants-focus="true" wheel-inc-value="0.1" zoom-factors="80,90,100,110,120,150"/>
+		<view angle-range="270" angle-start="135" circle-drawing="false" class="CKnob" control-tag="Gain" corona-color="~ RedCColor" corona-dash-dot="true" corona-dash-dot-lengths="1.26,0.1" corona-drawing="true" corona-from-center="false" corona-inset="12" corona-inverted="false" corona-line-cap-butt="true" corona-outline="true" corona-outline-width-add="2" default-value="0.5" handle-color="~ WhiteCColor" handle-line-width="8" handle-shadow-color="~ BlackCColor" max-value="1" min-value="0" mouse-enabled="true" opacity="1" origin="130, 55" size="70, 70" skip-handle-drawing="true" transparent="false" value-inset="3" wants-focus="true" wheel-inc-value="0.1" zoom-factor="1.5"/>
+		<view back-color="None" background-offset="0, 0" class="CTextLabel" control-tag="Gain" default-value="0.5" font="~ NormalFont" font-antialias="true" font-color="~ BlackCColor" frame-color="None" frame-width="1" max-value="1" min-value="0" mouse-enabled="true" opacity="1" origin="110, 120" round-rect-radius="6" shadow-color="None" size="100, 20" style-3D-in="false" style-3D-out="false" style-no-draw="false" style-no-frame="false" style-no-text="false" style-round-rect="false" style-shadow-text="false" text-alignment="center" text-inset="0, 0" text-rotation="0" text-shadow-offset="1, 1" title="0.3000" transparent="true" value-precision="2" wants-focus="false" wheel-inc-value="0.1"/>
+		<view background-color="~ BlackCColor" background-color-draw-style="filled and stroked" class="CViewContainer" mouse-enabled="true" opacity="1" origin="290, 90" size="95, 45" sub-controller="HistoryController" transparent="false" wants-focus="false">
+			<view bitmap="button" class="History Button" default-value="0.5" height-of-one-image="30" horizontal-bitmap-flip="true" max-value="1" min-value="0" mouse-enabled="true" opacity="1" origin="5, 10" pressed-frame-color="~ WhiteCColor" size="26, 16" sub-pixmaps="0" transparent="false" type="Undo" wants-focus="true" wheel-inc-value="0.1"/>
+			<view bitmap="button" class="History Button" default-value="0.5" height-of-one-image="16" horizontal-bitmap-flip="false" max-value="1" min-value="0" mouse-enabled="true" opacity="1" origin="35, 10" pressed-frame-color="~ WhiteCColor" size="26, 16" sub-pixmaps="0" transparent="false" type="Redo" wants-focus="true" wheel-inc-value="0.1"/>
+		</view>
+	</template>
+	<custom>
+		<attributes name="FocusDrawing"/>
+		<attributes Path="C:\Users\E-Bow\Documents\Code\Cplusplus\VST\Uberton\src\Plugins\ManualGui\resource\editor.uidesc" name="VST3Editor"/>
+		<attributes Grids="1x 1,5x 5,10x 10,12x 12,15x 15" Size="5, 5" name="UIGridController"/>
+		<attributes SelectedTemplate="Editor" name="UITemplateController"/>
+		<attributes EditViewScale="1" EditorSize="0, 0, 1366, 656" SplitViewSize_0_0="0.7301587301587301181982070374942850321531" SplitViewSize_0_1="0.2380952380952380820211544687481364235282" SplitViewSize_1_0="0.4984126984126984183376407600007951259613" SplitViewSize_1_1="0.4936507936507936733505630400031805038452" SplitViewSize_2_0="0.6742313323572474148548394623503554612398" SplitViewSize_2_1="0.3221083455344070367587505643314216285944" TabSwitchValue="0" Version="1" name="UIEditController"/>
+		<attributes UIAttributesController="tag" name="UIAttributesController"/>
+		<attributes SelectedRow="5" name="UIViewCreatorDataSource"/>
+		<attributes SelectedRow="0" name="UIColorsDataSource"/>
+		<attributes SelectedRow="0" name="UITagsDataSource"/>
+		<attributes SelectedRow="1" name="UIBitmapsDataSource"/>
+	</custom>
+	<control-tags>
+		<control-tag name="Bypass" tag="1000001"/>
+		<control-tag name="Gain" tag="0"/>
+		<control-tag name="Link" tag="3"/>
+		<control-tag name="Slider1" tag="1"/>
+		<control-tag name="Slider2" tag="2"/>
+	</control-tags>
+	<bitmaps>
+		<bitmap name="background" path="C:\Users\E-Bow\Documents\Code\Cplusplus\VST\Uberton\src\Plugins\ManualGui\resource\background.png"/>
+		<bitmap name="button" path="C:\Users\E-Bow\Documents\Code\Cplusplus\VST\Überton Private\New Tesseract Plugin Design\button.png"/>
+		<bitmap name="handle" path="C:\Users\E-Bow\Documents\Code\Cplusplus\VST\Überton Private\New Tesseract Plugin Design\handle.png"/>
+	</bitmaps>
+</vstgui-ui-description>

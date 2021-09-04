@@ -17,7 +17,7 @@
 namespace Uberton {
 namespace BasicFx {
 
-class Processor : public ProcessorBaseP<UniformParamState<1>, ImplementBypass>
+class Processor : public ProcessorBase<ParamState, ImplementBypass>
 {
 public:
 	Processor();
