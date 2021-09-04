@@ -30,6 +30,7 @@ function(uberton_add_cmrc_resource)
 	set_target_properties(rc_${ARG_NAME} PROPERTIES ${UBERTON_INSTALLER_RESOURCE_FOLDER})
 endfunction()
 
+
 function(uberton_add_cmrc_resource_folder)
 	set(args NAME FOLDER WHENCE)
 	cmake_parse_arguments(PARSE_ARGV 0 ARG "${options}" "${args}" "${list_args}")
@@ -54,9 +55,18 @@ function (uberton_add_plugin_installer)
 	set(args NAME)
 	cmake_parse_arguments(PARSE_ARGV 0 ARG "${options}" "${args}" "${list_args}")
 
+	
+	get_target_property(PLUGIN_BINARY_DIR   ${ARG_NAME} SMTG_PLUGIN_BINARY_DIR)
+	get_target_property(PLUGIN_PACKAGE_NAME ${ARG_NAME} SMTG_PLUGIN_PACKAGE_NAME)
+	get_target_property(TARGET_SOURCE       ${ARG_NAME} SMTG_PLUGIN_PACKAGE_PATH)
+
+	set(UBERTON_PLUGIN_NAME "${ARG_NAME}")
+	set(UBERTON_PLUGIN_VERSION "1.0.0")
+	set(UBERTON_PLUGIN_RELEASE_DIR "${PLUGIN_BINARY_DIR}/Release/${PLUGIN_PACKAGE_NAME}")
+
 
 	project("${ARG_NAME}_Installer")
-	set(target "${ARG_NAME}_Installer")
+	set(target "${ARG_NAME}_Installer_${UBERTON_PLUGIN_VERSION}")
 	
 	set(${target}_sources
 		"${ABSOLUTE_INSTALLER_PATH}/source/main.cpp"
@@ -67,15 +77,6 @@ function (uberton_add_plugin_installer)
 		#target_link_options(${target} PUBLIC LINK_OPTIONS "MANIFESTUAC:\"level='requireAdministrator' uiAccess='false'\" ")
 		#add_link_options("/MANIFESTUAC:\"level='requireAdministrator' uiAccess='false'\" ")
 	endif()
-
-
-	get_target_property(PLUGIN_BINARY_DIR   ${ARG_NAME} SMTG_PLUGIN_BINARY_DIR)
-	get_target_property(PLUGIN_PACKAGE_NAME ${ARG_NAME} SMTG_PLUGIN_PACKAGE_NAME)
-	get_target_property(TARGET_SOURCE       ${ARG_NAME} SMTG_PLUGIN_PACKAGE_PATH)
-
-	set(UBERTON_PLUGIN_NAME "${ARG_NAME}")
-	set(UBERTON_PLUGIN_VERSION "1.0.0")
-	set(UBERTON_PLUGIN_RELEASE_DIR "${PLUGIN_BINARY_DIR}/Release/${PLUGIN_PACKAGE_NAME}")
 
 
 	

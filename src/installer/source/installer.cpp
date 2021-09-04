@@ -14,6 +14,7 @@
 #include "locations.h"
 #include <vstgui/lib/controls/cscrollbar.h>
 #include <vstgui/lib/cscrollview.h>
+#include <public.sdk/source/common/openurl.h>
 
 namespace Uberton {
 namespace Installer {
@@ -191,6 +192,8 @@ void Installer::generatePages() {
 	makeButton(page, button1Rect, "Finish", [&](CControl* p) { finish(); });
 	makeHeader(page, "Installation finished");
 	resultLabel = makeMainTextA(page, "Installation results");
+	//makeMainText(page, "Do you want to open the user guide now?", { mainTextRect.left, mainTextRect.bottom, mainTextRect.right, mainTextRect.bottom + 30 });
+	//makeButton(page, {}, "Open Manual", [&](CControl* p) { Steinberg::openURLInDefaultApplication(""); });
 }
 
 void Installer::createFonts() {

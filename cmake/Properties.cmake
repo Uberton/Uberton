@@ -13,6 +13,8 @@ function(uberton_add_userguide_pdf)
     cmake_parse_arguments(PARSE_ARGV 0 ARG "${options}" "${args}" "${list_args}")
 	get_filename_component(absolute_userguide_path ${ARG_USERGUIDE_PDF} ABSOLUTE)
 	set_property(TARGET ${ARG_TARGET} PROPERTY UBERTON_USERGUIDE_PDF ${absolute_userguide_path})
+	string(TOUPPER ${target} plugin_name_caps)
+	target_compile_definitions(${ARG_TARGET} PRIVATE "${target}_USERGUIDE_PATH=\"${target}/${ARG_USERGUIDE_PDF}\"")
 endfunction()
 
 function(uberton_add_factory_presets)

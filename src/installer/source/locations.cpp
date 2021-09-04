@@ -11,7 +11,6 @@
 
 #include "locations.h"
 #ifdef _WIN32
-//#include <Windows.h>
 #include <ShlObj.h>
 #else
 #include <cstdlib>
