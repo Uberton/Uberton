@@ -10,7 +10,7 @@
 
 
 #include "controller.h"
-#include <vstgui/plugin-bindings/vst3editor.h>
+#include <ui.h>
 
 namespace Uberton {
 namespace BasicFx {
@@ -24,7 +24,7 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 	addUnit(new Unit(USTRING("Root"), rootUnitId));
 
 	setCurrentUnitID(rootUnitId);
-	addParam<LinearParameter>(ParamSpecs::vol, "Volume", "Vol", "%", 0);
+	addParam<LinearParameter>(ParamSpecs::vol, "Volumea", "Vol", "%", 0);
 	addParam<DiscreteParameter>(ParamSpecs::list, "List", "List")->getInfo().stepCount = 5 - 1;
 
 	return kResultTrue;
@@ -32,7 +32,9 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 
 IPlugView* PLUGIN_API Controller::createView(FIDString name) {
 	if (ConstString(name) == ViewType::kEditor) {
-		return new VSTGUI::VST3Editor(this, "Editor", "editor.uidesc");
+		auto editor = new VST3EditorEx1(this, "Editor", "editor.uidesc");
+		editor->setPrescaleFactor(1);
+		return editor;
 	}
 	return nullptr;
 }

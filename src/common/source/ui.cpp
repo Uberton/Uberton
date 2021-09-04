@@ -12,6 +12,13 @@
 #include "ui.h"
 #include <public.sdk/source/common/openurl.h>
 #include "ControllerBase.h"
+#include <filesystem>
+
+#ifdef _WIN32
+#include <ShlObj.h>
+#else
+#include <cstdlib>
+#endif
 
 using namespace Uberton;
 
@@ -260,6 +267,7 @@ void UbertonContextMenu::itemSelected(CCommandMenuItem* item) {
 	if (item->getCommandCategory() == "Base") {
 		switch (static_cast<MenuItemID>(item->getTag())) {
 		case MenuItemID::userGuide:
+			openUserguide();
 			return;
 		case MenuItemID::url:
 			openURLInDefaultApplication("https://uberton.org");
@@ -275,7 +283,10 @@ void UbertonContextMenu::itemSelected(CCommandMenuItem* item) {
 	}
 }
 
-
+bool UbertonContextMenu::openUserguide() {
+	if (!editor) return false;
+	return editor->openUserguide();
+}
 
 DiagonalSlider::DiagonalSlider(const CRect& r) : CSliderBase(r, nullptr, -1) {
 	setWantsFocus(true);
@@ -505,7 +516,7 @@ void LogVUMeter::draw(CDrawContext* context) {
 
 	double overhead = maxDb;
 	double normalizedMax = std::pow(10, overhead / 20.0);
-	double logValue = 20 * std::log10(newValue*normalizedMax);
+	double logValue = 20 * std::log10(newValue * normalizedMax);
 	const double range = maxDb - minDb;
 	double nomalizedLogValue = (std::max(logValue, minDb) - minDb) / range;
 
@@ -581,3 +592,31 @@ double VST3EditorEx1::getPrescaleFactor() { return prescaleFactor; }
 //double Uberton::VST3EditorEx1::getAbsScaleFactor() const {
 //	return zoomFactor * contentScaleFactor * prescaleFactor;
 //}
+
+
+bool VST3EditorEx1::openUserguide() {
+	if (userGuidePath.empty()) return false;
+
+	std::string path = getUbertonLocation() + userGuidePath;
+	if (std::filesystem::exists(path)) {
+		return openURLInDefaultApplication(path.c_str());
+	}
+	else {
+		return openURLInDefaultApplication(("https://uberton.org/plugins/" + userGuidePath).c_str());
+	}
+}
+
+void Uberton::VST3EditorEx1::setUserguidePath(const std::string& userGuidePath) {
+	this->userGuidePath = userGuidePath;
+}
+
+std::string Uberton::VST3EditorEx1::getUbertonLocation() {
+#ifdef _WIN32
+	char path[MAX_PATH];
+	SHGetSpecialFolderPathA(0, path, CSIDL_PROGRAM_FILES, FALSE);
+	std::string pathS{ path };
+	return pathS + "/Uberton/";
+#elif __APPLE__
+	return "Applications/Uberton/";
+#endif
+}

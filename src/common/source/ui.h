@@ -179,6 +179,7 @@ protected:
 	void startAnimation();
 	void itemSelected(CCommandMenuItem* item);
 
+	bool openUserguide();
 
 private:
 	TheEditor* editor{ nullptr };
@@ -353,7 +354,16 @@ public:
 	void setPrescaleFactor(double f);
 	double getPrescaleFactor();
 
+	bool openUserguide();
+
+	//void setPluginName(std::string);
+	void setUserguidePath(const std::string& userGuidePath);
+
+	static std::string getUbertonLocation();
+
 private:
 	double prescaleFactor = 0.5;
+	//std::string pluginName;
+	std::string userGuidePath;
 };
 }

@@ -14,6 +14,7 @@
 #include "locations.h"
 #include <vstgui/lib/controls/cscrollbar.h>
 #include <vstgui/lib/cscrollview.h>
+#include <public.sdk/source/common/openurl.h>
 
 namespace Uberton {
 namespace Installer {
@@ -175,7 +176,7 @@ void Installer::generatePages() {
 	scrollView->getVerticalScrollbar()->setScrollerColor(CColor(130, 130, 130));
 
 	float viewPadding = 7;
-	auto licenseText = makeMainText(scrollView, "", { viewPadding, viewPadding, mainTextRect.getWidth() - 2 * viewPadding - 5, mainTextRect.getHeight() - 2 * viewPadding });
+	auto licenseText = makeMainText(scrollView, TERMS_AND_CONDITIONS, { viewPadding, viewPadding, mainTextRect.getWidth() - 2 * viewPadding - 5, mainTextRect.getHeight() - 2 * viewPadding });
 	licenseText->setAutoHeight(true);
 
 	scrollView->setContainerSize({ viewPadding, viewPadding, viewPadding + scrollView->getWidth(), licenseText->getHeight() - viewPadding });
@@ -191,6 +192,8 @@ void Installer::generatePages() {
 	makeButton(page, button1Rect, "Finish", [&](CControl* p) { finish(); });
 	makeHeader(page, "Installation finished");
 	resultLabel = makeMainTextA(page, "Installation results");
+	//makeMainText(page, "Do you want to open the user guide now?", { mainTextRect.left, mainTextRect.bottom, mainTextRect.right, mainTextRect.bottom + 30 });
+	//makeButton(page, {}, "Open Manual", [&](CControl* p) { Steinberg::openURLInDefaultApplication(""); });
 }
 
 void Installer::createFonts() {

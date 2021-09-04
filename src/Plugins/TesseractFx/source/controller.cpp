@@ -108,7 +108,11 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 
 IPlugView* PLUGIN_API Controller::createView(FIDString name) {
 	if (ConstString(name) == ViewType::kEditor) {
-		return new VST3EditorEx1(this, "Editor", "editor.uidesc");
+		auto editor = new VST3EditorEx1(this, "Editor", "editor.uidesc");
+#ifdef TesseractFx_USERGUIDE_PATH
+		editor->setUserguidePath(TesseractFx_USERGUIDE_PATH);
+#endif
+		return editor;
 	}
 	return nullptr;
 }

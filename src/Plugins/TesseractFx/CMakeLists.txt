@@ -47,3 +47,10 @@ if(SMTG_MAC)
 elseif(SMTG_WIN)
     target_sources(${target} PRIVATE resource/plugin.rc)
 endif()
+
+
+if(UBERTON_BUILD_INSTALLERS)
+    uberton_add_userguide_pdf(TARGET ${target} USERGUIDE_PDF "User_Guide/Tesseract User Guide.pdf")
+    uberton_add_factory_presets(TARGET ${target} FACTORY_PRESETS "Factory_Presets")
+    uberton_add_plugin_installer(NAME ${target})
+endif()
