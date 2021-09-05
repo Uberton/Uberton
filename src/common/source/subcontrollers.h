@@ -78,12 +78,15 @@ public:
 
 	CView* verifyView(CView* view, const UIAttributes& attributes, const IUIDescription* description) override;
 	void valueChanged(CControl* control) override;
+	void controlBeginEdit(CControl* control) override;
+	//void controlEndEdit(CControl* control) override;
 	void updateLinkState();
 
 
 protected:
 	LinkerType* linkerControl{ nullptr };
-	std::vector<LinkedControlType*> linkedControls;
+	std::vector<std::pair<LinkedControlType*, float>> linkedControls;
+	float draggedControlStartValue{ 0 };
 
 	bool link{ false };
 	VST3Editor* editor{ nullptr };

@@ -25,8 +25,10 @@ public:
 	tresult PLUGIN_API initialize(FUnknown* context) SMTG_OVERRIDE;
 	IPlugView* PLUGIN_API createView(FIDString name) SMTG_OVERRIDE;
 	tresult PLUGIN_API notify(IMessage* message) SMTG_OVERRIDE;
-	tresult PLUGIN_API performEdit(ParamID tag, ParamValue value) SMTG_OVERRIDE;
-};
+	tresult PLUGIN_API setParamNormalized(ParamID tag, ParamValue value) SMTG_OVERRIDE;
+	tresult PLUGIN_API setComponentState(IBStream* state) SMTG_OVERRIDE;
 
+	void updateResonatorLength();
+};
 }
 }

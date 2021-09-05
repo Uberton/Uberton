@@ -78,14 +78,17 @@ tresult PLUGIN_API HistoryControllerBase::setState(IBStream* stream) {
 }
 
 tresult HistoryControllerBase::beginEdit(Vst::ParamID id) {
+	//FDebugPrint("beginEdit(%i)", id);
 	if (id != invalidParamID) {
 		currentlyEditedParam = id;
 		startValue = getParamNormalized(id);
+		//FDebugPrint("beginEdit(%i)", id);
 	}
 	return Parent::beginEdit(id);
 }
 
 tresult HistoryControllerBase::endEdit(Vst::ParamID id) {
+	//FDebugPrint("endEdit(%i)", id);
 	if (id != invalidParamID && id == currentlyEditedParam && startValue != getParamNormalized(id)) {
 		
 		Action action{ id, startValue, getParamNormalized(id) };
