@@ -356,14 +356,13 @@ public:
 
 	bool openUserguide();
 
-	//void setPluginName(std::string);
 	void setUserguidePath(const std::string& userGuidePath);
 
 	static std::string getUbertonLocation();
 
 private:
-	double prescaleFactor = 0.5;
-	//std::string pluginName;
+	double prescaleFactor = 1;
 	std::string userGuidePath;
+	double actualContentScaleFactor = 1;
 };
 }

@@ -52,7 +52,7 @@ endfunction()
 
 
 function (uberton_add_plugin_installer)
-	set(args NAME)
+	set(args NAME VERSION)
 	cmake_parse_arguments(PARSE_ARGV 0 ARG "${options}" "${args}" "${list_args}")
 
 	
@@ -60,8 +60,8 @@ function (uberton_add_plugin_installer)
 	get_target_property(PLUGIN_PACKAGE_NAME ${ARG_NAME} SMTG_PLUGIN_PACKAGE_NAME)
 	get_target_property(TARGET_SOURCE       ${ARG_NAME} SMTG_PLUGIN_PACKAGE_PATH)
 
-	set(UBERTON_PLUGIN_NAME "${ARG_NAME}")
-	set(UBERTON_PLUGIN_VERSION "1.0.0")
+	set(UBERTON_PLUGIN_NAME ${ARG_NAME})
+	set(UBERTON_PLUGIN_VERSION ${ARG_VERSION})
 	set(UBERTON_PLUGIN_RELEASE_DIR "${PLUGIN_BINARY_DIR}/Release/${PLUGIN_PACKAGE_NAME}")
 
 
@@ -74,8 +74,6 @@ function (uberton_add_plugin_installer)
 	vstgui_add_executable(${target} "${${target}_sources}")
 	if(SMTG_WIN)
 		set_target_properties(${target} PROPERTIES LINK_FLAGS "/INCLUDE:wWinMain /MANIFESTUAC:\"level='requireAdministrator' uiAccess='false'\" ")
-		#target_link_options(${target} PUBLIC LINK_OPTIONS "MANIFESTUAC:\"level='requireAdministrator' uiAccess='false'\" ")
-		#add_link_options("/MANIFESTUAC:\"level='requireAdministrator' uiAccess='false'\" ")
 	endif()
 
 
@@ -85,9 +83,6 @@ function (uberton_add_plugin_installer)
 		get_target_property(UBERTON_PLUGIN_USERGUIDE_PDF ${ARG_NAME} UBERTON_USERGUIDE_PDF)
 		set(userguide_pdf "userguide_pdf")
 		uberton_add_cmrc_resource(NAME "${ARG_NAME}_${userguide_pdf}" FILE ${UBERTON_PLUGIN_USERGUIDE_PDF})
-		#cmrc_add_resource_library(rc_${userguide_pdf} ALIAS ${userguide_pdf} NAMESPACE ${userguide_pdf} ${UBERTON_PLUGIN_USERGUIDE_PDF})
-		#set_target_properties(rc_${userguide_pdf} PROPERTIES "Installer/Resource_Projects")
-		#target_link_libraries(${target} PUBLIC ${userguide_pdf})
 	endif()
 
 	get_property(UBERTON_PLUGIN_HAS_FACTORY_PRESETS TARGET ${ARG_NAME} PROPERTY UBERTON_FACTORY_PRESETS SET)

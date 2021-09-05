@@ -573,15 +573,18 @@ void LinkButton::draw(CDrawContext* context) {
 
 VST3EditorEx1::VST3EditorEx1(Steinberg::Vst::EditController* controller, UTF8StringPtr templateName, UTF8StringPtr xmlFile)
 	: VST3Editor(controller, templateName, xmlFile) {
-	setContentScaleFactor(0.5);
 }
 
 Steinberg::tresult PLUGIN_API VST3EditorEx1::setContentScaleFactor(Steinberg::IPlugViewContentScaleSupport::ScaleFactor factor) {
-	return VST3Editor::setContentScaleFactor(factor * prescaleFactor);
+	actualContentScaleFactor = factor;
+	return VST3Editor::setContentScaleFactor(factor *prescaleFactor);
 }
 
 void VST3EditorEx1::setPrescaleFactor(double f) {
+	if (prescaleFactor == f) return;
 	prescaleFactor = f;
+
+	setContentScaleFactor(actualContentScaleFactor);
 	if (getFrame()) {
 		getFrame()->setZoom(getAbsScaleFactor());
 	}
