@@ -110,6 +110,7 @@ public:
 	virtual void processAudio(ProcessData& data) = 0;
 	virtual void processParameterChanges(IParameterChanges* parameterChanges) = 0;
 	virtual void processEvents(IEventList* eventList) {}
+	virtual void beforeBypass(ProcessData& data){}; // called during process() when bypass has been activated, before the off ramp is started
 
 	void checkSilence(ProcessData& data) {
 		for (int32 i = 0; i < data.numOutputs; i++) {
@@ -197,6 +198,9 @@ public:
 		if (bypassingState != BypassingState::None) {
 			// Bypass ramping (only first bus)
 			this->processAudio(data);
+			if (bypassingState == BypassingState::RampToOff) {
+				beforeBypass(data);
+			}
 
 			float dry = 0;
 			float wet = 0;

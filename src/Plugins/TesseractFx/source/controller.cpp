@@ -72,7 +72,6 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 		addParam<LogParameter>(ParamSpecs::hcFreq, "High Cut Frequency", "HC Freq", "Hz", Precision(0));
 		addParam<LinearParameter>(ParamSpecs::hcQ, "High Cut Q", "HC Q", "");
 	}
-
 	setCurrentUnitID(inputPositionUnitId);
 	{
 		UString256 a("", 10);
@@ -116,6 +115,37 @@ IPlugView* PLUGIN_API Controller::createView(FIDString name) {
 		return editor;
 	}
 	return nullptr;
+}
+
+
+tresult PLUGIN_API Controller::notify(IMessage* message) {
+	if (FIDStringsEqual(message->getMessageID(), processorDeactivatedMsgID)) {
+		parameters.getParameter(Params::kParamVUPPM_L)->setNormalized(0);
+		parameters.getParameter(Params::kParamVUPPM_R)->setNormalized(0);
+		return kResultTrue;
+	}
+	return ControllerBase<ParamState, ImplementBypass>::notify(message);
+}
+
+tresult PLUGIN_API Controller::performEdit(ParamID tag, ParamValue value) {
+	switch (tag) {
+	case Params::kParamResonatorFreq:
+	case Params::kParamResonatorDim:
+	case Params::kParamResonatorDamp:
+
+		const double pi = 3.14159265358;
+		const double velocity = 343; 
+		int dim = ParamSpecs::resonatorDim.toDiscrete(getParamNormalized(kParamResonatorDim));
+		double w = ParamSpecs::resonatorFreq.toScaled(getParamNormalized(kParamResonatorFreq)) * 2 * pi;
+		double b = ParamSpecs::resonatorDamp.toScaled(getParamNormalized(kParamResonatorDamp));
+
+		double length =  pi * velocity* std::sqrt(dim / (w * w + b * b));
+		double lengthNormalized = ParamSpecs::resonatorLength.toNormalized(length);
+		if (getParamNormalized(Params::kParamResonatorLength) != lengthNormalized) {
+			setParamNormalized(Params::kParamResonatorLength, ParamSpecs::resonatorLength.toNormalized(length));
+		}
+	}
+	return ControllerBase<ParamState, ImplementBypass>::performEdit(tag, value);
 }
 
 FUnknown* createControllerInstance(void*) {
