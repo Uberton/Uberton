@@ -9,14 +9,15 @@
 // -----------------------------------------------------------------------------------------------------------------------------
 
 
-#include "controller.h"
+#include "ResonatorController.h"
+#include <vstmath.h>
 #include <ui.h>
 #include <subcontrollers.h>
 
 namespace Uberton {
-namespace TesseractFx {
+namespace ResonatorPlugin {
 
-tresult PLUGIN_API Controller::initialize(FUnknown* context) {
+tresult PLUGIN_API ResonatorController::initialize(FUnknown* context) {
 
 	tresult result = ControllerBase::initialize(context);
 	if (result != kResultTrue) return result;
@@ -40,8 +41,8 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 		addParam<LogParameter>(ParamSpecs::vol, "Master Volume", "MVol", "", Precision(2));
 		addParam<LinearParameter>(ParamSpecs::mix, "Mix", "Mix", "%", Precision(0));
 		addParam<DiscreteParameter>(ParamSpecs::resonatorType, "Resonator Type", "Res Type", "")->getInfo().stepCount = 1;
-		addParam<DiscreteParameter>(ParamSpecs::resonatorDim, "Resonator Dimension", "Res Dim", "D", Precision(0))->getInfo().stepCount = maxDimension - 1;
-		addParam<DiscreteParameter>(ParamSpecs::resonatorOrder, "Resonator Order", "Res Order", "", Precision(0))->getInfo().stepCount = maxOrder - 1;
+		//addParam<DiscreteParameter>(ParamSpecs::resonatorDim, "Resonator Dimension", "Res Dim", "D", Precision(0))->getInfo().stepCount = maxDimension - 1;
+		//addParam<DiscreteParameter>(ParamSpecs::resonatorOrder, "Resonator Order", "Res Order", "", Precision(0))->getInfo().stepCount = maxOrder - 1;
 
 		addParam<LogParameter>(ParamSpecs::resonatorDamp, "Resonator Dampening", "Res Damp", "", Precision(2));
 		addParam<LogParameter>(ParamSpecs::resonatorFreq, "Resonator Frequency", "Res Freq", "Hz");
@@ -103,19 +104,7 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 	return kResultTrue;
 }
 
-IPlugView* PLUGIN_API Controller::createView(FIDString name) {
-	if (ConstString(name) == ViewType::kEditor) {
-		auto editor = new VST3EditorEx1(this, "Editor", "editor.uidesc");
-		editor->setPrescaleFactor(.5);
-#ifdef TesseractFx_USERGUIDE_PATH
-		editor->setUserguidePath(TesseractFx_USERGUIDE_PATH);
-#endif
-		return editor;
-	}
-	return nullptr;
-}
-
-tresult PLUGIN_API Controller::notify(IMessage* message) {
+tresult PLUGIN_API ResonatorController::notify(IMessage* message) {
 	if (FIDStringsEqual(message->getMessageID(), processorDeactivatedMsgID)) {
 		parameters.getParameter(Params::kParamVUPPM_L)->setNormalized(0);
 		parameters.getParameter(Params::kParamVUPPM_R)->setNormalized(0);
@@ -124,40 +113,22 @@ tresult PLUGIN_API Controller::notify(IMessage* message) {
 	return ControllerBase<ParamState, ImplementBypass>::notify(message);
 }
 
-tresult PLUGIN_API Controller::setParamNormalized(ParamID tag, ParamValue value) {
+tresult PLUGIN_API ResonatorController::setParamNormalized(ParamID tag, ParamValue value) {
 	auto result = ControllerBase<ParamState, ImplementBypass>::setParamNormalized(tag, value);
 	switch (tag) {
 	case Params::kParamResonatorFreq:
 	case Params::kParamResonatorDim:
 	case Params::kParamResonatorDamp:
-		updateResonatorLength();
+		updateResonatorSizeDisplay();
 	}
 	return result;
 }
 
-tresult PLUGIN_API Controller::setComponentState(IBStream* state) {
+tresult PLUGIN_API ResonatorController::setComponentState(IBStream* state) {
 	auto result = ControllerBase<ParamState, ImplementBypass>::setComponentState(state);
-	updateResonatorLength();
+	updateResonatorSizeDisplay();
 	return result;
 }
 
-void Controller::updateResonatorLength() {
-	const double pi = 3.14159265358;
-	const double velocity = 343;
-	int dim = ParamSpecs::resonatorDim.toDiscrete(getParamNormalized(kParamResonatorDim));
-	double w = ParamSpecs::resonatorFreq.toScaled(getParamNormalized(kParamResonatorFreq)) * 2 * pi;
-	double b = ParamSpecs::resonatorDamp.toScaled(getParamNormalized(kParamResonatorDamp));
-
-	double length = pi * velocity * std::sqrt(dim / (w * w + b * b));
-	double lengthNormalized = ParamSpecs::resonatorLength.toNormalized(length);
-	if (getParamNormalized(Params::kParamResonatorLength) != lengthNormalized) {
-		setParamNormalized(Params::kParamResonatorLength, ParamSpecs::resonatorLength.toNormalized(length));
-	}
-}
-
-FUnknown* createControllerInstance(void*) {
-	return static_cast<IEditController*>(new Controller);
-}
-
-} // namespace TesseractFx
+} // namespace ResonatorPlugin
 } // namespace Uberton

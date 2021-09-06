@@ -1,6 +1,3 @@
-
-// Acutal processing implementation for the plugin processor that does the heavy audio work. 
-// 
 // -----------------------------------------------------------------------------------------------------------------------------
 // This file is part of the Überton project. Copyright (C) 2021 Überton
 //
@@ -15,13 +12,12 @@
 #pragma once
 
 #include <resonator.h>
-//#include <filter.h>
 #include <public.sdk/samples/vst/note_expression_synth/source/filter.h>
-#include "ids.h"
+#include "common_param_specs.h"
 
 
 namespace Uberton {
-namespace TesseractFx {
+namespace ResonatorPlugin {
 
 class ProcessorImplBase
 {
@@ -40,16 +36,16 @@ public:
 };
 
 
-template<typename SampleType>
+template<class Resonator, typename SampleType>
 class ProcessorImpl : public ProcessorImplBase
 {
 public:
-	constexpr static int maxOrder = maxOrder;
 	constexpr static int numChannels = 2;
 	using Type = SampleType;
 	using SpaceVec = Math::Vector<SampleType, maxDimension>;
 	using SampleVec = Math::Vector<SampleType, numChannels>;
-	using Resonator = Math::PreComputedCubeResonator<SampleType, maxDimension, maxOrder, numChannels>;
+	using InputVecArr = std::array<SpaceVec, numChannels>;
+	//using Resonator = Math::PreComputedCubeResonator<SampleType, maxDimension, maxOrder, numChannels>;
 	using Filter = Steinberg::Vst::NoteExpressionSynth::Filter;
 
 
@@ -126,15 +122,15 @@ public:
 			resonator.delta(input);
 			tmp = resonator.next();
 			for (int ch = 0; ch < numChannels; ch++) {
-				tmp[ch] = lcFilters[ch].process(tmp[ch]); 
+				tmp[ch] = lcFilters[ch].process(tmp[ch]);
 				tmp[ch] = hcFilters[ch].process(tmp[ch]);
 				tmp[ch] = volume * (tmp[ch] * wet * compensation + dry * (*(in[ch] + i)));
 				if (limit) {
 					tmp[ch] = std::tanh(tmp[ch]);
 					// the tanh approximation is a few times faster but already for higher than the lowest few
-					// resonator orders the actual processing takes much more time than the limiting. 
-					// And the approximation is softer / can exceed 1. 
-					//tmp[ch] = tanh_approx(tmp[ch]); 
+					// resonator orders the actual processing takes much more time than the limiting.
+					// And the approximation is softer / can exceed 1.
+					//tmp[ch] = tanh_approx(tmp[ch]);
 				}
 				*(out[ch] + i) = tmp[ch];
 			}
@@ -145,8 +141,8 @@ public:
 			maxSampleRSq = std::max(maxSampleRSq, tmp[1] * tmp[1]);
 		}
 		if (vuPPMLSq != maxSampleLSq || vuPPMRSq != maxSampleRSq) {
-			Processor::addOutputPoint(data, kParamVUPPM_L, std::sqrt(maxSampleLSq) * vuPPMNormalizedMultiplicatorInv);
-			Processor::addOutputPoint(data, kParamVUPPM_R, std::sqrt(maxSampleRSq) * vuPPMNormalizedMultiplicatorInv);
+			ResonatorProcessorBase1::addOutputPoint(data, kParamVUPPM_L, std::sqrt(maxSampleLSq) * vuPPMNormalizedMultiplicatorInv);
+			ResonatorProcessorBase1::addOutputPoint(data, kParamVUPPM_R, std::sqrt(maxSampleRSq) * vuPPMNormalizedMultiplicatorInv);
 			vuPPMLSq = maxSampleLSq;
 			vuPPMRSq = maxSampleRSq;
 		}
@@ -166,7 +162,7 @@ public:
 		}
 		inputPosL += inputPosSpaceCurve(paramState[Params::kParamInPosCurveL]);
 		inputPosR += inputPosSpaceCurve(paramState[Params::kParamInPosCurveR]);
-		resonator.setInputPositions({ inputPosL, inputPosR });
+		resonator.setInputPositions(InputVecArr{ inputPosL, inputPosR });
 	}
 
 	void updateResonatorOutputPosition(const ParamState& paramState) override {
@@ -178,7 +174,7 @@ public:
 		}
 		outputPosL += outputPosSpaceCurve(paramState[Params::kParamOutPosCurveL]);
 		outputPosR += outputPosSpaceCurve(paramState[Params::kParamOutPosCurveR]);
-		resonator.setOutputPositions({ outputPosL, outputPosR });
+		resonator.setOutputPositions(InputVecArr{ outputPosL, outputPosR });
 	}
 
 

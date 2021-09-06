@@ -1,5 +1,5 @@
 
-set(TesseractFx_sources
+set(Tesseract_sources
     source/controller.h
     source/ids.h
     source/processor.h
@@ -7,18 +7,18 @@ set(TesseractFx_sources
     source/factory.cpp
     source/controller.cpp
     source/processor.cpp
-    source/processorImpl.h
     resource/editor.uidesc
 )
 
 
-set(target TesseractFx)
+set(target Tesseract)
 
-smtg_add_vst3plugin(${target} ${TesseractFx_sources})
+smtg_add_vst3plugin(${target} ${Tesseract_sources})
 set_target_properties(${target} PROPERTIES ${UBERTON_FOLDER})
 
-target_link_libraries(${target} PRIVATE uberton_common)
+target_link_libraries(${target} PRIVATE resonator_plugin_common)
 target_include_directories(${target} PUBLIC "${UBERTON_SRC_PATH}/src/common/source")
+target_include_directories(${target} PUBLIC "${UBERTON_SRC_PATH}/src/resonator_plugin_common/source")
 
 smtg_add_vst3_resource(${target} "resource/editor.uidesc")
 smtg_add_vst3_resource(${target} "resource/background.png")
@@ -37,8 +37,8 @@ smtg_add_vst3_resource(${target} "resource/Knob91.png")
 smtg_add_vst3_resource(${target} "resource/ncube_projections.png")
 smtg_add_vst3_resource(${target} "resource/led.png")
 
-smtg_add_vst3_snapshot(${target} "resource/81B3f1BA02024999837809E4A0BE69D0_snapshot.png")
-smtg_add_vst3_snapshot(${target} "resource/81B3f1BA02024999837809E4A0BE69D0_snapshot_2.0x.png")
+smtg_add_vst3_snapshot(${target} "resource/7AA35F53994C4F8C808EE8DB5B254201_snapshot.png")
+smtg_add_vst3_snapshot(${target} "resource/7AA35F53994C4F8C808EE8DB5B254201_snapshot_2.0x.png")
 
 if(SMTG_MAC)
     smtg_set_bundle(${target} INFOPLIST "${CMAKE_CURRENT_LIST_DIR}/resource/Info.plist" PREPROCESS)
