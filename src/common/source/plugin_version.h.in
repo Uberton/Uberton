@@ -1,0 +1,39 @@
+
+// Plugin name and version of @PLUGIN_NAME@
+//
+// -----------------------------------------------------------------------------------------------------------------------------
+// This file is part of the Überton project. Copyright (C) 2021 Überton
+//
+// Überton is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+// Überton is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+// of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should
+// have received a copy of the GNU General Public License along with Überton. If not, see http://www.gnu.org/licenses/.
+// -----------------------------------------------------------------------------------------------------------------------------
+
+
+#pragma once
+
+#include <pluginterfaces/base/fplatform.h>
+#include <uberton.h>
+
+#define @PLUGIN_NAME_UPPER@_MAJOR_VERSION_STR "@MAJOR_VERSION@"
+#define @PLUGIN_NAME_UPPER@_MAJOR_VERSION_INT @MAJOR_VERSION@
+
+#define @PLUGIN_NAME_UPPER@_MINOR_VERSION_STR "@MINOR_VERSION@"
+#define @PLUGIN_NAME_UPPER@_MINOR_VERSION_INT @MINOR_VERSION@
+
+#define @PLUGIN_NAME_UPPER@_PATCH_NUMBER_STR "@PATCH_NUMBER@"
+#define @PLUGIN_NAME_UPPER@_PATCH_NUMBER_INT @PATCH_NUMBER@
+
+#define @PLUGIN_NAME_UPPER@_BUILD_NUMBER_STR "@BUILD_NUMBER@"
+#define @PLUGIN_NAME_UPPER@_BUILD_NUMBER_INT @BUILD_NUMBER@
+
+#define @PLUGIN_NAME_UPPER@_FULL_VERSION_STR @PLUGIN_NAME_UPPER@_MAJOR_VERSION_STR "." @PLUGIN_NAME_UPPER@_MINOR_VERSION_STR "." @PLUGIN_NAME_UPPER@_PATCH_NUMBER_STR "." @PLUGIN_NAME_UPPER@_BUILD_NUMBER_STR
+
+#define @PLUGIN_NAME_UPPER@_VERSION_STR @PLUGIN_NAME_UPPER@_MAJOR_VERSION_STR "." @PLUGIN_NAME_UPPER@_MINOR_VERSION_STR "." @PLUGIN_NAME_UPPER@_PATCH_NUMBER_STR
+
+#define @PLUGIN_NAME_UPPER@_stringPluginName "@PLUGIN_NAME@"
+
+#define @PLUGIN_NAME_UPPER@_stringOriginalFilename "@PLUGIN_NAME@.vst3"
+#define @PLUGIN_NAME_UPPER@_stringFileDescription @PLUGIN_NAME_UPPER@_stringPluginName

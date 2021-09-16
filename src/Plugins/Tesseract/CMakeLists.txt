@@ -3,7 +3,6 @@ set(Tesseract_sources
     source/controller.h
     source/ids.h
     source/processor.h
-    source/version.h
     source/factory.cpp
     source/controller.cpp
     source/processor.cpp
@@ -46,9 +45,11 @@ elseif(SMTG_WIN)
     target_sources(${target} PRIVATE resource/plugin.rc)
 endif()
 
+# Setting version for installer and creating version file
+uberton_set_plugin_version(TARGET ${target} VERSION "1.0.1" BUILD 1)
 
 if(UBERTON_BUILD_INSTALLERS)
-    uberton_add_userguide_pdf(TARGET ${target} USERGUIDE_PDF "User_Guide/Tesseract User Guide.pdf")
-    uberton_add_factory_presets(TARGET ${target} FACTORY_PRESETS "Factory_Presets")
-    uberton_add_plugin_installer(NAME ${target} VERSION "1.0.1")
+    uberton_set_userguide_pdf(TARGET ${target} USERGUIDE_PDF "User_Guide/Tesseract User Guide.pdf")
+    uberton_set_factory_presets(TARGET ${target} FACTORY_PRESETS "Factory_Presets")
+    uberton_set_plugin_installer(NAME ${target})
 endif()

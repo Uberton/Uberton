@@ -28,8 +28,8 @@ smtg_add_vst3_resource(${target} "resource/background.png")
 smtg_add_vst3_resource(${target} "resource/knobbg.png")
 
 
-uberton_add_userguide_pdf(TARGET ${target} USERGUIDE_PDF "User_Guide/Manual.pdf")
-uberton_add_factory_presets(TARGET ${target} FACTORY_PRESETS "Factory_Presets")
+uberton_set_userguide_pdf(TARGET ${target} USERGUIDE_PDF "User_Guide/Manual.pdf")
+uberton_set_factory_presets(TARGET ${target} FACTORY_PRESETS "Factory_Presets")
 
 if(SMTG_MAC)
     smtg_set_bundle(${target} INFOPLIST "${CMAKE_CURRENT_LIST_DIR}/resource/Info.plist" PREPROCESS)
@@ -38,5 +38,5 @@ elseif(SMTG_WIN)
 endif()
 
 if(UBERTON_BUILD_INSTALLERS)
-    uberton_add_plugin_installer(NAME ${target})
+    uberton_set_plugin_installer(NAME ${target})
 endif()

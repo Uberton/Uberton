@@ -48,7 +48,7 @@ endif()
 
 
 if(UBERTON_BUILD_INSTALLERS)
-    uberton_add_userguide_pdf(TARGET ${target} USERGUIDE_PDF "User_Guide/Tesseract User Guide.pdf")
-    uberton_add_factory_presets(TARGET ${target} FACTORY_PRESETS "Factory_Presets")
-    uberton_add_plugin_installer(NAME ${target} VERSION "1.0.1")
+    uberton_set_userguide_pdf(TARGET ${target} USERGUIDE_PDF "User_Guide/Tesseract User Guide.pdf")
+    uberton_set_factory_presets(TARGET ${target} FACTORY_PRESETS "Factory_Presets")
+    uberton_set_plugin_installer(NAME ${target} VERSION "1.0.1")
 endif()

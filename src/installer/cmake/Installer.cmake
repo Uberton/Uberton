@@ -1,6 +1,6 @@
 include(cmake/CMakeRC.cmake)
 
-
+# Add a single resource with the cmrc library
 function(uberton_add_cmrc_resource)
 	set(args NAME FILE WHENCE)
 	cmake_parse_arguments(PARSE_ARGV 0 ARG "${options}" "${args}" "${list_args}")
@@ -16,21 +16,7 @@ function(uberton_add_cmrc_resource)
 endfunction()
 
 
-function(uberton_add_cmrc_resource)
-	set(args NAME FILE WHENCE)
-	cmake_parse_arguments(PARSE_ARGV 0 ARG "${options}" "${args}" "${list_args}")
-	message(STATUS "adding file to resources from folder \"${ARG_FOLDER}\": ${ARG_FILE}")
-	
-	if(DEFINED ARG_WHENCE)
-		set(whence_arg WHENCE "${ARG_WHENCE}")
-	endif()
-
-	cmrc_add_resource_library(rc_${ARG_NAME} ALIAS ${ARG_NAME} NAMESPACE ${ARG_NAME} ${whence_arg} ${ARG_FILE})
-	target_link_libraries(${target} PUBLIC ${ARG_NAME})
-	set_target_properties(rc_${ARG_NAME} PROPERTIES ${UBERTON_INSTALLER_RESOURCE_FOLDER})
-endfunction()
-
-
+# Add a folder recursively with the cmrc library
 function(uberton_add_cmrc_resource_folder)
 	set(args NAME FOLDER WHENCE)
 	cmake_parse_arguments(PARSE_ARGV 0 ARG "${options}" "${args}" "${list_args}")
@@ -51,7 +37,14 @@ function(uberton_add_cmrc_resource_folder)
 endfunction()
 
 
-function (uberton_add_plugin_installer)
+# Add an installer project to the specified plugin. 
+# - The version is optional and only necessary if the plugin target has not version set up via 
+#   uberton_set_plugin_version().
+# - If the factory presets folder and a user guide pdf is set for the target via 
+#	uberton_set_factory_presets() and uberton_set_userguide_pdf(), then they will be added to the 
+#   binary executable with the CMRC library which creates extra projects in the Installers/Resource Projects
+#   folder. 
+function (uberton_set_plugin_installer)
 	set(args NAME VERSION)
 	cmake_parse_arguments(PARSE_ARGV 0 ARG "${options}" "${args}" "${list_args}")
 
@@ -59,9 +52,14 @@ function (uberton_add_plugin_installer)
 	get_target_property(PLUGIN_BINARY_DIR   ${ARG_NAME} SMTG_PLUGIN_BINARY_DIR)
 	get_target_property(PLUGIN_PACKAGE_NAME ${ARG_NAME} SMTG_PLUGIN_PACKAGE_NAME)
 	get_target_property(TARGET_SOURCE       ${ARG_NAME} SMTG_PLUGIN_PACKAGE_PATH)
+	get_target_property(PLUGIN_VERSION      ${ARG_NAME} UBERTON_PLUGIN_VERSION)
 
 	set(UBERTON_PLUGIN_NAME ${ARG_NAME})
-	set(UBERTON_PLUGIN_VERSION ${ARG_VERSION})
+	if(${ARG_VERSION})
+		set(UBERTON_PLUGIN_VERSION ${ARG_VERSION})
+	else()
+		set(UBERTON_PLUGIN_VERSION ${PLUGIN_VERSION})
+	endif()
 	set(UBERTON_PLUGIN_RELEASE_DIR "${PLUGIN_BINARY_DIR}/Release/${PLUGIN_PACKAGE_NAME}")
 
 

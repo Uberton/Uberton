@@ -138,9 +138,9 @@ public:
 	}
 
 	T time() const { return time; }
-	constexpr int dimension() const { return d; }
-	constexpr int maxOrder() const { return N; }
-	constexpr int numChannels() const { return channels; }
+	static constexpr int dimension() { return d; }
+	static constexpr int maxOrder() { return N; }
+	static constexpr int numChannels() { return channels; }
 
 protected:
 	void update() {
@@ -602,6 +602,151 @@ class SphereResonator : public ResonatorBase<SphereEigenValues<T, N>, T, 3, N, c
 {
 };
 
+
+
+// ----         ----------------------------------------------------
+// ---- NSphere ----------------------------------------------------
+// ----         ----------------------------------------------------
+
+template<class T, int maxDim, int N>
+class NSphereEigenValues
+{
+public:
+	using real = T;
+	using scalar = std::complex<real>;
+	using SpaceVec = Uberton::Math::Vector<T, 1>;
+
+	NSphereEigenValues() {
+		computeCombinations(dim);
+	}
+
+	void setDim(int newDim) {
+		if (newDim == dim) return;
+		if (newDim < 1)
+			dim = 1;
+		else if (newDim > maxDim)
+			dim = maxDim;
+		else
+			dim = newDim;
+		computeCombinations(dim);
+	}
+
+	int getDim() const { return dim; }
+
+	scalar eigenValueSqrt(int i) const {
+		int l = combinations[i].eigenValue;
+		return std::sqrt(l * (l + dim - 2));
+	}
+
+	scalar eigenFunction(int i, const SpaceVec& x) const {
+		using namespace std;
+
+		constexpr real two{ 2 };
+		// https://en.wikipedia.org/wiki/Spherical_harmonics#Higher_dimensions
+		real factor = r_twopi_sqrt;
+		int m = combinations[i].coeffs[0];
+		real r = x[0];
+		scalar phase = cos(m * x[0]) + scalar(0, 1) * sin(m * x[1]);
+		scalar product{ 0 };
+		for (int j = 2; j <= dim - 1; i++) {
+			int L = combinations[i].coeffs[j - 1];
+			int l = combinations[i].coeffs[j - 2];
+			real theta = x[j];
+			real jj = (j - real(2)) / real(2);
+			product *= sqrt((real(2) * L + j - 1 * factorial(L + l + j - real(2))) / (real(2) * factorial(L - l)));
+			product *= pow(sin(theta), -jj);
+			if (j % 2 == 0) { // if j is even, then jj is an integer -> we can use integer associated legendre
+				int jj = j / 2 + 1;
+				product *= VSTMath::assoc_legendre(-(l + jj), L + jj, cos(theta));
+			}
+			else {
+				product *= generalized_assoc_legendre(-(l + jj), L + jj, cos(theta));
+			}
+		}
+
+		real ln = combinations[i].coeffs[dim - 2];
+		return std::pow(r, ln) * factor * phase * product;
+	}
+
+	T generalized_assoc_legendre(T nu, T mu, T x) {
+		// https://en.wikipedia.org/wiki/Associated_Legendre_polynomials#Generalization_via_hypergeometric_functions
+		return T(1) / std::tgamma(T(1) - mu) * std::pow((T(1) + x) / (T(1) - x), mu / T(2)) * hypergeometric2(-nu, nu + T(1), T(1) - mu, (T(1) - x) / T(2));
+	}
+
+	T hypergeometric(T a, T b, T c, T x) {
+		// http://www.cplusplus.com/forum/general/255896/
+		// Restrictions: |x| < 1, c no negative integer and not zero
+		T term = a * b * x / c;
+		T value = T(1) + term;
+		for (int i = 0; i < 20; i++) {
+			a++, b++, c++;
+			term *= a * b * x / c / (i + 2);
+			value += term;
+		}
+		return value;
+	}
+
+	T hypergeometric2(T a, T b, T c, T x) {
+		// http://www.cplusplus.com/forum/general/255896/
+		// Restrictions: |x| < 1, c no negative integer and not zero
+		const double tolerance = 1.0e-7;
+		double term = a * b * x / c;
+		double value = 1.0 + term;
+		int n = 1;
+
+		while (abs(term) > tolerance) {
+			a++, b++, c++, n++;
+			term *= a * b * x / c / n;
+			value += term;
+		}
+		return value;
+	}
+	void setDesiredBaseFrequency(real f, real b, real c) {
+		const real w = 2 * pi * f;
+		baseFreqCoeff = pi * c / std::sqrt(w * w + b * b);
+	}
+
+private:
+	void computeCombinations(int dim) {
+		Combination current{};
+		int index = 0; // index that points to one of the quantum numbers of one combination
+		const int lastIndex = dim - 2;
+		int combinationCount = 0;
+		while (combinationCount < N) {
+			if (index != lastIndex && current[index] >= current[index + 1]) {
+				index++;
+				continue;
+			}
+
+			combinations[combinationCount++] = current;
+			current[index]++;
+			if (index != 0) {
+				for (int i = 1; i < index; i++)
+					current[i] = 0;
+				current[0] = -current[1]; // instead set to zero to omit all combinations with negative l_1
+				index--;
+			}
+		}
+	}
+	real baseFreqCoeff{ 1 };
+	int dim{ maxDim };
+	static constexpr real pi = Uberton::Math::pi<real>();
+	static const real r_twopi_sqrt = std::sqrt(r_twopi<real>());
+	static constexpr int numQuantumNumbers = maxDim - 1;
+	struct Combination
+	{
+		std::array<int, numQuantumNumbers> coeffs;
+		T eigenValue;
+	};
+
+	std::array<Combination, N> combinations;
+};
+
+
+template<class T, int maxDim, int N, int channels>
+class NSphereResonator : public ResonatorBase<NSphereEigenValues<T, maxDim, N>, T, 1, N, channels>
+{
+};
 
 
 
