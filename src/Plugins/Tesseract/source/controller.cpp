@@ -38,8 +38,8 @@ IPlugView* PLUGIN_API Controller::createView(FIDString name) {
 	if (ConstString(name) == ViewType::kEditor) {
 		auto editor = new VST3EditorEx1(this, "Editor", "editor.uidesc");
 		editor->setPrescaleFactor(.5);
-#ifdef TesseractFx_USERGUIDE_PATH
-		editor->setUserguidePath(TesseractFx_USERGUIDE_PATH);
+#ifdef Tesseract_USERGUIDE_PATH
+		editor->setUserguidePath(Tesseract_USERGUIDE_PATH);
 #endif
 		return editor;
 	}

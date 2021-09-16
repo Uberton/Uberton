@@ -19,7 +19,7 @@ namespace ResonatorPlugin {
 namespace Tesseract {
 
 
-class Processor : public ResonatorProcessorBase1
+class Processor : public ResonatorProcessorBase
 {
 public:
 	Processor();

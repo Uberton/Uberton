@@ -52,12 +52,12 @@ tresult PLUGIN_API Processor::setActive(TBool state) {
 
 void Processor::recomputeInexpensiveParameters() {
 	resonatorOrder = toDiscrete(ParamSpecs::resonatorOrder);
-	ResonatorProcessorBase1::recomputeInexpensiveParameters();
+	ResonatorProcessorBase::recomputeInexpensiveParameters();
 }
 
 void Processor::updateResonatorDimension() {
 	resonatorDim = toDiscrete(ParamSpecs::resonatorDim);
-	ResonatorProcessorBase1::updateResonatorDimension();
+	ResonatorProcessorBase::updateResonatorDimension();
 }
 
 FUnknown* createProcessorInstance(void*) {

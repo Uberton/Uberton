@@ -13,7 +13,7 @@
 #include <viewcreator_globals.h>
 
 #include "ids.h"
-#include "version.h"
+#include <plugin_version.h>
 
 #define stringSubCategory "Fx|Multidimensional" // Subcategory for this plug-in (to be changed if needed, see PlugType in ivstaudioprocessor.h)
 

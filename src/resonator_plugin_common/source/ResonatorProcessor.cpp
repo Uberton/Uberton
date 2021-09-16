@@ -16,8 +16,7 @@
 namespace Uberton {
 namespace ResonatorPlugin {
 
-ResonatorProcessorBase1::ResonatorProcessorBase1() {
-	//setControllerClass(ControllerUID);
+ResonatorProcessorBase::ResonatorProcessorBase() {
 
 	auto initValue = [&](const auto& p) {
 		paramState[p.id] = p.toNormalized(p.initialValue);
@@ -53,7 +52,7 @@ ResonatorProcessorBase1::ResonatorProcessorBase1() {
 	}
 }
 
-tresult PLUGIN_API ResonatorProcessorBase1::initialize(FUnknown* context) {
+tresult PLUGIN_API ResonatorProcessorBase::initialize(FUnknown* context) {
 	tresult result = ProcessorBase::initialize(context);
 	if (result != kResultTrue)
 		return kResultFalse;
@@ -64,7 +63,7 @@ tresult PLUGIN_API ResonatorProcessorBase1::initialize(FUnknown* context) {
 	return kResultTrue;
 }
 
-tresult PLUGIN_API ResonatorProcessorBase1::setBusArrangements(SpeakerArrangement* inputs, int32 numIns, SpeakerArrangement* outputs, int32 numOuts) {
+tresult PLUGIN_API ResonatorProcessorBase::setBusArrangements(SpeakerArrangement* inputs, int32 numIns, SpeakerArrangement* outputs, int32 numOuts) {
 	// Only support stereo in/stereo out
 	if (numIns == 1 && numOuts == 1 && inputs[0] == SpeakerArr::kStereo && inputs[0] == outputs[0]) {
 		return ProcessorBase::setBusArrangements(inputs, numIns, outputs, numOuts);
@@ -72,13 +71,13 @@ tresult PLUGIN_API ResonatorProcessorBase1::setBusArrangements(SpeakerArrangemen
 	return kResultFalse;
 }
 
-tresult PLUGIN_API ResonatorProcessorBase1::canProcessSampleSize(int32 symbolicSampleSize) {
+tresult PLUGIN_API ResonatorProcessorBase::canProcessSampleSize(int32 symbolicSampleSize) {
 	if (symbolicSampleSize == kSample32) return kResultTrue;
 	if (symbolicSampleSize == kSample64) return kResultTrue;
 	return kResultFalse;
 }
 
-void ResonatorProcessorBase1::processAudio(ProcessData& data) {
+void ResonatorProcessorBase::processAudio(ProcessData& data) {
 	//using std::chrono::steady_clock;
 	//auto t0 = steady_clock::now();
 
@@ -108,7 +107,7 @@ void ResonatorProcessorBase1::processAudio(ProcessData& data) {
 	//addOutputPoint(data, kParamProcessTime, (duration.count() / data.numSamples) * 1000.0 / 10.0);
 }
 
-void ResonatorProcessorBase1::processParameterChanges(IParameterChanges* inputParameterChanges) {
+void ResonatorProcessorBase::processParameterChanges(IParameterChanges* inputParameterChanges) {
 	Algo::foreach (inputParameterChanges, [&](IParamValueQueue& paramQueue) {
 		// Just process the latest parameter change and apply it immediately (ignoring sampleOffset)
 		// For sample-accurate automation this needs to be more precise.
@@ -135,18 +134,18 @@ void ResonatorProcessorBase1::processParameterChanges(IParameterChanges* inputPa
 	recomputeInexpensiveParameters();
 }
 
-void ResonatorProcessorBase1::beforeBypass(ProcessData& data) {
+void ResonatorProcessorBase::beforeBypass(ProcessData& data) {
 	// add "last" data point, before processAudio() is not called anymore
-	ResonatorProcessorBase1::addOutputPoint(data, kParamVUPPM_L, 0);
-	ResonatorProcessorBase1::addOutputPoint(data, kParamVUPPM_R, 0);
+	ResonatorProcessorBase::addOutputPoint(data, kParamVUPPM_L, 0);
+	ResonatorProcessorBase::addOutputPoint(data, kParamVUPPM_R, 0);
 }
 
-void ResonatorProcessorBase1::recomputeParameters() {
+void ResonatorProcessorBase::recomputeParameters() {
 	recomputeInexpensiveParameters();
 	updateResonatorDimension(); // also updates positions!
 }
 
-void ResonatorProcessorBase1::recomputeInexpensiveParameters() {
+void ResonatorProcessorBase::recomputeInexpensiveParameters() {
 	volume = toScaled(ParamSpecs::vol);
 	mix = paramState[Params::kParamMix];
 	//resonatorOrder = toDiscrete(ParamSpecs::resonatorOrder);
@@ -166,7 +165,7 @@ void ResonatorProcessorBase1::recomputeInexpensiveParameters() {
 	}
 }
 
-void ResonatorProcessorBase1::updateResonatorDimension() {
+void ResonatorProcessorBase::updateResonatorDimension() {
 	if (processorImpl) {
 		processorImpl->setResonatorDim(resonatorDim);
 		// Need to reevaluate all eigenfunctions

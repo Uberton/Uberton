@@ -10,8 +10,6 @@
 
 
 #include "ResonatorController.h"
-#include <vstmath.h>
-#include <ui.h>
 #include <subcontrollers.h>
 
 namespace Uberton {

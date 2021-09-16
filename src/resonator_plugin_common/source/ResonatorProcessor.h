@@ -19,10 +19,10 @@ namespace Uberton {
 namespace ResonatorPlugin {
 
 
-class ResonatorProcessorBase1 : public ProcessorBase<ParamState, ImplementBypass>
+class ResonatorProcessorBase : public ProcessorBase<ParamState, ImplementBypass>
 {
 public:
-	ResonatorProcessorBase1();
+	ResonatorProcessorBase();
 
 	tresult PLUGIN_API initialize(FUnknown* context) SMTG_OVERRIDE;
 	tresult PLUGIN_API setBusArrangements(SpeakerArrangement* inputs, int32 numIns, SpeakerArrangement* outputs, int32 numOuts) SMTG_OVERRIDE;

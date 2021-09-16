@@ -1,5 +1,5 @@
 
-// Plugin ids (for processor, controller and parameters) for Tesseract
+// Plugin ids and additional parameters for Tesseract
 //
 // -----------------------------------------------------------------------------------------------------------------------------
 // This file is part of the Überton project. Copyright (C) 2021 Überton
