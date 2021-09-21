@@ -85,14 +85,14 @@ public:
 	/// The actual order to which the system response will be computed as well as excited
 	/// can be set lower than N (the max order)
 	void setOrder(int order) {
-		this->order = std::max(1, std::min(N, order));
+		this->nOrder = std::max(1, std::min(N, order));
 	}
 
 
 	/// Excite the system at current input positions with a peak of given amounts
 	void delta(const array<real, channels>& amount) {
 		for (int ch = 0; ch < channels; ++ch) {
-			for (int i = 0; i < order; ++i) {
+			for (int i = 0; i < nOrder; ++i) {
 				amplitudes[i] += amount[ch] * inputPosEF[ch][i];
 			}
 		}
@@ -103,7 +103,7 @@ public:
 		evolve();
 		array<real, channels> results{ 0 };
 		for (int ch = 0; ch < channels; ++ch) {
-			for (int i = 0; i < order; ++i) {
+			for (int i = 0; i < nOrder; ++i) {
 				results[ch] += (amplitudes[i] * outputPosEF[ch][i]).real();
 			}
 		}
@@ -137,8 +137,16 @@ public:
 		update();
 	}
 
+	/// Clear the system, setting all amplitudes to zero
+	void clear() {
+		for (int i = 0; i < N; ++i) {
+			amplitudes[i] = 0;
+		}
+	}
+
 	T time() const { return time; }
-	static constexpr int dimension() { return d; }
+	int order() { return nOrder; }
+	static constexpr int maxDimension() { return d; }
 	static constexpr int maxOrder() { return N; }
 	static constexpr int numChannels() { return channels; }
 
@@ -152,7 +160,7 @@ protected:
 
 	void evolve() {
 		absoluteTime += deltaT;
-		for (int i = 0; i < order; i++) {
+		for (int i = 0; i < nOrder; i++) {
 			amplitudes[i] *= timeFunctions[i]; // precomputing these is up to 20 times faster
 		}
 	}
@@ -176,7 +184,7 @@ public:
 	array<array<scalar, N>, channels> outputPosEF{};
 	array<array<scalar, N>, channels> inputPosEF{};
 
-	int order{ N };
+	int nOrder{ N };
 };
 
 
@@ -240,7 +248,6 @@ public:
 		}
 	}
 
-protected:
 	scalar eigenValueSqrt(int i) const {
 		return ksAndEV[i][d] * pi / length;
 	}
@@ -294,8 +301,7 @@ private:
 		constexpr real pi = Uberton::Math::pi<real>();
 		if (dim % 2 == 0) { // V = π^(½d)·r^d/(½d)!  ⇔  r = ᵈ√[V·(½d)! / π^(½d)]
 			return static_cast<real>(std::pow(volume * Uberton::Math::factorial(dim / 2) / std::pow(pi, dim / 2), real{ 1 } / dim));
-		}
-		else { // V = 2[½(d-1)]!·(4π)^[½(d-1)]·rᵈ/d!  ⇔  r = ᵈ√[V·d! / { 2[½(d-1)]!·(4π)^[½(d-1)] }]
+		} else { // V = 2[½(d-1)]!·(4π)^[½(d-1)]·rᵈ/d!  ⇔  r = ᵈ√[V·d! / { 2[½(d-1)]!·(4π)^[½(d-1)] }]
 			return static_cast<real>(std::pow(numEigenvalues * Uberton::Math::factorial(dim) / (2 * Uberton::Math::factorial((dim - 1) / 2) * std::pow(4 * pi, (dim - 1) / 2)), real{ 1 } / dim));
 		}
 	}
@@ -330,8 +336,7 @@ std::vector<std::vector<T>> computeFirstEigenvalues(int dim, int numEigenvalues)
 		constexpr real pi = Uberton::Math::pi<real>();
 		if (dim % 2 == 0) { // V = π^(½d)·r^d/(½d)!  ⇔  r = ᵈ√[V·(½d)! / π^(½d)]
 			return std::pow(volume * Uberton::Math::factorial(dim / 2) / std::pow(pi, dim / 2), real{ 1 } / dim);
-		}
-		else { // V = 2[½(d-1)]!·(4π)^[½(d-1)]·rᵈ/d!  ⇔  r = ᵈ√[V·d! / { 2[½(d-1)]!·(4π)^[½(d-1)] }]
+		} else { // V = 2[½(d-1)]!·(4π)^[½(d-1)]·rᵈ/d!  ⇔  r = ᵈ√[V·d! / { 2[½(d-1)]!·(4π)^[½(d-1)] }]
 			return std::pow(numEigenvalues * Uberton::Math::factorial(dim) / (2 * Uberton::Math::factorial((dim - 1) / 2) * std::pow(4 * pi, (dim - 1) / 2)), real{ 1 } / dim);
 		}
 	};
@@ -340,8 +345,7 @@ std::vector<std::vector<T>> computeFirstEigenvalues(int dim, int numEigenvalues)
 	int add = 0;
 	if (dim == 1) {
 		add = numEigenvalues;
-	}
-	else if (dim <= 3) {
+	} else if (dim <= 3) {
 		//add = 3;
 	}
 	//else if (dim <= 5) {
@@ -505,7 +509,6 @@ public:
 	int getDim() const { return dim; }
 	real getLength() const { return length; }
 
-protected:
 	scalar eigenValueSqrt(int i) const {
 		return storage.matrices[dim - 1].data[i].eigenvalue * pi<real>() / length;
 	}
@@ -550,27 +553,25 @@ public:
 	using scalar = std::complex<real>;
 	using SpaceVec = Uberton::Math::Vector<real, 3>;
 
-protected:
 	scalar eigenValueSqrt(int i) const {
 		int l = linearIndex(i).first;
 		return std::sqrt(l * (l + 1)) * baseFreqCoeff;
 	}
 
-
 	scalar eigenFunction(int i, const SpaceVec& x) const {
 		auto lm = linearIndex(i);
 		int l = lm.first;
-		int m = lm.second;
+		int m = -lm.second;
 
 		// spherical coordinates
 		real r = x[0];
-		real theta = pi * x[1];
-		real phi = 2 * pi * x[2];
+		real phi = /* pi **/ x[1];
+		real theta = /*2 * pi **/ x[2];
 
 		real legend = static_cast<T>(Uberton::Math::assoc_legendre(l, m, std::cos(theta)));
-
+		//std::cout << "l1 " << legend << " " << l << " " << m << " " << theta << "\n";
 		// return only real part
-		return std::pow(r, l) / Uberton::Math::r_twopi<real>() * normalizer(l, m) * legend * std::cos(m * phi);
+		return std::pow(r, l) * r_twopi_sqrt * normalizer(l, m) * legend * std::cos(m * phi);
 	}
 
 	void setDesiredBaseFrequency(real f, real b, real c) {
@@ -589,11 +590,12 @@ private:
 	}
 
 	real normalizer(int l, int m) const {
-		return (std::sqrt((2 * l + 1) / 2 * Uberton::Math::factorial(l - m) / Uberton::Math::factorial(l + m)));
+		return (std::sqrt((real(2) * l + real(1)) / real(2) * Uberton::Math::factorial(l - m) / Uberton::Math::factorial(l + m)));
 	}
 
 	real baseFreqCoeff{ 1 };
 	static constexpr real pi = Uberton::Math::pi<real>();
+	const real r_twopi_sqrt = std::sqrt(r_twopi<real>());
 };
 
 
@@ -614,7 +616,7 @@ class NSphereEigenValues
 public:
 	using real = T;
 	using scalar = std::complex<real>;
-	using SpaceVec = Uberton::Math::Vector<T, 1>;
+	using SpaceVec = Uberton::Math::Vector<T, maxDim>;
 
 	NSphereEigenValues() {
 		computeCombinations(dim);
@@ -622,7 +624,7 @@ public:
 
 	void setDim(int newDim) {
 		if (newDim == dim) return;
-		if (newDim < 1)
+		if (newDim < 3)
 			dim = 1;
 		else if (newDim > maxDim)
 			dim = maxDim;
@@ -634,73 +636,54 @@ public:
 	int getDim() const { return dim; }
 
 	scalar eigenValueSqrt(int i) const {
-		int l = combinations[i].eigenValue;
-		return std::sqrt(l * (l + dim - 2));
+		float eigenvalue = combinations[i].eigenValue;
+		return eigenvalue;
+		//return std::sqrt(l * (l + dim - 2));
 	}
-
+	// It's worth to use lookup factorial and gamma_plus_half.
 	scalar eigenFunction(int i, const SpaceVec& x) const {
+		// https://en.wikipedia.org/wiki/Spherical_harmonics#Higher_dimensions
 		using namespace std;
 
-		constexpr real two{ 2 };
-		// https://en.wikipedia.org/wiki/Spherical_harmonics#Higher_dimensions
+		const auto& combination = combinations[i];
+
 		real factor = r_twopi_sqrt;
-		int m = combinations[i].coeffs[0];
 		real r = x[0];
-		scalar phase = cos(m * x[0]) + scalar(0, 1) * sin(m * x[1]);
-		scalar product{ 0 };
-		for (int j = 2; j <= dim - 1; i++) {
-			int L = combinations[i].coeffs[j - 1];
-			int l = combinations[i].coeffs[j - 2];
-			real theta = x[j];
-			real jj = (j - real(2)) / real(2);
-			product *= sqrt((real(2) * L + j - 1 * factorial(L + l + j - real(2))) / (real(2) * factorial(L - l)));
-			product *= pow(sin(theta), -jj);
+		real phase = combination.coeffs[0] * x[1];
+		scalar phase_factor = cos(phase) + scalar(0, 1) * sin(phase);
+		scalar product{ 1 };
+		scalar p3;
+		for (int j = 2; j <= dim - 1; j++) {
+			int L = combination.coeffs[j - 1]; // l
+			int l = combination.coeffs[j - 2]; // m
+			real theta_j = x[j];
+
+			int jj_i = static_cast<int>(std::floor(j * real(0.5))) - 1; // j / 2 - 1;
+			real jj = (j - real(2)) * real(0.5);
+
+			scalar p1 = sqrt(((real(2) * L + j - 1) * lookupFactorial(L + l + j - real(2))) / (real(2) * lookupFactorial(L - l)));
+			scalar p2 = j == 2 ? 1 : pow(sin(theta_j), -jj);
+
 			if (j % 2 == 0) { // if j is even, then jj is an integer -> we can use integer associated legendre
-				int jj = j / 2 + 1;
-				product *= VSTMath::assoc_legendre(-(l + jj), L + jj, cos(theta));
-			}
-			else {
-				product *= generalized_assoc_legendre(-(l + jj), L + jj, cos(theta));
-			}
-		}
+				p3 = Uberton::Math::assoc_legendre<real>(L + jj_i, -(l + jj_i), cos(theta_j));
+				//std::cout << "l2 " << p3 << " " << L << " " << -l << " " << theta_j << "\n";
+			} else {
+				//product *= Uberton::Math::generalized_assoc_legendre<real>(-(l + jj), L + jj, cos(theta_j));
 
+				// better use fast version:
+				//	let l,L=0, j=3 ⇒ jj = 1/2, jj_i = 0
+				//	compute p(-1/2, 1/2)
+				//	p(-jj_i - 1, jj_i) = p_plus_1/2(-1,0) = p(-.5, .5)
+				p3 = Uberton::Math::generalized_assoc_legendre_plus_onehalf<real>(L + jj_i, -(l + jj_i + 1), cos(theta_j));
+			}
+			product *= p1 * p2 * p3;
+
+			// (j-1)/2 = j/2 - 1 = [j/2] - 1 + 1/2
+		}
 		real ln = combinations[i].coeffs[dim - 2];
-		return std::pow(r, ln) * factor * phase * product;
+		return (std::pow(r, ln) * factor * phase_factor * product).real();
 	}
 
-	T generalized_assoc_legendre(T nu, T mu, T x) {
-		// https://en.wikipedia.org/wiki/Associated_Legendre_polynomials#Generalization_via_hypergeometric_functions
-		return T(1) / std::tgamma(T(1) - mu) * std::pow((T(1) + x) / (T(1) - x), mu / T(2)) * hypergeometric2(-nu, nu + T(1), T(1) - mu, (T(1) - x) / T(2));
-	}
-
-	T hypergeometric(T a, T b, T c, T x) {
-		// http://www.cplusplus.com/forum/general/255896/
-		// Restrictions: |x| < 1, c no negative integer and not zero
-		T term = a * b * x / c;
-		T value = T(1) + term;
-		for (int i = 0; i < 20; i++) {
-			a++, b++, c++;
-			term *= a * b * x / c / (i + 2);
-			value += term;
-		}
-		return value;
-	}
-
-	T hypergeometric2(T a, T b, T c, T x) {
-		// http://www.cplusplus.com/forum/general/255896/
-		// Restrictions: |x| < 1, c no negative integer and not zero
-		const double tolerance = 1.0e-7;
-		double term = a * b * x / c;
-		double value = 1.0 + term;
-		int n = 1;
-
-		while (abs(term) > tolerance) {
-			a++, b++, c++, n++;
-			term *= a * b * x / c / n;
-			value += term;
-		}
-		return value;
-	}
 	void setDesiredBaseFrequency(real f, real b, real c) {
 		const real w = 2 * pi * f;
 		baseFreqCoeff = pi * c / std::sqrt(w * w + b * b);
@@ -713,25 +696,37 @@ private:
 		const int lastIndex = dim - 2;
 		int combinationCount = 0;
 		while (combinationCount < N) {
-			if (index != lastIndex && current[index] >= current[index + 1]) {
+			if (index != lastIndex && current.coeffs[index] >= current.coeffs[index + 1]) {
 				index++;
 				continue;
 			}
 
 			combinations[combinationCount++] = current;
-			current[index]++;
+			current.coeffs[index]++;
+			if (index == lastIndex) {
+				current.eigenValue = std::sqrt(current.coeffs[index] * (current.coeffs[index] + dim - 2));
+			}
 			if (index != 0) {
 				for (int i = 1; i < index; i++)
-					current[i] = 0;
-				current[0] = -current[1]; // instead set to zero to omit all combinations with negative l_1
+					current.coeffs[i] = 0;
+				current.coeffs[0] = -current.coeffs[1]; // instead set to zero to omit all combinations with negative l_1
 				index--;
 			}
+		}
+		//printCombinations();
+	}
+	void printCombinations() const {
+		for (const auto& combination : combinations) {
+			for (int t : combination.coeffs) {
+				std::cout << t << ' ';
+			}
+			std::cout << combination.eigenValue << '\n';
 		}
 	}
 	real baseFreqCoeff{ 1 };
 	int dim{ maxDim };
 	static constexpr real pi = Uberton::Math::pi<real>();
-	static const real r_twopi_sqrt = std::sqrt(r_twopi<real>());
+	const real r_twopi_sqrt = std::sqrt(r_twopi<real>());
 	static constexpr int numQuantumNumbers = maxDim - 1;
 	struct Combination
 	{
@@ -744,7 +739,7 @@ private:
 
 
 template<class T, int maxDim, int N, int channels>
-class NSphereResonator : public ResonatorBase<NSphereEigenValues<T, maxDim, N>, T, 1, N, channels>
+class NSphereResonator : public ResonatorBase<NSphereEigenValues<T, maxDim, N>, T, maxDim, N, channels>
 {
 };
 
