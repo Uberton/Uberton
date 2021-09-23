@@ -31,7 +31,6 @@ public:
 	virtual void setHCFilterFreqAndQ(double freq, double q) = 0;
 	virtual void updateResonatorInputPosition(const ParamState& paramState) = 0;
 	virtual void updateResonatorOutputPosition(const ParamState& paramState) = 0;
-	virtual double getResonatorLength() const = 0;
 	virtual ~ProcessorImplBase() {}
 };
 
@@ -120,8 +119,8 @@ public:
 		SampleType maxSampleLSq = 0;
 		SampleType maxSampleRSq = 0;
 		// higher resonator orders result in considerably higher volumes
-		float compensation = 0.03f / std::sqrt(currentResonatorOrder);
-
+		float compensation = 1.f;//		/ std::sqrt(currentResonatorOrder);
+		//compensation = 10;
 		for (int32 i = 0; i < numSamples; i++) {
 			for (int ch = 0; ch < numChannels; ch++) {
 				input[ch] = *(in[ch] + i);
@@ -189,10 +188,6 @@ public:
 		resonator.setOutputPositions(outputPositions);
 	}
 
-
-	double getResonatorLength() const override {
-		return resonator.getLength();
-	}
 
 
 protected:

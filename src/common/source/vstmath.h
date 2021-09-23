@@ -24,6 +24,9 @@
 #include <numeric>
 #include <functional>
 #include <complex>
+#ifdef _DEBUG
+#include <iostream>
+#endif
 
 namespace Uberton {
 namespace Math {

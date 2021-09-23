@@ -1,0 +1,44 @@
+#include <Windows.h>
+#include <plugin_version.h>
+
+#define APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Version
+/////////////////////////////////////////////////////////////////////////////
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION  HYPERSPHERE_MAJOR_VERSION_INT, HYPERSPHERE_MINOR_VERSION_INT, HYPERSPHERE_PATCH_NUMBER_INT, HYPERSPHERE_BUILD_NUMBER_INT
+ PRODUCTVERSION  HYPERSPHERE_MAJOR_VERSION_INT, HYPERSPHERE_MINOR_VERSION_INT, HYPERSPHERE_PATCH_NUMBER_INT, HYPERSPHERE_BUILD_NUMBER_INT
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040004e4"
+        BEGIN
+            VALUE "FileVersion",      HYPERSPHERE_FULL_VERSION_STR"\0"
+            VALUE "ProductVersion",   HYPERSPHERE_FULL_VERSION_STR"\0"
+            VALUE "OriginalFilename", HYPERSPHERE_stringOriginalFilename"\0"
+            VALUE "FileDescription",  HYPERSPHERE_stringFileDescription"\0"
+            VALUE "InternalName",     HYPERSPHERE_stringFileDescription"\0"
+            VALUE "ProductName",      HYPERSPHERE_stringFileDescription"\0"
+            VALUE "CompanyName",      stringCompanyName"\0"
+            VALUE "LegalCopyright",   stringLegalCopyright"\0"
+            VALUE "LegalTrademarks",  stringLegalTrademarks"\0"
+            //VALUE "PrivateBuild",     " \0"
+            //VALUE "SpecialBuild",     " \0"
+            //VALUE "Comments",         " \0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x400, 1252
+    END
+END

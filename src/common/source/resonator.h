@@ -578,14 +578,16 @@ public:
 		baseFreqCoeff = f / std::sqrt(2);
 	}
 
+	T coeff() const { return baseFreqCoeff; }
+
 private:
 	// Get m and l numbers from linear index i∈[0, n)
 	std::pair<int, int> linearIndex(int i) const {
 		// i+1 = l²+l+1+m and m from -l to l
 		// solve for l: √(i+1) -1 <= l <= √i
 		// Then, calc m from l and i
-		int l = static_cast<int>(std::floor(std::sqrt(i)));
-		int m = i - (l * l + l);
+		int l = static_cast<int>(std::floor(std::sqrt(i+1)));
+		int m = i+1 - (l * l + l);
 		return { l, m };
 	}
 
@@ -609,11 +611,18 @@ class SphereResonator : public ResonatorBase<SphereEigenValues<T, N>, T, 3, N, c
 // ----         ----------------------------------------------------
 // ---- NSphere ----------------------------------------------------
 // ----         ----------------------------------------------------
-
+//
+// Allowed dimensions: d >= 2
+// Input/output coordinate values need to have the following format:
+//       x[0] ∈ [0,∞), x[1] ∈ [0,2π], x[i>1] ∈ (0,π)
+//    While the conditions for x[0] and x[1] are not really necessary, all other (angle) coordinates
+//    need to be strictly between 0 and π and must not take the values 0 and π!
 template<class T, int maxDim, int N>
 class NSphereEigenValues
 {
 public:
+	static_assert(maxDim > 1, "template parameter maxDim needs to be greater than 1");
+
 	using real = T;
 	using scalar = std::complex<real>;
 	using SpaceVec = Uberton::Math::Vector<T, maxDim>;
@@ -624,8 +633,8 @@ public:
 
 	void setDim(int newDim) {
 		if (newDim == dim) return;
-		if (newDim < 3)
-			dim = 1;
+		if (newDim < 2)
+			dim = 2;
 		else if (newDim > maxDim)
 			dim = maxDim;
 		else
@@ -636,23 +645,21 @@ public:
 	int getDim() const { return dim; }
 
 	scalar eigenValueSqrt(int i) const {
-		float eigenvalue = combinations[i].eigenValue;
-		return eigenvalue;
-		//return std::sqrt(l * (l + dim - 2));
+		return combinations[i+1].eigenValue * radius_inv; // λ = −l(l + d − 2)/r²
 	}
+
 	// It's worth to use lookup factorial and gamma_plus_half.
 	scalar eigenFunction(int i, const SpaceVec& x) const {
 		// https://en.wikipedia.org/wiki/Spherical_harmonics#Higher_dimensions
 		using namespace std;
 
-		const auto& combination = combinations[i];
+		const auto& combination = combinations[i+1];
 
 		real factor = r_twopi_sqrt;
 		real r = x[0];
 		real phase = combination.coeffs[0] * x[1];
 		scalar phase_factor = cos(phase) + scalar(0, 1) * sin(phase);
 		scalar product{ 1 };
-		scalar p3;
 		for (int j = 2; j <= dim - 1; j++) {
 			int L = combination.coeffs[j - 1]; // l
 			int l = combination.coeffs[j - 2]; // m
@@ -663,6 +670,7 @@ public:
 
 			scalar p1 = sqrt(((real(2) * L + j - 1) * lookupFactorial(L + l + j - real(2))) / (real(2) * lookupFactorial(L - l)));
 			scalar p2 = j == 2 ? 1 : pow(sin(theta_j), -jj);
+			scalar p3;
 
 			if (j % 2 == 0) { // if j is even, then jj is an integer -> we can use integer associated legendre
 				p3 = Uberton::Math::assoc_legendre<real>(L + jj_i, -(l + jj_i), cos(theta_j));
@@ -680,13 +688,23 @@ public:
 
 			// (j-1)/2 = j/2 - 1 = [j/2] - 1 + 1/2
 		}
-		real ln = combinations[i].coeffs[dim - 2];
+		real ln = combination.coeffs[dim - 2];
 		return (std::pow(r, ln) * factor * phase_factor * product).real();
 	}
 
 	void setDesiredBaseFrequency(real f, real b, real c) {
 		const real w = 2 * pi * f;
-		baseFreqCoeff = pi * c / std::sqrt(w * w + b * b);
+		// λ = −l(l + d − 2)/r²
+		// ⇒ λ₀ = 0 (not useable)
+		// ⇒ λ₁ = −(1 + d − 2)/r² ⇒ r² = −(1 + d − 2)/λ₁
+		// with λ₁ = k² = (ω² + b²)/c²
+		// r = c√((1 + d − 2)/(ω² + b²))
+		radius_inv = std::sqrt((w * w + b * b) / (c * c * (dim - 1)));
+		//radius_inv = T(1) / (std::sqrt((T(1) + dim - T(2)) / (w * w + b * b)) * c);
+	}
+
+	T getRadius() const {
+		return T(1) / radius_inv;
 	}
 
 private:
@@ -695,7 +713,7 @@ private:
 		int index = 0; // index that points to one of the quantum numbers of one combination
 		const int lastIndex = dim - 2;
 		int combinationCount = 0;
-		while (combinationCount < N) {
+		while (combinationCount < N+1) {
 			if (index != lastIndex && current.coeffs[index] >= current.coeffs[index + 1]) {
 				index++;
 				continue;
@@ -723,7 +741,7 @@ private:
 			std::cout << combination.eigenValue << '\n';
 		}
 	}
-	real baseFreqCoeff{ 1 };
+
 	int dim{ maxDim };
 	static constexpr real pi = Uberton::Math::pi<real>();
 	const real r_twopi_sqrt = std::sqrt(r_twopi<real>());
@@ -734,7 +752,9 @@ private:
 		T eigenValue;
 	};
 
-	std::array<Combination, N> combinations;
+	std::array<Combination, N+1> combinations;
+
+	real radius_inv{ 1 };
 };
 
 
