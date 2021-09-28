@@ -192,47 +192,33 @@ public:
 
 protected:
 	// t in [0,1]; returns 0 vector for t = 0.5
-	SpaceVec inputPosSpaceCurve(ParamValue t) {
-		constexpr float pi = Math::pi<float>();
-		const float t_ = t - .5;
-		const float phi = t_ * 1.5 * pi;
+	SpaceVec inputPosSpaceCurve(ParamValue t) const {
+		constexpr SampleType pi = Math::pi<SampleType>();
+		const SampleType t_ = t - .5;
+		const SampleType phi = t_ * 1.5 * pi;
+
+		const SampleType otherCoords = t_ * 0.5;
 		// for t == 0.5 this function returns the 0 vector.
 		return SpaceVec{
-			t_ * 0.5f,
+			otherCoords,
 			phi / (2 * pi) * std::sinf(phi),
 			phi / (2 * pi) * std::cosf(phi + pi * 0.5f),
-			t_ * 0.5f,
-			t_ * 0.5f,
-			t_ * 0.5f,
-			t_ * 0.5f,
-			t_ * 0.5f,
-			t_ * 0.5f,
-			t_ * 0.5f
+			otherCoords,
+			otherCoords,
+			otherCoords,
+			otherCoords,
+			otherCoords,
+			otherCoords,
+			otherCoords
 		};
 	}
 
 	// t in [0,1]; returns 0 vector for t = 0.5
-	SpaceVec outputPosSpaceCurve(ParamValue t) {
-		constexpr float pi = Math::pi<float>();
-		const float t_ = t - .5;
-		const float phi = t_ * 1.5 * pi;
-		// for t == 0.5 this function returns the 0 vector.
-		return SpaceVec{
-			t_ * 0.5f,
-			phi / (2 * pi) * std::sinf(phi),
-			phi / (2 * pi) * std::cosf(phi + pi * 0.5f),
-			t_ * 0.5f,
-			t_ * 0.5f,
-			t_ * 0.5f,
-			t_ * 0.5f,
-			t_ * 0.5f,
-			t_ * 0.5f,
-			t_ * 0.5f
-		};
+	SpaceVec outputPosSpaceCurve(ParamValue t) const {
+		return inputPosSpaceCurve(t);
 	}
 
 
-private:
 	Resonator resonator;
 	std::array<Filter, numChannels> lcFilters{ Filter::Type::kHighpass, Filter::Type::kHighpass };
 	std::array<Filter, numChannels> hcFilters{ Filter::Type::kLowpass, Filter::Type::kLowpass };

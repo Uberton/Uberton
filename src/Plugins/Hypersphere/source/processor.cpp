@@ -29,16 +29,22 @@ Processor::Processor() {
 
 	initValue(ParamSpecs::resonatorDim);
 	initValue(ParamSpecs::resonatorOrder);
+	for (int i = 0; i < maxDimension; i++) {
+		paramState[Params::kParamInL0 + i] = 0;
+		paramState[Params::kParamInR0 + i] = 0;
+		paramState[Params::kParamOutL0 + i] = 0;
+		paramState[Params::kParamOutR0 + i] = 0;
+	}
 }
 
 tresult PLUGIN_API Processor::setActive(TBool state) {
 	if (state) {
 		if (processSetup.symbolicSampleSize == kSample32) {
-			processorImpl = std::make_unique<ProcessorImpl<Math::NSphereResonator<float, maxDimension, maxOrder, 2>, float>>();
+			processorImpl = std::make_unique<SphereProcessorImpl<Math::NSphereResonator<float, maxDimension, maxOrder, 2>, float>>();
 			Math::PreComputedCubeResonator<float, maxDimension, maxOrder, 2> a;
 		}
 		else {
-			processorImpl = std::make_unique<ProcessorImpl<Math::NSphereResonator<double, maxDimension, maxOrder, 2>, double>>();
+			processorImpl = std::make_unique<SphereProcessorImpl<Math::NSphereResonator<double, maxDimension, maxOrder, 2>, double>>();
 		}
 		processorImpl->init(processSetup.sampleRate);
 		recomputeParameters();
