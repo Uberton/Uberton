@@ -44,7 +44,7 @@ std::optional<Action> ActionHistory::redo() {
 	}
 }
 
-void ActionHistory::execute(int id, double oldValue, double newValue) {
+void ActionHistory::execute(unsigned int id, double oldValue, double newValue) {
 	execute({ id, oldValue, newValue });
 }
 

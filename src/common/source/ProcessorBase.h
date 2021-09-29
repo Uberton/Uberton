@@ -178,8 +178,8 @@ class ProcessorBase<ParamState, ImplementBypass> : public ProcessorBaseCommon<Pa
 {
 public:
 	tresult PLUGIN_API process(ProcessData& data) SMTG_OVERRIDE {
-		stateTransfer.accessTransferObject_rt([this](const ParamState& stateChanges) {
-			paramState = stateChanges;
+		this->stateTransfer.accessTransferObject_rt([this](const ParamState& stateChanges) {
+			this->paramState = stateChanges;
 		});
 		this->processParameterChanges(data.inputParameterChanges);
 		this->processEvents(data.inputEvents);
@@ -199,7 +199,7 @@ public:
 			// Bypass ramping (only first bus)
 			this->processAudio(data);
 			if (bypassingState == BypassingState::RampToOff) {
-				beforeBypass(data);
+				this->beforeBypass(data);
 			}
 
 			float dry = 0;
@@ -278,8 +278,8 @@ class ProcessorBase<ParamState, NoBypass> : public ProcessorBaseCommon<ParamStat
 {
 public:
 	tresult PLUGIN_API process(ProcessData& data) SMTG_OVERRIDE {
-		stateTransfer.accessTransferObject_rt([this](const ParamState& stateChanges) {
-			paramState = stateChanges;
+		this->stateTransfer.accessTransferObject_rt([this](const ParamState& stateChanges) {
+			this->paramState = stateChanges;
 		});
 		this->processParameterChanges(data.inputParameterChanges);
 		this->processEvents(data.inputEvents);

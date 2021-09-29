@@ -474,7 +474,7 @@ TextEditUnits::TextEditUnits(const CRect& size) : CTextEdit(size, nullptr, -1) {
 
 void TextEditUnits::draw(CDrawContext* context) {
 	if (!text.empty() && tag != -1 && !units.empty()) {
-		std::string tmp = text;
+		auto tmp = text;
 		text += "" + units;
 		CTextEdit::draw(context);
 		text = tmp;
@@ -599,14 +599,15 @@ double VST3EditorEx1::getPrescaleFactor() { return prescaleFactor; }
 
 bool VST3EditorEx1::openUserguide() {
 	if (userGuidePath.empty()) return false;
-
+#ifndef __APPLE__
 	std::string path = getUbertonLocation() + userGuidePath;
 	if (std::filesystem::exists(path)) {
 		return openURLInDefaultApplication(path.c_str());
 	}
-	else {
+
+	else
+#endif
 		return openURLInDefaultApplication(("https://uberton.org/plugins/" + userGuidePath).c_str());
-	}
 }
 
 void Uberton::VST3EditorEx1::setUserguidePath(const std::string& userGuidePath) {

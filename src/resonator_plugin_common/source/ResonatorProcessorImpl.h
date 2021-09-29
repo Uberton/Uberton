@@ -147,8 +147,8 @@ public:
 			}
 		}
 		if (vuPPMLSq != maxSampleLSq || vuPPMRSq != maxSampleRSq) {
-			ResonatorProcessorBase::addOutputPoint(data, kParamVUPPM_L, std::sqrt(maxSampleLSq) * vuPPMNormalizedMultiplicatorInv);
-			ResonatorProcessorBase::addOutputPoint(data, kParamVUPPM_R, std::sqrt(maxSampleRSq) * vuPPMNormalizedMultiplicatorInv);
+			addOutputPoint(data, kParamVUPPM_L, std::sqrt(maxSampleLSq) * vuPPMNormalizedMultiplicatorInv);
+			addOutputPoint(data, kParamVUPPM_R, std::sqrt(maxSampleRSq) * vuPPMNormalizedMultiplicatorInv);
 			vuPPMLSq = maxSampleLSq;
 			vuPPMRSq = maxSampleRSq;
 		}
@@ -158,7 +158,16 @@ public:
 			return std::max(maxSampleLSq, maxSampleRSq);
 		}
 	}
-
+    
+    static void addOutputPoint(ProcessData& data, ParamID id, ParamValue value) {
+            if (data.outputParameterChanges) {
+                int32 index;
+                IParamValueQueue* queue = data.outputParameterChanges->addParameterData(id, index);
+                if (queue) {
+                    queue->addPoint(0, value, index);
+                }
+            }
+        }
 
 	void updateResonatorInputPosition(const ParamState& paramState) override {
 		InputVecArr inputPositions;

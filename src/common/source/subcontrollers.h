@@ -15,6 +15,7 @@
 #pragma once
 
 #include <vstgui/uidescription/delegationcontroller.h>
+#include <vector>
 
 
 namespace VSTGUI {

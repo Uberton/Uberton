@@ -1,4 +1,4 @@
-﻿// -----------------------------------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------------------------------------------------------
 // This file is part of the Überton project. Copyright (C) 2021 Überton
 //
 // Überton is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
@@ -15,6 +15,7 @@
 #include "subcontrollers.h"
 #include <sstream>
 #include <public.sdk/source/vst/vsthelpers.h>
+#include <optional>
 
 
 namespace Uberton {
@@ -109,7 +110,7 @@ tresult HistoryControllerBase::endEdit(Vst::ParamID id) {
 
 void HistoryControllerBase::undo() {
 	if (auto a = history.undo()) {
-		Action action = a.value();
+		Action action = *a;
 		applyAction(action.id, action.oldValue);
 		updateHistoryButtons();
 	}
@@ -117,7 +118,7 @@ void HistoryControllerBase::undo() {
 
 void HistoryControllerBase::redo() {
 	if (auto a = history.redo()) {
-		Action action = a.value();
+        Action action = *a;
 		applyAction(action.id, action.newValue);
 		updateHistoryButtons();
 	}
@@ -133,7 +134,7 @@ void HistoryControllerBase::applyAction(ParamID id, ParamValue value) {
 std::wstring HistoryControllerBase::actionToString(const Action& action) {
 	const Parameter* p = getParameterObject(action.id);
 	const ParameterInfo& info = p->getInfo();
-	const std::wstring title = info.shortTitle ? info.shortTitle : info.title;
+    const std::wstring title; // = info.shortTitle ? info.shortTitle : info.title;
 
 	std::wstringstream sstream;
 	sstream << title << ": ";

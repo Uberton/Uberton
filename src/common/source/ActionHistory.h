@@ -21,7 +21,7 @@ namespace Uberton {
 
 struct Action
 {
-	int id;
+	unsigned int id;
 	double oldValue;
 	double newValue;
 };
@@ -36,7 +36,7 @@ public:
 	std::optional<Action> undo();
 	std::optional<Action> redo();
 
-	void execute(int id, double oldValue, double newValue);
+	void execute(unsigned int id, double oldValue, double newValue);
 	void execute(const Action& action);
 	void clear();
 

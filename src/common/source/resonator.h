@@ -1,4 +1,4 @@
-﻿
+
 // Selection of several resonators as solutions eigenvalue problems
 // - String
 // - 3D Sphere
@@ -19,6 +19,8 @@
 
 #include "vstmath.h"
 #include <vector>
+#include <fstream>
+#include <iostream>
 
 namespace Uberton {
 namespace Math {
@@ -73,8 +75,8 @@ public:
 	using scalar = std::complex<real>;
 	using SpaceVec = Uberton::Math::Vector<T, d>;
 
-	template<class T, int n>
-	using array = std::array<T, n>;
+	template<class TT, int n>
+	using array = std::array<TT, n>;
 
 	/// Initialize resonator with sample rate in Hz (i.e. 44100)
 	void setSampleRate(T sampleRate) {
@@ -383,7 +385,7 @@ struct CubeEWPCalculator
 	CubeEWPCalculator() {}
 
 	void compute(int d, int n) {
-		if (d < 1 || n < 1) throw std::exception("dim and n need to be greater than 0");
+//		if (d < 1 || n < 1) throw std::exception("dim and n need to be greater than 0");
 		//data = computeFirstEigenvalues<T>(d, n);
 		initialized = true;
 	}
@@ -430,7 +432,7 @@ struct CubeEWPCalculator
 		char endChar;
 		is >> endChar;
 		if (endChar != '-') {
-			throw std::exception("cube ewp file is damaged");
+//			throw std::exception("cube ewp file is damaged");
 		}
 		a.initialized = true;
 		return is;

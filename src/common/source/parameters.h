@@ -1,4 +1,4 @@
-﻿
+
 // Organisation class for VST parameters. Implements the setState() and getState() functions.
 //
 // -----------------------------------------------------------------------------------------------------------------------------
@@ -502,7 +502,7 @@ public:
 			wrapper.printFloat(dB, precision);
 		}
 		else {
-			wrapper.append(L"-oo");
+			wrapper.append(USTRING("-oo"));
 		}
 		wrapper.copyTo(string, 128);
 	}
