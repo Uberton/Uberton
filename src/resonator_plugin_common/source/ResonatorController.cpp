@@ -54,8 +54,8 @@ tresult PLUGIN_API ResonatorController::initialize(FUnknown* context) {
 		addStringListParam(ParamSpecs::linkInPosCurves, "Link In Pos Curves", "Link In C", { "Not Linked", "Linked" }, ParameterInfo::kNoFlags);
 		addStringListParam(ParamSpecs::linkOutPosCurves, "Link Out Pos Curves", "Link Out C", { "Not Linked", "Linked" }, ParameterInfo::kNoFlags);
 
-		parameters.addParameter(new GainParameter(USTRING ("Output Level L"), ParamSpecs::vuPPML.id, USTRING ("dB"), 0, ParameterInfo::kIsReadOnly, rootUnitId, USTRING("Level"), vuPPMOverheadDB));
-		parameters.addParameter(new GainParameter(USTRING("Output Level R"), ParamSpecs::vuPPMR.id, USTRING("dB"), 0, ParameterInfo::kIsReadOnly, rootUnitId, USTRING("Level"), vuPPMOverheadDB));
+		parameters.addParameter(new GainParameter("Output Level L", ParamSpecs::vuPPML.id, "dB", 0, ParameterInfo::kIsReadOnly, rootUnitId, "Level", vuPPMOverheadDB));
+		parameters.addParameter(new GainParameter("Output Level R", ParamSpecs::vuPPMR.id, "dB", 0, ParameterInfo::kIsReadOnly, rootUnitId, "Level", vuPPMOverheadDB));
 		addParam<LinearParameter>(ParamSpecs::processTime, "Process Time", "T", "", Precision(6), ParameterInfo::kIsReadOnly);
 
 		addStringListParam(ParamSpecs::limiterOn, "Output Limiter", "Out Lim", { "Off", "On" });

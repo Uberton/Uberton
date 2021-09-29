@@ -76,6 +76,7 @@ public:
 	void setResonatorOrder(int resonatorOrder) override {
 		resonator.setOrder(resonatorOrder);
 		currentResonatorOrder = resonatorOrder;
+		float compensation = 0.03f / std::sqrt(currentResonatorOrder);
 	}
 
 	void setResonatorFreq(float freq, float damp, float vel) override {
@@ -119,8 +120,9 @@ public:
 		SampleType maxSampleLSq = 0;
 		SampleType maxSampleRSq = 0;
 		// higher resonator orders result in considerably higher volumes
-		float compensation = 1.f;//		/ std::sqrt(currentResonatorOrder);
+		//float compensation = 1.f;//		/ std::sqrt(currentResonatorOrder);
 		//compensation = 10;
+
 		for (int32 i = 0; i < numSamples; i++) {
 			for (int ch = 0; ch < numChannels; ch++) {
 				input[ch] = *(in[ch] + i);
@@ -234,6 +236,7 @@ protected:
 
 	SampleType currentResFreq = 1, currentResDamp = 1, currentResVel = 1;
 	int currentResonatorOrder = 1;
+	float compensation = 0.03f / std::sqrt(currentResonatorOrder);
 
 	//SampleVec output
 	SampleType vuPPMLSq{ 0 };

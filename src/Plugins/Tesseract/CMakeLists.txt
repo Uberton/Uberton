@@ -47,9 +47,9 @@ endif()
 
 # Setting version for installer and creating version file
 uberton_set_plugin_version(TARGET ${target} VERSION "1.0.1" BUILD 1)
+uberton_set_userguide_pdf(TARGET ${target} USERGUIDE_PDF "User_Guide/Tesseract_User_Guide.pdf")
+uberton_set_factory_presets(TARGET ${target} FACTORY_PRESETS "Factory_Presets")
 
 if(UBERTON_BUILD_INSTALLERS)
-    uberton_set_userguide_pdf(TARGET ${target} USERGUIDE_PDF "User_Guide/Tesseract User Guide.pdf")
-    uberton_set_factory_presets(TARGET ${target} FACTORY_PRESETS "Factory_Presets")
     uberton_set_plugin_installer(NAME ${target})
 endif()
