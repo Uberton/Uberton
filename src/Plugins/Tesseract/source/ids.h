@@ -22,8 +22,8 @@ namespace Tesseract {
 constexpr uint64 stateVersion = 0;
 constexpr int maxOrder = 200;
 
-static const Steinberg::FUID ProcessorUID(0x7aa35f53, 0x994c4f8c, 0x808ee8db, 0x5b254201);
-static const Steinberg::FUID ControllerUID(0x59de5f5d, 0xc58c4195, 0x96c9bb42, 0xdb03afeb);
+static const Steinberg::FUID ProcessorUID(0x81b3f1ba, 0x02024999, 0x837809e4, 0xa0be69d0);
+static const Steinberg::FUID ControllerUID(0x10f2c668, 0x566d47e6, 0xbd8950d1, 0x9aed5c60);
 
 
 FUnknown* createProcessorInstance(void*);

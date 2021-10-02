@@ -76,7 +76,11 @@ public:
 	void setResonatorOrder(int resonatorOrder) override {
 		resonator.setOrder(resonatorOrder);
 		currentResonatorOrder = resonatorOrder;
-		float compensation = 0.03f / std::sqrt(currentResonatorOrder);
+		updateCompensation();
+	}
+
+	virtual void updateCompensation() {
+		compensation = 0.03f / std::sqrt(currentResonatorOrder);
 	}
 
 	void setResonatorFreq(float freq, float damp, float vel) override {
@@ -99,6 +103,7 @@ public:
 			filter.setFreqAndQ(freq, q);
 		}
 	}
+
 	template<typename T>
 	inline T tanh_approx(T x) {
 		T sq = x * x;

@@ -147,7 +147,8 @@ class UbertonContextMenu : public COptionMenu
 	enum class MenuItemID : int32_t {
 		userGuide,
 		zoom,
-		url
+		url,
+		legal
 	};
 
 	using TheEditor = VST3EditorEx1;
@@ -184,6 +185,7 @@ protected:
 private:
 	TheEditor* editor{ nullptr };
 	SharedPointer<COptionMenu> zoomMenu{ nullptr };
+	SharedPointer<COptionMenu> legalMenu{ nullptr };
 
 	ZoomFactors zoomFactors = { .8, .9, 1, 1.1, 1.2, 1.5 };
 	CColor symbolColor = kWhiteCColor;

@@ -129,6 +129,7 @@ void HistoryButton::setCallback(const std::function<void(Type)>& callback) {
 
 UbertonContextMenu::UbertonContextMenu() : COptionMenu(CRect(0, 0, 20, 20), nullptr, -1) {
 	zoomMenu = makeOwned<COptionMenu>();
+	legalMenu = makeOwned<COptionMenu>();
 	zoomMenu->setStyle(kMultipleCheckStyle);
 	initMenu();
 	setFrameColor(kTransparentCColor);
@@ -250,6 +251,14 @@ void UbertonContextMenu::initMenu() {
 	zoomItem->setSubmenu(zoomMenu);
 	addItem("Uberton.org", static_cast<int32_t>(MenuItemID::url), "Base", this);
 
+	this->addSeparator();
+
+	legalMenu->removeAllEntry();
+	auto trademarkItem = addItem("VST is a registered trademark of Steinberg Media Technologies GmbH", -1, "Legal", legalMenu);
+	auto legalItem = addItem("Legal Information", -1, "Base", this);
+	legalItem->setSubmenu(legalMenu);
+	trademarkItem->setEnabled(false);
+	
 
 	char zoomFactorString[128];
 	int32_t zoomFactorTag = 0;
