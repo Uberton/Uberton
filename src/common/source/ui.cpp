@@ -37,16 +37,27 @@ void FadingFrameAnimationButton::draw(CDrawContext* context) {
 
 	CDrawContext::Transform ctxTransform(*context, transform);
 
+	CCoord lineWidth = 2;
+	auto editor = dynamic_cast<VSTGUI::VST3Editor*>(getEditor());
+	if (editor) {
+		lineWidth = 1.0 / editor->getZoomFactor();
+		auto editorEx1 = dynamic_cast<VST3EditorEx1*>(getEditor());
+		if (editorEx1) {
+			lineWidth /= editorEx1->getPrescaleFactor();
+		}
+	}
+	CCoord lwh = lineWidth / 2.0;
+
 	if (getDrawBackground()) {
 		getDrawBackground()->draw(context, getViewSize(), { offset.x, offset.y });
 	}
 	context->setFrameColor(frameColor);
-	context->setLineWidth(2);
+	context->setLineWidth(lineWidth);
 	CRect c = getViewSize();
-	c.left++;
-	c.right--;
-	c.top++;
-	c.bottom--;
+	c.left += lwh;
+	c.right -= lwh;
+	c.top += lwh;
+	c.bottom -= lwh;
 	context->drawRect(c, kDrawStroked);
 	if (!getMouseEnabled()) {
 		context->setFillColor({ 0, 0, 0, 100 });
@@ -172,24 +183,39 @@ void UbertonContextMenu::draw(CDrawContext* context) {
 
 	drawBack(context);
 
-	context->setFrameColor(frameColor);
-	context->setLineWidth(2);
+	// Get line width according to zoom factor
+	CCoord lineWidth = 2;
+	if (editor) {
+		lineWidth = 1.0 / (editor->getPrescaleFactor() * editor->getZoomFactor());
+	}
+	CCoord lwh = lineWidth / 2.0;
+
 	CRect c = getViewSize();
-	c.left++;
-	c.right--;
-	c.top++;
-	c.bottom--;
+	c.left += lwh;
+	c.right -= lwh;
+	c.top += lwh;
+	c.bottom -= lwh;
+
+	// Paint background black
+	context->setFillColor(kBlackCColor);
+	context->drawRect(c, kDrawFilled);
+
+	// Paint hamburger symbol
+	auto p = c.getTopLeft();
+	context->setFrameColor(kWhiteCColor);
+	context->setLineWidth(lineWidth);
+	CCoord y0 = std::round(getHeight() * 0.25 - 1);
+	CCoord dy = std::round(getHeight() * 2.0 / 9.0);
+	CCoord x0 = getWidth() * 0.25 - 1;
+	CCoord x1 = getWidth() * 0.75 - 1;
+	for (int i = 0; i < 3; i++) {
+		context->drawLine(p + CPoint{ x0, y0 + dy * i }, p + CPoint{ x1, y0 + dy * i });
+	}
+
+	// Draw border (when being pressed down)
+	context->setFrameColor(frameColor);
+	context->setLineWidth(lineWidth);
 	context->drawRect(c, kDrawStroked);
-	//auto p = getViewSize().getTopLeft();
-	//auto q = getViewSize().getTopRight();
-	//context->setFrameColor(symbolColor);
-	//context->setLineWidth(1);
-	//double dy = getHeight() / 6.0;
-	//double x0 = getWidth() / 8;
-	//double x1 = getWidth() - x0 - 2;
-	//for (int i = 0; i < 3; i++) {
-	//	context->drawLine(p + CPoint{ x0, dy * (i + 2) }, p + CPoint{ x1, dy * (i + 2) });
-	//}
 	setDirty(false);
 }
 
@@ -258,7 +284,7 @@ void UbertonContextMenu::initMenu() {
 	auto legalItem = addItem("Legal Information", -1, "Base", this);
 	legalItem->setSubmenu(legalMenu);
 	trademarkItem->setEnabled(false);
-	
+
 
 	char zoomFactorString[128];
 	int32_t zoomFactorTag = 0;
@@ -282,8 +308,7 @@ void UbertonContextMenu::itemSelected(CCommandMenuItem* item) {
 			openURLInDefaultApplication("https://uberton.org");
 			return;
 		}
-	}
-	else if (item->getCommandCategory() == "Zoom") {
+	} else if (item->getCommandCategory() == "Zoom") {
 		if (item->getTag() < 0 || item->getTag() >= static_cast<ptrdiff_t>(zoomFactors.size())) return;
 		if (editor) {
 			editor->setZoomFactor(zoomFactors[item->getTag()]);
@@ -487,8 +512,7 @@ void TextEditUnits::draw(CDrawContext* context) {
 		text += "" + units;
 		CTextEdit::draw(context);
 		text = tmp;
-	}
-	else {
+	} else {
 		CTextEdit::draw(context);
 	}
 }
@@ -535,8 +559,7 @@ void LogVUMeter::draw(CDrawContext* context) {
 
 		_rectOff.left += tmp;
 		_rectOn.right = tmp + rectOn.left;
-	}
-	else {
+	} else {
 		auto tmp = (CCoord)(((int32_t)(nbLed * (1.f - nomalizedLogValue) + 0.5f) / (float)nbLed) * getOnBitmap()->getHeight());
 		pointOn(0, tmp);
 
@@ -586,7 +609,7 @@ VST3EditorEx1::VST3EditorEx1(Steinberg::Vst::EditController* controller, UTF8Str
 
 Steinberg::tresult PLUGIN_API VST3EditorEx1::setContentScaleFactor(Steinberg::IPlugViewContentScaleSupport::ScaleFactor factor) {
 	actualContentScaleFactor = factor;
-	return VST3Editor::setContentScaleFactor(factor *prescaleFactor);
+	return VST3Editor::setContentScaleFactor(factor * prescaleFactor);
 }
 
 void VST3EditorEx1::setPrescaleFactor(double f) {
