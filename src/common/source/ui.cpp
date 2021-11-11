@@ -603,8 +603,8 @@ void LinkButton::draw(CDrawContext* context) {
 	COnOffButton::draw(context);
 }
 
-VST3EditorEx1::VST3EditorEx1(Steinberg::Vst::EditController* controller, UTF8StringPtr templateName, UTF8StringPtr xmlFile)
-	: VST3Editor(controller, templateName, xmlFile) {
+VST3EditorEx1::VST3EditorEx1(Steinberg::Vst::EditController* controller, UTF8StringPtr templateName, UTF8StringPtr xmlFile, const std::string& pluginName)
+	: VST3Editor(controller, templateName, xmlFile), pluginName(pluginName) {
 }
 
 Steinberg::tresult PLUGIN_API VST3EditorEx1::setContentScaleFactor(Steinberg::IPlugViewContentScaleSupport::ScaleFactor factor) {
@@ -629,12 +629,15 @@ double VST3EditorEx1::getPrescaleFactor() { return prescaleFactor; }
 //}
 
 
-bool VST3EditorEx1::openUserguide() {
+bool VST3EditorEx1::openUserguide() const {
 	if (userGuidePath.empty()) return false;
 #ifndef __APPLE__
-	std::string path = getUbertonLocation() + userGuidePath;
-	if (std::filesystem::exists(path)) {
-		return openURLInDefaultApplication(path.c_str());
+	using std::filesystem::path;
+	//std::string path = getUbertonLocation() + userGuidePath;
+	const path pluginLocation(getPluginLocation());
+	const path p = pluginLocation / "Contents\\Resources\\Documentation" / std::filesystem::path(userGuidePath).filename();
+	if (std::filesystem::exists(p)) {
+		return openURLInDefaultApplication(p.c_str());
 	}
 
 	else
@@ -654,5 +657,22 @@ std::string Uberton::VST3EditorEx1::getUbertonLocation() {
 	return pathS + "/Uberton/";
 #elif __APPLE__
 	return "Applications/Uberton/";
+#endif
+}
+
+std::string Uberton::VST3EditorEx1::getPluginLocation() const {
+#ifdef _WIN32
+	char path[MAX_PATH];
+	SHGetSpecialFolderPathA(0, path, CSIDL_PROGRAM_FILES, FALSE);
+	std::string pathS{ path };
+	return pathS + "\\Common Files\\VST3\\Uberton\\" + pluginName + ".vst3";
+#elif __APPLE__
+	char* homeDir = getenv("HOME");
+	if (homeDir == nullptr) return "";
+	return std::string(homeDir) + "/Library/Audio/Plug-Ins/VST3/Uberton/" + pluginName + ".vst3";
+#elif __gnu_linux__ || __linux__
+	char* homeDir = getenv("HOME");
+	if (homeDir == nullptr) return "";
+	return std::string(homeDir) + "/.vst3/Uberton/" + pluginName + ".vst3";
 #endif
 }

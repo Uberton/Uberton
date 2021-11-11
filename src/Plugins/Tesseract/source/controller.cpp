@@ -36,7 +36,7 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 
 IPlugView* PLUGIN_API Controller::createView(FIDString name) {
 	if (ConstString(name) == ViewType::kEditor) {
-		auto editor = new VST3EditorEx1(this, "Editor", "editor.uidesc");
+		auto editor = new VST3EditorEx1(this, "Editor", "editor.uidesc", "Tesseract");
 		editor->setPrescaleFactor(.5);
 #ifdef Tesseract_USERGUIDE_PATH
 		editor->setUserguidePath(Tesseract_USERGUIDE_PATH);

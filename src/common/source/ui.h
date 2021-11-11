@@ -344,7 +344,7 @@ private:
 class VST3EditorEx1 : public VST3Editor
 {
 public:
-	VST3EditorEx1(Steinberg::Vst::EditController* controller, UTF8StringPtr templateName, UTF8StringPtr xmlFile);
+	VST3EditorEx1(Steinberg::Vst::EditController* controller, UTF8StringPtr templateName, UTF8StringPtr xmlFile, const std::string& pluginName = "");
 
 	// Two ways to do it: 
 	// - Change getAbsScaleFactor() which is not virtual in the VSTGUI library, so the "virtual" would need to be added here. 
@@ -356,14 +356,16 @@ public:
 	void setPrescaleFactor(double f);
 	double getPrescaleFactor();
 
-	bool openUserguide();
+	bool openUserguide() const;
 
 	void setUserguidePath(const std::string& userGuidePath);
 
 	static std::string getUbertonLocation();
+	std::string getPluginLocation() const;
 
 private:
 	double prescaleFactor = 1;
+	const std::string pluginName;
 	std::string userGuidePath;
 	double actualContentScaleFactor = 1;
 };

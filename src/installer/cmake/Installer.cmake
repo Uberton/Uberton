@@ -78,13 +78,14 @@ function (uberton_set_plugin_installer)
 	endif()
 
 
-	
-	get_property(UBERTON_PLUGIN_HAS_USERGUIDE_PDF TARGET ${ARG_NAME} PROPERTY UBERTON_USERGUIDE_PDF SET)
-	if(UBERTON_PLUGIN_HAS_USERGUIDE_PDF)
-		get_target_property(UBERTON_PLUGIN_USERGUIDE_PDF ${ARG_NAME} UBERTON_USERGUIDE_PDF)
-		set(userguide_pdf "userguide_pdf")
-		uberton_add_cmrc_resource(NAME "${ARG_NAME}_${userguide_pdf}" FILE ${UBERTON_PLUGIN_USERGUIDE_PDF})
-	endif()
+	# user guide pdf and version.txt is now contained in plugin bundle
+	set(UBERTON_PLUGIN_HAS_USERGUIDE_PDF 0)
+	#get_property(UBERTON_PLUGIN_HAS_USERGUIDE_PDF TARGET ${ARG_NAME} PROPERTY UBERTON_USERGUIDE_PDF SET)
+	#if(UBERTON_PLUGIN_HAS_USERGUIDE_PDF)
+	#	get_target_property(UBERTON_PLUGIN_USERGUIDE_PDF ${ARG_NAME} UBERTON_USERGUIDE_PDF)
+	#	set(userguide_pdf "userguide_pdf")
+	#	uberton_add_cmrc_resource(NAME "${ARG_NAME}_${userguide_pdf}" FILE ${UBERTON_PLUGIN_USERGUIDE_PDF})
+	#endif()
 
 	get_property(UBERTON_PLUGIN_HAS_FACTORY_PRESETS TARGET ${ARG_NAME} PROPERTY UBERTON_FACTORY_PRESETS SET)
 	if(UBERTON_PLUGIN_HAS_FACTORY_PRESETS)
