@@ -37,9 +37,6 @@ public:
 
 
 protected:
-	using ParamState1 = UniformParamState<1>;
-	ParamState1 paramState;
-
 	bool playing{ false };
 	SineOscillatorPow5 osc;
 	Math::CubeResonator<float, 1, 5, 1> resonator;

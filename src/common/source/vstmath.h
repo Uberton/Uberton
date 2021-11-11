@@ -330,7 +330,7 @@ inline long long power4LL(int n) {
 // fast 4 to the power of n (fastest for 0 <= n < 32 and pretty fast for n >= 32)
 //
 inline double power4(int n) {
-	if (n < 32) return power4LL(n);
+	if (n < 32) return static_cast<double>(power4LL(n));
 	double result = 1;
 	int i = 0;
 	while (i < n) {

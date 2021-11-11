@@ -35,7 +35,6 @@ tresult PLUGIN_API Processor::setActive(TBool state) {
 	if (state) {
 		if (processSetup.symbolicSampleSize == kSample32) {
 			processorImpl = std::make_unique<ProcessorImpl<Math::PreComputedCubeResonator<float, maxDimension, maxOrder, 2>, float>>();
-			Math::PreComputedCubeResonator<float, maxDimension, maxOrder, 2> a;
 		}
 		else {
 			processorImpl = std::make_unique<ProcessorImpl<Math::PreComputedCubeResonator<double, maxDimension, maxOrder, 2>, double>>();

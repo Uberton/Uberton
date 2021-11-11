@@ -31,7 +31,7 @@ public:
 	virtual void setHCFilterFreqAndQ(double freq, double q) = 0;
 	virtual void updateResonatorInputPosition(const ParamState& paramState) = 0;
 	virtual void updateResonatorOutputPosition(const ParamState& paramState) = 0;
-	virtual ~ProcessorImplBase() {}
+	virtual ~ProcessorImplBase() = default;
 };
 
 enum class Configuration {

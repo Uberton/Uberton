@@ -455,7 +455,7 @@ public:
 
 	using ParamSpecType = ParamSpec;
 
-	const typename ParamSpec::ScaleType& scale;
+	const typename ParamSpec::ScaleType scale;
 };
 
 

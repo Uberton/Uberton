@@ -26,8 +26,6 @@ public:
 	IPlugView* PLUGIN_API createView(FIDString name) SMTG_OVERRIDE;
 
 	static FUnknown* createInstance(void*) { return (Vst::IEditController*)new Controller(); }
-
-	using ParamState1 = UniformParamState<1>;
 };
 
 }

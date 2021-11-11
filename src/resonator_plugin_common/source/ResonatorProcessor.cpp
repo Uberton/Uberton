@@ -114,8 +114,7 @@ void ResonatorProcessorBase::processParameterChanges(IParameterChanges* inputPar
 		Algo::foreachLast(paramQueue, [&](int32 id, int32 sampleOffset, ParamValue value) {
 			if (id == bypassId) {
 				setBypassed(value > 0.5);
-			}
-			else {
+			} else {
 				paramState.params[id] = value;
 			}
 			if (id == Params::kParamInPosCurveL || id == Params::kParamInPosCurveR || (id >= Params::kParamInL0 && id <= Params::kParamInRN)) {
@@ -131,7 +130,8 @@ void ResonatorProcessorBase::processParameterChanges(IParameterChanges* inputPar
 
 		);
 	});
-	recomputeInexpensiveParameters();
+	if (inputParameterChanges && inputParameterChanges->getParameterCount() > 0)
+		recomputeInexpensiveParameters();
 }
 
 void ResonatorProcessorBase::beforeBypass(ProcessData& data) {

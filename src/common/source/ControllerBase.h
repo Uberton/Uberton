@@ -42,8 +42,8 @@ public:
 	tresult PLUGIN_API getState(IBStream* stream) SMTG_OVERRIDE;
 	tresult PLUGIN_API setState(IBStream* stream) SMTG_OVERRIDE;
 
-	tresult beginEdit(Vst::ParamID id) override;
-	tresult endEdit(Vst::ParamID id) override;
+	tresult beginEdit(Vst::ParamID id) SMTG_OVERRIDE;
+	tresult endEdit(Vst::ParamID id) SMTG_OVERRIDE;
 
 	void undo();
 	void redo();
@@ -100,11 +100,10 @@ public:
 		int flags = 0;
 		if (readonly) {
 			flags |= ParameterInfo::kIsReadOnly;
-		}
-		else {
+		} else {
 			flags |= ParameterInfo::kCanAutomate;
 		}
-		auto p =new RangeParameter(name, id, units, minMaxDefault[0], minMaxDefault[1], minMaxDefault[2], 0, flags, currentUnitID);
+		auto p = new RangeParameter(name, id, units, minMaxDefault[0], minMaxDefault[1], minMaxDefault[2], 0, flags, currentUnitID);
 		parameters.addParameter(p);
 		return p;
 	}
@@ -125,6 +124,15 @@ public:
 	Parameter* addParam(const typename ScaledParameter::ParamSpecType& paramSpec, const UString256& title, const UString256& shortTitle, const UString256& units = "", Precision precision = 1, int32 flags = ParameterInfo::kCanAutomate) {
 		auto p = parameters.addParameter(new ScaledParameter(paramSpec, title, shortTitle, units, flags, currentUnitID));
 		p->setPrecision(precision);
+		return p;
+	}
+
+	// Explicit template specialization for discrete parameters (precision: 0, stepCount: automatic)
+	template<>
+	Parameter* addParam<DiscreteParameter>(const typename DiscreteParameter::ParamSpecType& paramSpec, const UString256& title, const UString256& shortTitle, const UString256& units, Precision precision, int32 flags) {
+		auto p = parameters.addParameter(new DiscreteParameter(paramSpec, title, shortTitle, units, flags, currentUnitID));
+		p->setPrecision(0);
+		p->getInfo().stepCount = paramSpec.scale.getMax() - paramSpec.scale.getMin() - 1;
 		return p;
 	}
 
