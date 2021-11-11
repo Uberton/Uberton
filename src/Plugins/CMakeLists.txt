@@ -1,1 +1,1 @@
-smtg_add_subdirectories() 
+smtg_add_subdirectories()

@@ -117,7 +117,7 @@ void doInstall(std::string& result) {
 	try {
 		installVST(result);
 		installPresets(result);
-		installUserGuide(result);
+		//installUserGuide(result); // user guide is now in plugin bundle
 		result += "\n\nInstallation finished sucessfully.";
 	}
 	catch (const InstallerException& e) {

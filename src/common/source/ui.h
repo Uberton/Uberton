@@ -147,7 +147,8 @@ class UbertonContextMenu : public COptionMenu
 	enum class MenuItemID : int32_t {
 		userGuide,
 		zoom,
-		url
+		url,
+		legal
 	};
 
 	using TheEditor = VST3EditorEx1;
@@ -184,6 +185,7 @@ protected:
 private:
 	TheEditor* editor{ nullptr };
 	SharedPointer<COptionMenu> zoomMenu{ nullptr };
+	SharedPointer<COptionMenu> legalMenu{ nullptr };
 
 	ZoomFactors zoomFactors = { .8, .9, 1, 1.1, 1.2, 1.5 };
 	CColor symbolColor = kWhiteCColor;
@@ -342,7 +344,7 @@ private:
 class VST3EditorEx1 : public VST3Editor
 {
 public:
-	VST3EditorEx1(Steinberg::Vst::EditController* controller, UTF8StringPtr templateName, UTF8StringPtr xmlFile);
+	VST3EditorEx1(Steinberg::Vst::EditController* controller, UTF8StringPtr templateName, UTF8StringPtr xmlFile, const std::string& pluginName = "");
 
 	// Two ways to do it: 
 	// - Change getAbsScaleFactor() which is not virtual in the VSTGUI library, so the "virtual" would need to be added here. 
@@ -354,16 +356,17 @@ public:
 	void setPrescaleFactor(double f);
 	double getPrescaleFactor();
 
-	bool openUserguide();
+	bool openUserguide() const;
 
-	//void setPluginName(std::string);
 	void setUserguidePath(const std::string& userGuidePath);
 
 	static std::string getUbertonLocation();
+	std::string getPluginLocation() const;
 
 private:
-	double prescaleFactor = 0.5;
-	//std::string pluginName;
+	double prescaleFactor = 1;
+	const std::string pluginName;
 	std::string userGuidePath;
+	double actualContentScaleFactor = 1;
 };
 }

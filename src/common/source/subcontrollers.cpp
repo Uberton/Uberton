@@ -71,7 +71,7 @@ CView* ParamLinkSubcontroller::verifyView(CView* view, const UIAttributes& attri
 		updateLinkState();
 	}
 	else if (linkedControl) {
-		linkedControls.push_back(linkedControl);
+		linkedControls.push_back({ linkedControl, 0 });
 		linkedControl->registerControlListener(this);
 	}
 	return view;
@@ -84,9 +84,11 @@ void ParamLinkSubcontroller::valueChanged(CControl* control) {
 		return;
 	}
 	if (link) {
-		for (const auto& c : linkedControls) {
+		float draggedControlCurrentValue = control->getValueNormalized();
+		for (auto& item : linkedControls) {
+			CControl* c = item.first;
 			if (c != control) {
-				auto z = control->getValueNormalized();
+				auto z = draggedControlCurrentValue - draggedControlStartValue + item.second;
 				c->setValueNormalized(z);
 				DelegationController::valueChanged(c);
 			}
@@ -94,6 +96,29 @@ void ParamLinkSubcontroller::valueChanged(CControl* control) {
 	}
 	DelegationController::valueChanged(control);
 }
+
+void Uberton::ParamLinkSubcontroller::controlBeginEdit(CControl* control) {
+	for (auto& c : linkedControls) {
+		c.second = c.first->getValueNormalized();
+	}
+	//if (link) {
+	//	for (auto& item : linkedControls) {
+	//		if (item.first != control)
+	//			item.first->beginEdit();
+	//	}
+	//}
+	draggedControlStartValue = control->getValueNormalized();
+	//DelegationController::controlBeginEdit(control);
+}
+//void Uberton::ParamLinkSubcontroller::controlEndEdit(CControl* control) {
+//	if (link) {
+//		for (auto& item : linkedControls) {
+//			if (item.first != control)
+//				item.first->endEdit();
+//		}
+//	}
+//	//DelegationController::controlEndEdit(control);
+//}
 
 void ParamLinkSubcontroller::updateLinkState() {
 	if (linkerControl->getValueNormalized() != 0)

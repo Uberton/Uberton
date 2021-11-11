@@ -14,4 +14,5 @@ if(UBERTON_BUILD_INSTALLERS)
 	add_subdirectory(src/installer)
 endif()
 
+add_subdirectory(src/resonator_plugin_common)
 add_subdirectory(src/Plugins)

@@ -1,4 +1,4 @@
-﻿
+
 // Organisation class for VST parameters. Implements the setState() and getState() functions.
 //
 // -----------------------------------------------------------------------------------------------------------------------------
@@ -455,7 +455,7 @@ public:
 
 	using ParamSpecType = ParamSpec;
 
-	const typename ParamSpec::ScaleType& scale;
+	const typename ParamSpec::ScaleType scale;
 };
 
 
@@ -490,7 +490,7 @@ public:
 class GainParameter : public Vst::Parameter
 {
 public:
-	GainParameter(const TChar* title, ParamID tag, const TChar* units, ParamValue defaultValue = 0.0, int32 flags = ParameterInfo::kCanAutomate, UnitID unitID = 0, const TChar* shortTitle = nullptr, double overheadDB = 0)
+	GainParameter(const UString256& title, ParamID tag, const UString256& units, ParamValue defaultValue = 0.0, int32 flags = ParameterInfo::kCanAutomate, UnitID unitID = 0, const UString256& shortTitle = "", double overheadDB = 0)
 		: Parameter(title, tag, units, defaultValue, 0, flags, unitID, shortTitle) {
 		setOverheadDB(overheadDB);
 	}
@@ -502,7 +502,7 @@ public:
 			wrapper.printFloat(dB, precision);
 		}
 		else {
-			wrapper.append(L"-oo");
+			wrapper.append(USTRING("-oo"));
 		}
 		wrapper.copyTo(string, 128);
 	}

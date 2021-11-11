@@ -110,6 +110,7 @@ public:
 	virtual void processAudio(ProcessData& data) = 0;
 	virtual void processParameterChanges(IParameterChanges* parameterChanges) = 0;
 	virtual void processEvents(IEventList* eventList) {}
+	virtual void beforeBypass(ProcessData& data){}; // called during process() when bypass has been activated, before the off ramp is started
 
 	void checkSilence(ProcessData& data) {
 		for (int32 i = 0; i < data.numOutputs; i++) {
@@ -177,8 +178,8 @@ class ProcessorBase<ParamState, ImplementBypass> : public ProcessorBaseCommon<Pa
 {
 public:
 	tresult PLUGIN_API process(ProcessData& data) SMTG_OVERRIDE {
-		stateTransfer.accessTransferObject_rt([this](const ParamState& stateChanges) {
-			paramState = stateChanges;
+		this->stateTransfer.accessTransferObject_rt([this](const ParamState& stateChanges) {
+			this->paramState = stateChanges;
 		});
 		this->processParameterChanges(data.inputParameterChanges);
 		this->processEvents(data.inputEvents);
@@ -197,6 +198,9 @@ public:
 		if (bypassingState != BypassingState::None) {
 			// Bypass ramping (only first bus)
 			this->processAudio(data);
+			if (bypassingState == BypassingState::RampToOff) {
+				this->beforeBypass(data);
+			}
 
 			float dry = 0;
 			float wet = 0;
@@ -274,8 +278,8 @@ class ProcessorBase<ParamState, NoBypass> : public ProcessorBaseCommon<ParamStat
 {
 public:
 	tresult PLUGIN_API process(ProcessData& data) SMTG_OVERRIDE {
-		stateTransfer.accessTransferObject_rt([this](const ParamState& stateChanges) {
-			paramState = stateChanges;
+		this->stateTransfer.accessTransferObject_rt([this](const ParamState& stateChanges) {
+			this->paramState = stateChanges;
 		});
 		this->processParameterChanges(data.inputParameterChanges);
 		this->processEvents(data.inputEvents);

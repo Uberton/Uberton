@@ -31,8 +31,8 @@ public:
 
 	void processAudio(ProcessData& data) override;
 	void processParameterChanges(IParameterChanges* parameterChanges) override;
+	void beforeBypass(ProcessData& data) override;
 
-	//static FUnknown* createInstance(void*) { return (Vst::IAudioProcessor*)new Processor(); }
 
 private:
 	// Inexpensive parameter udpates
@@ -56,11 +56,8 @@ private:
 	float resonatorDamp{ 0 };
 	float resonatorVel{ 0 };
 	bool limiterOn{ false };
-	double resonatorLength{ 1 };
-	bool resonatorLengthChanged{ false };
 
-	double vuPPM = 0;
-	double vuPPMOld = 0;
+	double vuPPM = 0; // contains max of left and right channel from last buffer to check if there is silence
 };
 
 }

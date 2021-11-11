@@ -1,3 +1,6 @@
+
+// Acutal processing implementation for the plugin processor that does the heavy audio work. 
+// 
 // -----------------------------------------------------------------------------------------------------------------------------
 // This file is part of the Überton project. Copyright (C) 2021 Überton
 //

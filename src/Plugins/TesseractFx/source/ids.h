@@ -108,6 +108,8 @@ using ParamState = UniformParamState<kNumGlobalParameters>;
 static const Steinberg::FUID ProcessorUID(0x81b3f1ba, 0x02024999, 0x837809e4, 0xa0be69d0);
 static const Steinberg::FUID ControllerUID(0x10f2c668, 0x566d47e6, 0xbd8950d1, 0x9aed5c60);
 
+static const Steinberg::FIDString processorDeactivatedMsgID = "pDeactivated";
+
 FUnknown* createProcessorInstance(void*);
 FUnknown* createControllerInstance(void*);
 

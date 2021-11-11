@@ -37,16 +37,27 @@ void FadingFrameAnimationButton::draw(CDrawContext* context) {
 
 	CDrawContext::Transform ctxTransform(*context, transform);
 
+	CCoord lineWidth = 2;
+	auto editor = dynamic_cast<VSTGUI::VST3Editor*>(getEditor());
+	if (editor) {
+		lineWidth = 1.0 / editor->getZoomFactor();
+		auto editorEx1 = dynamic_cast<VST3EditorEx1*>(getEditor());
+		if (editorEx1) {
+			lineWidth /= editorEx1->getPrescaleFactor();
+		}
+	}
+	CCoord lwh = lineWidth / 2.0;
+
 	if (getDrawBackground()) {
 		getDrawBackground()->draw(context, getViewSize(), { offset.x, offset.y });
 	}
 	context->setFrameColor(frameColor);
-	context->setLineWidth(2);
+	context->setLineWidth(lineWidth);
 	CRect c = getViewSize();
-	c.left++;
-	c.right--;
-	c.top++;
-	c.bottom--;
+	c.left += lwh;
+	c.right -= lwh;
+	c.top += lwh;
+	c.bottom -= lwh;
 	context->drawRect(c, kDrawStroked);
 	if (!getMouseEnabled()) {
 		context->setFillColor({ 0, 0, 0, 100 });
@@ -129,6 +140,7 @@ void HistoryButton::setCallback(const std::function<void(Type)>& callback) {
 
 UbertonContextMenu::UbertonContextMenu() : COptionMenu(CRect(0, 0, 20, 20), nullptr, -1) {
 	zoomMenu = makeOwned<COptionMenu>();
+	legalMenu = makeOwned<COptionMenu>();
 	zoomMenu->setStyle(kMultipleCheckStyle);
 	initMenu();
 	setFrameColor(kTransparentCColor);
@@ -171,24 +183,39 @@ void UbertonContextMenu::draw(CDrawContext* context) {
 
 	drawBack(context);
 
-	context->setFrameColor(frameColor);
-	context->setLineWidth(2);
+	// Get line width according to zoom factor
+	CCoord lineWidth = 2;
+	if (editor) {
+		lineWidth = 1.0 / (editor->getPrescaleFactor() * editor->getZoomFactor());
+	}
+	CCoord lwh = lineWidth / 2.0;
+
 	CRect c = getViewSize();
-	c.left++;
-	c.right--;
-	c.top++;
-	c.bottom--;
+	c.left += lwh;
+	c.right -= lwh;
+	c.top += lwh;
+	c.bottom -= lwh;
+
+	// Paint background black
+	context->setFillColor(kBlackCColor);
+	context->drawRect(c, kDrawFilled);
+
+	// Paint hamburger symbol
+	auto p = c.getTopLeft();
+	context->setFrameColor(kWhiteCColor);
+	context->setLineWidth(lineWidth);
+	CCoord y0 = std::round(getHeight() * 0.25 - 1);
+	CCoord dy = std::round(getHeight() * 2.0 / 9.0);
+	CCoord x0 = getWidth() * 0.25 - 1;
+	CCoord x1 = getWidth() * 0.75 - 1;
+	for (int i = 0; i < 3; i++) {
+		context->drawLine(p + CPoint{ x0, y0 + dy * i }, p + CPoint{ x1, y0 + dy * i });
+	}
+
+	// Draw border (when being pressed down)
+	context->setFrameColor(frameColor);
+	context->setLineWidth(lineWidth);
 	context->drawRect(c, kDrawStroked);
-	//auto p = getViewSize().getTopLeft();
-	//auto q = getViewSize().getTopRight();
-	//context->setFrameColor(symbolColor);
-	//context->setLineWidth(1);
-	//double dy = getHeight() / 6.0;
-	//double x0 = getWidth() / 8;
-	//double x1 = getWidth() - x0 - 2;
-	//for (int i = 0; i < 3; i++) {
-	//	context->drawLine(p + CPoint{ x0, dy * (i + 2) }, p + CPoint{ x1, dy * (i + 2) });
-	//}
 	setDirty(false);
 }
 
@@ -250,6 +277,14 @@ void UbertonContextMenu::initMenu() {
 	zoomItem->setSubmenu(zoomMenu);
 	addItem("Uberton.org", static_cast<int32_t>(MenuItemID::url), "Base", this);
 
+	this->addSeparator();
+
+	legalMenu->removeAllEntry();
+	auto trademarkItem = addItem("VST is a registered trademark of Steinberg Media Technologies GmbH", -1, "Legal", legalMenu);
+	auto legalItem = addItem("Legal Information", -1, "Base", this);
+	legalItem->setSubmenu(legalMenu);
+	trademarkItem->setEnabled(false);
+
 
 	char zoomFactorString[128];
 	int32_t zoomFactorTag = 0;
@@ -273,8 +308,7 @@ void UbertonContextMenu::itemSelected(CCommandMenuItem* item) {
 			openURLInDefaultApplication("https://uberton.org");
 			return;
 		}
-	}
-	else if (item->getCommandCategory() == "Zoom") {
+	} else if (item->getCommandCategory() == "Zoom") {
 		if (item->getTag() < 0 || item->getTag() >= static_cast<ptrdiff_t>(zoomFactors.size())) return;
 		if (editor) {
 			editor->setZoomFactor(zoomFactors[item->getTag()]);
@@ -474,12 +508,11 @@ TextEditUnits::TextEditUnits(const CRect& size) : CTextEdit(size, nullptr, -1) {
 
 void TextEditUnits::draw(CDrawContext* context) {
 	if (!text.empty() && tag != -1 && !units.empty()) {
-		std::string tmp = text;
+		auto tmp = text;
 		text += "" + units;
 		CTextEdit::draw(context);
 		text = tmp;
-	}
-	else {
+	} else {
 		CTextEdit::draw(context);
 	}
 }
@@ -526,8 +559,7 @@ void LogVUMeter::draw(CDrawContext* context) {
 
 		_rectOff.left += tmp;
 		_rectOn.right = tmp + rectOn.left;
-	}
-	else {
+	} else {
 		auto tmp = (CCoord)(((int32_t)(nbLed * (1.f - nomalizedLogValue) + 0.5f) / (float)nbLed) * getOnBitmap()->getHeight());
 		pointOn(0, tmp);
 
@@ -571,17 +603,20 @@ void LinkButton::draw(CDrawContext* context) {
 	COnOffButton::draw(context);
 }
 
-VST3EditorEx1::VST3EditorEx1(Steinberg::Vst::EditController* controller, UTF8StringPtr templateName, UTF8StringPtr xmlFile)
-	: VST3Editor(controller, templateName, xmlFile) {
-	setContentScaleFactor(0.5);
+VST3EditorEx1::VST3EditorEx1(Steinberg::Vst::EditController* controller, UTF8StringPtr templateName, UTF8StringPtr xmlFile, const std::string& pluginName)
+	: VST3Editor(controller, templateName, xmlFile), pluginName(pluginName) {
 }
 
 Steinberg::tresult PLUGIN_API VST3EditorEx1::setContentScaleFactor(Steinberg::IPlugViewContentScaleSupport::ScaleFactor factor) {
+	actualContentScaleFactor = factor;
 	return VST3Editor::setContentScaleFactor(factor * prescaleFactor);
 }
 
 void VST3EditorEx1::setPrescaleFactor(double f) {
+	if (prescaleFactor == f) return;
 	prescaleFactor = f;
+
+	setContentScaleFactor(actualContentScaleFactor);
 	if (getFrame()) {
 		getFrame()->setZoom(getAbsScaleFactor());
 	}
@@ -594,16 +629,20 @@ double VST3EditorEx1::getPrescaleFactor() { return prescaleFactor; }
 //}
 
 
-bool VST3EditorEx1::openUserguide() {
+bool VST3EditorEx1::openUserguide() const {
 	if (userGuidePath.empty()) return false;
+#ifndef __APPLE__
+	using std::filesystem::path;
+	//std::string path = getUbertonLocation() + userGuidePath;
+	const path pluginLocation(getPluginLocation());
+	const path p = pluginLocation / "Contents\\Resources\\Documentation" / std::filesystem::path(userGuidePath).filename();
+	if (std::filesystem::exists(p)) {
+		return openURLInDefaultApplication(p.c_str());
+	}
 
-	std::string path = getUbertonLocation() + userGuidePath;
-	if (std::filesystem::exists(path)) {
-		return openURLInDefaultApplication(path.c_str());
-	}
-	else {
+	else
+#endif
 		return openURLInDefaultApplication(("https://uberton.org/plugins/" + userGuidePath).c_str());
-	}
 }
 
 void Uberton::VST3EditorEx1::setUserguidePath(const std::string& userGuidePath) {
@@ -618,5 +657,22 @@ std::string Uberton::VST3EditorEx1::getUbertonLocation() {
 	return pathS + "/Uberton/";
 #elif __APPLE__
 	return "Applications/Uberton/";
+#endif
+}
+
+std::string Uberton::VST3EditorEx1::getPluginLocation() const {
+#ifdef _WIN32
+	char path[MAX_PATH];
+	SHGetSpecialFolderPathA(0, path, CSIDL_PROGRAM_FILES, FALSE);
+	std::string pathS{ path };
+	return pathS + "\\Common Files\\VST3\\Uberton\\" + pluginName + ".vst3";
+#elif __APPLE__
+	char* homeDir = getenv("HOME");
+	if (homeDir == nullptr) return "";
+	return std::string(homeDir) + "/Library/Audio/Plug-Ins/VST3/Uberton/" + pluginName + ".vst3";
+#elif __gnu_linux__ || __linux__
+	char* homeDir = getenv("HOME");
+	if (homeDir == nullptr) return "";
+	return std::string(homeDir) + "/.vst3/Uberton/" + pluginName + ".vst3";
 #endif
 }

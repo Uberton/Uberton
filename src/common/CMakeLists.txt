@@ -30,6 +30,7 @@ add_library(${target}
         source/viewcreator_globals.h
         source/subcontrollers.h
         source/subcontrollers.cpp
+        source/adsr.h
 )
 
 

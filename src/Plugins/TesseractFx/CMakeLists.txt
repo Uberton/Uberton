@@ -17,8 +17,6 @@ set(target TesseractFx)
 smtg_add_vst3plugin(${target} ${TesseractFx_sources})
 set_target_properties(${target} PROPERTIES ${UBERTON_FOLDER})
 
-target_link_libraries(${target} PRIVATE sdk)
-target_link_libraries(${target} PRIVATE sdk vstgui_support)
 target_link_libraries(${target} PRIVATE uberton_common)
 target_include_directories(${target} PUBLIC "${UBERTON_SRC_PATH}/src/common/source")
 
@@ -50,7 +48,7 @@ endif()
 
 
 if(UBERTON_BUILD_INSTALLERS)
-    uberton_add_userguide_pdf(TARGET ${target} USERGUIDE_PDF "User_Guide/Tesseract User Guide.pdf")
-    uberton_add_factory_presets(TARGET ${target} FACTORY_PRESETS "Factory_Presets")
-    uberton_add_plugin_installer(NAME ${target})
+    uberton_set_userguide_pdf(TARGET ${target} USERGUIDE_PDF "User_Guide/Tesseract User Guide.pdf")
+    uberton_set_factory_presets(TARGET ${target} FACTORY_PRESETS "Factory_Presets")
+    uberton_set_plugin_installer(NAME ${target} VERSION "1.0.1")
 endif()

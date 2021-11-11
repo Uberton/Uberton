@@ -3,7 +3,7 @@ set(BasicInstrument_sources
     source/controller.h
     source/ids.h
     source/processor.h
-    source/version.h""
+    source/version.h
     source/factory.cpp
     source/controller.cpp
     source/processor.cpp

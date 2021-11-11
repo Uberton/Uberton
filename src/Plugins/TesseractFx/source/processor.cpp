@@ -77,6 +77,7 @@ tresult PLUGIN_API Processor::setActive(TBool state) {
 	}
 	else {
 		processorImpl.reset();
+		sendMessageID(processorDeactivatedMsgID);
 	}
 	return kResultTrue;
 }
@@ -96,14 +97,9 @@ tresult PLUGIN_API Processor::canProcessSampleSize(int32 symbolicSampleSize) {
 }
 
 void Processor::processAudio(ProcessData& data) {
-	using std::chrono::steady_clock;
-	auto t0 = steady_clock::now();
+	//using std::chrono::steady_clock;
+	//auto t0 = steady_clock::now();
 
-	
-	if (resonatorLengthChanged) {
-		Processor::addOutputPoint(data, kParamResonatorLength, ParamSpecs::resonatorLength.toNormalized(resonatorLength));
-		resonatorLengthChanged = false;
-	}
 
 	// Handle silence flags
 	{
@@ -123,21 +119,11 @@ void Processor::processAudio(ProcessData& data) {
 		}
 		data.outputs[0].silenceFlags = 0;
 	}
-	vuPPMOld = vuPPM;
-	vuPPM = processorImpl->processAll(data, mix, volume, limiterOn);
-	if (isBypassed()) { // add "last" point, before this function is not called anymore
-		Processor::addOutputPoint(data, kParamVUPPM_L, 0);
-		Processor::addOutputPoint(data, kParamVUPPM_R, 0);
-	}
-	//if (vuPPM != vuPPMOld) {
-	//	addOutputPoint(data, kParamVUPPM, vuPPM);
-	//	if (isBypassed()) { // add "last" point, before this function is not called anymore
-	//		addOutputPoint(data, kParamVUPPM, 0);
-	//	}
-	//}
-	std::chrono::duration<double> duration = steady_clock::now() - t0;
 
-	addOutputPoint(data, kParamProcessTime, (duration.count() / data.numSamples) * 1000.0 / 10.0);
+	vuPPM = processorImpl->processAll(data, mix, volume, limiterOn);
+
+	//std::chrono::duration<double> duration = steady_clock::now() - t0;
+	//addOutputPoint(data, kParamProcessTime, (duration.count() / data.numSamples) * 1000.0 / 10.0);
 }
 
 void Processor::processParameterChanges(IParameterChanges* inputParameterChanges) {
@@ -167,6 +153,12 @@ void Processor::processParameterChanges(IParameterChanges* inputParameterChanges
 	recomputeInexpensiveParameters();
 }
 
+void Processor::beforeBypass(ProcessData& data) {
+	// add "last" data point, before processAudio() is not called anymore
+	Processor::addOutputPoint(data, kParamVUPPM_L, 0);
+	Processor::addOutputPoint(data, kParamVUPPM_R, 0);
+}
+
 void Processor::recomputeParameters() {
 	recomputeInexpensiveParameters();
 	updateResonatorDimension(); // also updates positions!
@@ -186,10 +178,6 @@ void Processor::recomputeInexpensiveParameters() {
 
 	if (processorImpl) {
 		processorImpl->setResonatorFreq(resonatorFreq, resonatorDamp, resonatorVel);
-		if (resonatorLength != processorImpl->getResonatorLength()) {
-			resonatorLength = processorImpl->getResonatorLength();
-			resonatorLengthChanged = true;
-		}
 		processorImpl->setResonatorOrder(resonatorOrder);
 		processorImpl->setLCFilterFreqAndQ(toScaled(ParamSpecs::lcFreq), toScaled(ParamSpecs::lcQ));
 		processorImpl->setHCFilterFreqAndQ(toScaled(ParamSpecs::hcFreq), toScaled(ParamSpecs::hcQ));
