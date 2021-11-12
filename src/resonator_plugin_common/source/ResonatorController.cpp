@@ -22,14 +22,9 @@ tresult PLUGIN_API ResonatorController::initialize(FUnknown* context) {
 
 
 	// Set up units
-	UnitID rootUnitId = 1;
 	addUnit(new Unit(USTRING("Root"), rootUnitId));
-	setCurrentUnitID(rootUnitId);
-	UnitID inputPositionUnitId = 2;
 	addUnit(new Unit(USTRING("Input Position"), inputPositionUnitId, rootUnitId));
-	UnitID outputPositionUnitId = 3;
 	addUnit(new Unit(USTRING("Output Position"), outputPositionUnitId, rootUnitId));
-	UnitID postSectionUnitId = 4;
 	addUnit(new Unit(USTRING("Post Filter"), postSectionUnitId, rootUnitId));
 
 
@@ -69,35 +64,35 @@ tresult PLUGIN_API ResonatorController::initialize(FUnknown* context) {
 		addParam<LogParameter>(ParamSpecs::hcFreq, "High Cut Frequency", "HC Freq", "Hz", Precision(0));
 		addParam<LinearParameter>(ParamSpecs::hcQ, "High Cut Q", "HC Q", "");
 	}
-	setCurrentUnitID(inputPositionUnitId);
-	{
-		UString256 a("", 10);
-		for (int i = 0; i < maxDimension; i++) {
-			a.printInt(i);
-			UString256 name("Left X");
-			name.append(a);
-			addRangeParam(Params::kParamInL0 + i, name, "", { 0, 1, .5 });
-		}
-		for (int i = 0; i < maxDimension; i++) {
-			a.printInt(i);
-			UString256 name("Right X");
-			name.append(a);
-			addRangeParam(Params::kParamInR0 + i, name, "", { 0, 1, .5 });
-		}
-		setCurrentUnitID(outputPositionUnitId);
-		for (int i = 0; i < maxDimension; i++) {
-			a.printInt(i);
-			UString256 name("Left Y");
-			name.append(a);
-			addRangeParam(Params::kParamOutL0 + i, name, "", { 0, 1, .5 });
-		}
-		for (int i = 0; i < maxDimension; i++) {
-			a.printInt(i);
-			UString256 name("Right Y");
-			name.append(a);
-			addRangeParam(Params::kParamOutR0 + i, name, "", { 0, 1, .5 });
-		}
-	}
+	//setCurrentUnitID(inputPositionUnitId);
+	//{
+	//	UString256 a("", 10);
+	//	for (int i = 0; i < maxDimension; i++) {
+	//		a.printInt(i);
+	//		UString256 name("Left X");
+	//		name.append(a);
+	//		addRangeParam(Params::kParamInL0 + i, name, "", { 0, 1, .5 });
+	//	}
+	//	for (int i = 0; i < maxDimension; i++) {
+	//		a.printInt(i);
+	//		UString256 name("Right X");
+	//		name.append(a);
+	//		addRangeParam(Params::kParamInR0 + i, name, "", { 0, 1, .5 });
+	//	}
+	//	setCurrentUnitID(outputPositionUnitId);
+	//	for (int i = 0; i < maxDimension; i++) {
+	//		a.printInt(i);
+	//		UString256 name("Left Y");
+	//		name.append(a);
+	//		addRangeParam(Params::kParamOutL0 + i, name, "", { 0, 1, .5 });
+	//	}
+	//	for (int i = 0; i < maxDimension; i++) {
+	//		a.printInt(i);
+	//		UString256 name("Right Y");
+	//		name.append(a);
+	//		addRangeParam(Params::kParamOutR0 + i, name, "", { 0, 1, .5 });
+	//	}
+	//}
 
 	return kResultTrue;
 }

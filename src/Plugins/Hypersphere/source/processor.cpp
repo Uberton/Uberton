@@ -21,19 +21,28 @@ namespace Hypersphere {
 Processor::Processor() {
 	setControllerClass(ControllerUID);
 
-	auto initValue = [&](const auto& p) {
-		paramState[p.id] = p.toNormalized(p.initialValue);
+	auto initValue = [&](const auto& p, ParamID id = -1) {
+		paramState[id == -1 ? p.id : id] = p.toNormalized(p.initialValue);
 	};
 
 	paramState.version = stateVersion;
 
 	initValue(ParamSpecs::resonatorDim);
 	initValue(ParamSpecs::resonatorOrder);
-	for (int i = 0; i < maxDimension; i++) {
-		paramState[Params::kParamInL0 + i] = 0;
-		paramState[Params::kParamInR0 + i] = 0;
-		paramState[Params::kParamOutL0 + i] = 0;
-		paramState[Params::kParamOutR0 + i] = 0;
+
+	initValue(ParamSpecs::resonatorInputRCoordinate, Params::kParamInL0);
+	initValue(ParamSpecs::resonatorInputRCoordinate, Params::kParamInR0);
+	initValue(ParamSpecs::resonatorInputPhiCoordinate, Params::kParamInL0+1);
+	initValue(ParamSpecs::resonatorInputPhiCoordinate, Params::kParamInR0+1);
+	initValue(ParamSpecs::resonatorOutputRCoordinate, Params::kParamOutL0);
+	initValue(ParamSpecs::resonatorOutputRCoordinate, Params::kParamOutR0);
+	initValue(ParamSpecs::resonatorOutputPhiCoordinate, Params::kParamOutL0+1);
+	initValue(ParamSpecs::resonatorOutputPhiCoordinate, Params::kParamOutR0+1);
+	for (int i = 2; i < maxDimension; i++) {
+		initValue(ParamSpecs::resonatorInputThetaCoordinate, Params::kParamInL0 + i);
+		initValue(ParamSpecs::resonatorInputThetaCoordinate, Params::kParamInR0 + i);
+		initValue(ParamSpecs::resonatorInputThetaCoordinate, Params::kParamOutL0 + i);
+		initValue(ParamSpecs::resonatorInputThetaCoordinate, Params::kParamOutR0 + i);
 	}
 }
 

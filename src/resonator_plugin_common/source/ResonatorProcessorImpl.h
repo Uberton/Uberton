@@ -180,9 +180,9 @@ public:
 		InputVecArr inputPositions;
 		int d = static_cast<int>(inputPositions[0].size());
 		for (int i = 0; i < d; i++) {
-			inputPositions[0][i] = paramState[Params::kParamOutL0 + i];
+			inputPositions[0][i] = paramState[Params::kParamInL0 + i];
 			if constexpr (numChannels > 1)
-				inputPositions[1][i] = paramState[Params::kParamOutR0 + i];
+				inputPositions[1][i] = paramState[Params::kParamInR0 + i];
 		}
 		inputPositions[0] += inputPosSpaceCurve(paramState[Params::kParamInPosCurveL]);
 		if constexpr (numChannels > 1)

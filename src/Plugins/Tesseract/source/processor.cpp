@@ -21,28 +21,33 @@ namespace Tesseract {
 Processor::Processor() {
 	setControllerClass(ControllerUID);
 
-	auto initValue = [&](const auto& p) {
-		paramState[p.id] = p.toNormalized(p.initialValue);
+	auto initValue = [&](const auto& p, ParamID id = -1) {
+		paramState[id == -1 ? p.id : id] = p.toNormalized(p.initialValue);
 	};
 
 	paramState.version = stateVersion;
 
 	initValue(ParamSpecs::resonatorDim);
 	initValue(ParamSpecs::resonatorOrder);
+
+	for (int i = 0; i < maxDimension; i++) {
+		initValue(ParamSpecs::resonatorInputCoordinate, Params::kParamInL0 + i);
+		initValue(ParamSpecs::resonatorInputCoordinate, Params::kParamInR0 + i);
+		initValue(ParamSpecs::resonatorOutputCoordinate, Params::kParamOutL0 + i);
+		initValue(ParamSpecs::resonatorOutputCoordinate, Params::kParamOutR0 + i);
+	}
 }
 
 tresult PLUGIN_API Processor::setActive(TBool state) {
 	if (state) {
 		if (processSetup.symbolicSampleSize == kSample32) {
 			processorImpl = std::make_unique<ProcessorImpl<Math::PreComputedCubeResonator<float, maxDimension, maxOrder, 2>, float>>();
-		}
-		else {
+		} else {
 			processorImpl = std::make_unique<ProcessorImpl<Math::PreComputedCubeResonator<double, maxDimension, maxOrder, 2>, double>>();
 		}
 		processorImpl->init(processSetup.sampleRate);
 		recomputeParameters();
-	}
-	else {
+	} else {
 		processorImpl.reset();
 		sendMessageID(processorDeactivatedMsgID);
 	}

@@ -767,6 +767,18 @@ class NSphereResonator : public ResonatorBase<NSphereEigenValues<T, maxDim, N>, 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 template<class SampleType>
 class BaseAudioComponent
 {

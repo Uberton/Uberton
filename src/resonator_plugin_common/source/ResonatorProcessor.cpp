@@ -43,13 +43,6 @@ ResonatorProcessorBase::ResonatorProcessorBase() {
 	initValue(ParamSpecs::hcFreq);
 	initValue(ParamSpecs::hcQ);
 	initValue(ParamSpecs::limiterOn);
-
-	for (int i = 0; i < maxDimension; i++) {
-		paramState[Params::kParamInL0 + i] = .5;
-		paramState[Params::kParamInR0 + i] = .5;
-		paramState[Params::kParamOutL0 + i] = .5;
-		paramState[Params::kParamOutR0 + i] = .5;
-	}
 }
 
 tresult PLUGIN_API ResonatorProcessorBase::initialize(FUnknown* context) {
