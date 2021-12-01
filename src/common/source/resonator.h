@@ -385,7 +385,7 @@ struct CubeEWPCalculator
 	CubeEWPCalculator() {}
 
 	void compute(int d, int n) {
-//		if (d < 1 || n < 1) throw std::exception("dim and n need to be greater than 0");
+		//		if (d < 1 || n < 1) throw std::exception("dim and n need to be greater than 0");
 		//data = computeFirstEigenvalues<T>(d, n);
 		initialized = true;
 	}
@@ -432,7 +432,7 @@ struct CubeEWPCalculator
 		char endChar;
 		is >> endChar;
 		if (endChar != '-') {
-//			throw std::exception("cube ewp file is damaged");
+			//			throw std::exception("cube ewp file is damaged");
 		}
 		a.initialized = true;
 		return is;
@@ -557,7 +557,7 @@ public:
 
 	scalar eigenValueSqrt(int i) const {
 		int l = linearIndex(i).first;
-		return std::sqrt(l * (l + 1)) * baseFreqCoeff;
+		return static_cast<real>(std::sqrt(l * (l + 1))) * baseFreqCoeff;
 	}
 
 	scalar eigenFunction(int i, const SpaceVec& x) const {
@@ -573,11 +573,11 @@ public:
 		real legend = static_cast<T>(Uberton::Math::assoc_legendre(l, m, std::cos(theta)));
 		//std::cout << "l1 " << legend << " " << l << " " << m << " " << theta << "\n";
 		// return only real part
-		return std::pow(r, l) * r_twopi_sqrt * normalizer(l, m) * legend * std::cos(m * phi);
+		return static_cast<real>(std::pow(r, l) * r_twopi_sqrt * normalizer(l, m) * legend * std::cos(m * phi));
 	}
 
 	void setDesiredBaseFrequency(real f, real b, real c) {
-		baseFreqCoeff = f / std::sqrt(2);
+		baseFreqCoeff = f / static_cast<real>(std::sqrt(2));
 	}
 
 	T coeff() const { return baseFreqCoeff; }
@@ -588,13 +588,13 @@ private:
 		// i+1 = l²+l+1+m and m from -l to l
 		// solve for l: √(i+1) -1 <= l <= √i
 		// Then, calc m from l and i
-		int l = static_cast<int>(std::floor(std::sqrt(i+1)));
-		int m = i+1 - (l * l + l);
+		int l = static_cast<int>(std::floor(std::sqrt(i + 1)));
+		int m = i + 1 - (l * l + l);
 		return { l, m };
 	}
 
 	real normalizer(int l, int m) const {
-		return (std::sqrt((real(2) * l + real(1)) / real(2) * Uberton::Math::factorial(l - m) / Uberton::Math::factorial(l + m)));
+		return static_cast<real>(std::sqrt((real(2) * l + real(1)) / real(2) * Uberton::Math::factorial(l - m) / Uberton::Math::factorial(l + m)));
 	}
 
 	real baseFreqCoeff{ 1 };
@@ -618,7 +618,7 @@ class SphereResonator : public ResonatorBase<SphereEigenValues<T, N>, T, 3, N, c
 // Input/output coordinate values need to have the following format:
 //       x[0] ∈ [0,∞), x[1] ∈ [0,2π], x[i>1] ∈ (0,π)
 //    While the conditions for x[0] and x[1] are not really necessary, all other (angle) coordinates
-//    need to be strictly between 0 and π and must not take the values 0 and π!
+//    need to be strictly between 0 and π and must not assume the values 0 and π!
 template<class T, int maxDim, int N>
 class NSphereEigenValues
 {
@@ -647,51 +647,65 @@ public:
 	int getDim() const { return dim; }
 
 	scalar eigenValueSqrt(int i) const {
-		return combinations[i+1].eigenValue * radius_inv; // λ = −l(l + d − 2)/r²
+		return combinations[i + 1].eigenValue * radius_inv; // λ = −l(l + d − 2)/r²
 	}
 
-	// It's worth to use lookup factorial and gamma_plus_half.
+
+	// Input x = (r, φ, ϑ₁, ϑ₂, ϑ₃, ϑ₄, ϑ₅, ϑ₆, ϑ₇, ϑ₈)
+	//  with r > 0, φ ∈ [0,2π], ϑ ∈ [-π/2, π/2]
+	//
+	// Note: It's worth to use lookup factorial and gamma_plus_half for performance here.
 	scalar eigenFunction(int i, const SpaceVec& x) const {
 		// https://en.wikipedia.org/wiki/Spherical_harmonics#Higher_dimensions
 		using namespace std;
 
-		const auto& combination = combinations[i+1];
+		const auto& combination = combinations[i + 1];
 
-		real factor = r_twopi_sqrt;
-		real r = x[0];
-		real phase = combination.coeffs[0] * x[1];
-		scalar phase_factor = cos(phase) + scalar(0, 1) * sin(phase);
-		scalar product{ 1 };
+		const real r = x[0];
+		const real phase = combination.coeffs[0] * x[1];					// m·φ
+		const scalar phase_factor = cos(phase) + scalar(0, 1) * sin(phase); // e^(imφ)
+		scalar product{ 1 };												// product of all ϑ terms
 		for (int j = 2; j <= dim - 1; j++) {
-			int L = combination.coeffs[j - 1]; // l
-			int l = combination.coeffs[j - 2]; // m
-			real theta_j = x[j];
+			const int L = combination.coeffs[j - 1]; // for d=3 this is l
+			const int l = combination.coeffs[j - 2]; // for d=3 this is m
+			const real theta_j = x[j];				 // ϑ_j
 
-			int jj_i = static_cast<int>(std::floor(j * real(0.5))) - 1; // j / 2 - 1;
-			real jj = (j - real(2)) * real(0.5);
+			const real jj = (j - real(2)) * real(0.5);						  // j / 2 - 1
+			const int jj_i = static_cast<int>(std::floor(j * real(0.5))) - 1; // j / 2 - 1 integer version;
 
-			scalar p1 = sqrt(((real(2) * L + j - 1) * lookupFactorial(L + l + j - real(2))) / (real(2) * lookupFactorial(L - l)));
+			scalar p1 = static_cast<real>(sqrt(((real(2) * L + j - real(1)) * lookupFactorial(L + l + j - 2)) / (real(2) * lookupFactorial(L - l)))); // normalizer
 			scalar p2 = j == 2 ? 1 : pow(sin(theta_j), -jj);
 			scalar p3;
 
-			if (j % 2 == 0) { // if j is even, then jj is an integer -> we can use integer associated legendre
-				p3 = Uberton::Math::assoc_legendre<real>(L + jj_i, -(l + jj_i), cos(theta_j));
-				//std::cout << "l2 " << p3 << " " << L << " " << -l << " " << theta_j << "\n";
-			} else {
-				//product *= Uberton::Math::generalized_assoc_legendre<real>(-(l + jj), L + jj, cos(theta_j));
+			if (j & 1) { // j is odd
+				//product *= Uberton::Math::generalized_assoc_legendre<real>(L + jj, -(l + jj), cos(theta_j));
 
 				// better use fast version:
 				//	let l,L=0, j=3 ⇒ jj = 1/2, jj_i = 0
 				//	compute p(-1/2, 1/2)
 				//	p(-jj_i - 1, jj_i) = p_plus_1/2(-1,0) = p(-.5, .5)
-				p3 = Uberton::Math::generalized_assoc_legendre_plus_onehalf<real>(L + jj_i, -(l + jj_i + 1), cos(theta_j));
+
+				// the argument cos(ϑ) is lessened a bit because the hypergeometric function used in the
+				// generalized_assoc_legendre_plus_onehalf(l, m, x) diverges for |x| = 1 which would be the case
+				// for ϑ = 0 and ϑ = π.
+				p3 = Uberton::Math::generalized_assoc_legendre_plus_onehalf<real>(L + jj_i, -(l + jj_i + 1), cos(theta_j) * T(.99));
+
+			} else { // if j is even, then jj is an integer -> we can use integer associated legendre
+				p3 = Uberton::Math::assoc_legendre<real>(L + jj_i, -(l + jj_i), cos(theta_j));
+				//std::cout << "l2 " << p3 << " " << L << " " << -l << " " << theta_j << "\n";
 			}
 			product *= p1 * p2 * p3;
 
 			// (j-1)/2 = j/2 - 1 = [j/2] - 1 + 1/2
 		}
-		real ln = combination.coeffs[dim - 2];
-		return (std::pow(r, ln) * factor * phase_factor * product).real();
+
+		// Λ = R(r) · Y(φ, ϑ₁, ...)
+		// with Y(φ, ϑ₁, ...) = 1/√2π · e^(imφ) · Π_(j=2)^(d-1) P_j(ϑ_j)
+		real ln = static_cast<real>(combination.coeffs[dim - 2]);
+
+		// Λ = R(r) · Y(φ, ϑ₁, ...)
+		// with Y(φ, ϑ₁, ...) = 1/√2π · e^(imφ) · Π_(j=2)^(d-1) P_j(ϑ_j)
+		return (std::pow(r, ln) * r_twopi_sqrt * phase_factor * product).real();
 	}
 
 	void setDesiredBaseFrequency(real f, real b, real c) {
@@ -709,13 +723,16 @@ public:
 		return T(1) / radius_inv;
 	}
 
-private:
+	//private:
 	void computeCombinations(int dim) {
+		// Note: The first combinations of "quantum numbers" is 000...
+		// This represents a rectification (DC signal) and is omitted for sound production.
+		// This ground state is still in this list but skipped in eigenFunction()
 		Combination current{};
 		int index = 0; // index that points to one of the quantum numbers of one combination
 		const int lastIndex = dim - 2;
 		int combinationCount = 0;
-		while (combinationCount < N+1) {
+		while (combinationCount < N + 1) {
 			if (index != lastIndex && current.coeffs[index] >= current.coeffs[index + 1]) {
 				index++;
 				continue;
@@ -724,7 +741,7 @@ private:
 			combinations[combinationCount++] = current;
 			current.coeffs[index]++;
 			if (index == lastIndex) {
-				current.eigenValue = std::sqrt(current.coeffs[index] * (current.coeffs[index] + dim - 2));
+				current.eigenValue = static_cast<real>(std::sqrt(current.coeffs[index] * (current.coeffs[index] + dim - 2)));
 			}
 			if (index != 0) {
 				for (int i = 1; i < index; i++)
@@ -754,7 +771,7 @@ private:
 		T eigenValue;
 	};
 
-	std::array<Combination, N+1> combinations;
+	std::array<Combination, N + 1> combinations;
 
 	real radius_inv{ 1 };
 };
@@ -764,11 +781,6 @@ template<class T, int maxDim, int N, int channels>
 class NSphereResonator : public ResonatorBase<NSphereEigenValues<T, maxDim, N>, T, maxDim, N, channels>
 {
 };
-
-
-
-
-
 
 
 

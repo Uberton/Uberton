@@ -32,12 +32,13 @@ Processor::Processor() {
 
 	initValue(ParamSpecs::resonatorInputRCoordinate, Params::kParamInL0);
 	initValue(ParamSpecs::resonatorInputRCoordinate, Params::kParamInR0);
-	initValue(ParamSpecs::resonatorInputPhiCoordinate, Params::kParamInL0+1);
-	initValue(ParamSpecs::resonatorInputPhiCoordinate, Params::kParamInR0+1);
+	initValue(ParamSpecs::resonatorInputPhiCoordinate, Params::kParamInL0 + 1);
+	initValue(ParamSpecs::resonatorInputPhiCoordinate, Params::kParamInR0 + 1);
 	initValue(ParamSpecs::resonatorOutputRCoordinate, Params::kParamOutL0);
 	initValue(ParamSpecs::resonatorOutputRCoordinate, Params::kParamOutR0);
-	initValue(ParamSpecs::resonatorOutputPhiCoordinate, Params::kParamOutL0+1);
-	initValue(ParamSpecs::resonatorOutputPhiCoordinate, Params::kParamOutR0+1);
+	initValue(ParamSpecs::resonatorOutputPhiCoordinate, Params::kParamOutL0 + 1);
+	initValue(ParamSpecs::resonatorOutputPhiCoordinate, Params::kParamOutR0 + 1);
+
 	for (int i = 2; i < maxDimension; i++) {
 		initValue(ParamSpecs::resonatorInputThetaCoordinate, Params::kParamInL0 + i);
 		initValue(ParamSpecs::resonatorInputThetaCoordinate, Params::kParamInR0 + i);
@@ -50,15 +51,12 @@ tresult PLUGIN_API Processor::setActive(TBool state) {
 	if (state) {
 		if (processSetup.symbolicSampleSize == kSample32) {
 			processorImpl = std::make_unique<SphereProcessorImpl<Math::NSphereResonator<float, maxDimension, maxOrder, 2>, float>>();
-			Math::PreComputedCubeResonator<float, maxDimension, maxOrder, 2> a;
-		}
-		else {
+		} else {
 			processorImpl = std::make_unique<SphereProcessorImpl<Math::NSphereResonator<double, maxDimension, maxOrder, 2>, double>>();
 		}
 		processorImpl->init(processSetup.sampleRate);
 		recomputeParameters();
-	}
-	else {
+	} else {
 		processorImpl.reset();
 		sendMessageID(processorDeactivatedMsgID);
 	}

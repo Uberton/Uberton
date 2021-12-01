@@ -257,8 +257,8 @@ inline T hypergeometric(T a, T b, T c, T x, double tolerance = 1e-7) {
 		return 0;
 	}
 #endif
-	double term = a * b * x / c;
-	double value = 1.0 + term;
+	T term = a * b * x / c;
+	T value = T(1.0) + term;
 	int n = 1;
 
 	while (abs(term) > tolerance) {
@@ -552,11 +552,11 @@ inline T generalized_assoc_legendre(T lambda, T mu, T x) {
 // The hypergeometric function should converge for all l, m (so long as |x| < 1), because
 // the third parameter is never an integer.
 template<class T>
-inline T generalized_assoc_legendre_plus_onehalf(T l, T m, T x) {
-	T lambda = l + 0.5;
-	T mu = m + 0.5;
+inline T generalized_assoc_legendre_plus_onehalf(int l, int m, T x) {
+	T lambda = l + T(0.5);
+	T mu = m + T(0.5);
 	// https://en.wikipedia.org/wiki/Associated_Legendre_polynomials#Generalization_via_hypergeometric_functions
-	return std::pow((T(1) + x) / (T(1) - x), mu * T(0.5)) * hypergeometric<T>(-lambda, lambda + T(1), T(1) - mu, (T(1) - x) * T(0.5)) / lookupPlusOneHalfGamma(2 - m);
+	return static_cast<T>(std::pow((T(1) + x) / (T(1) - x), mu * T(0.5)) * hypergeometric<T>(-lambda, lambda + T(1), T(1) - mu, (T(1) - x) * T(0.5)) / lookupPlusOneHalfGamma(2 - m));
 }
 // lambda = n +.5
 // 1 - lambda = 1 - n - .5 = 2 - n + 0.5;

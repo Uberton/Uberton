@@ -45,12 +45,12 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 	setCurrentUnitID(inputPositionUnitId);
 	{
 		add(ParamSpecs::resonatorInputRCoordinate, Params::kParamInL0, L"Left r", -1);
-		add(ParamSpecs::resonatorInputPhiCoordinate, Params::kParamInL0 + 1, L"Left φ", -1);
+		add(ParamSpecs::resonatorInputPhiCoordinate, Params::kParamInL0 + 1, L"Left φ", -1, L"π");
 		for (int i = 2; i < maxDimension; i++) {
 			add(ParamSpecs::resonatorInputThetaCoordinate, Params::kParamInL0 + i, L"Left ϑ", i - 1, L"π");
 		}
 		add(ParamSpecs::resonatorInputRCoordinate, Params::kParamInR0, L"Right r", -1);
-		add(ParamSpecs::resonatorInputPhiCoordinate, Params::kParamInR0 + 1, L"Right φ", -1);
+		add(ParamSpecs::resonatorInputPhiCoordinate, Params::kParamInR0 + 1, L"Right φ", -1, L"π");
 		for (int i = 2; i < maxDimension; i++) {
 			add(ParamSpecs::resonatorInputThetaCoordinate, Params::kParamInR0 + i, L"Right ϑ", i - 1, L"π");
 		}
@@ -58,12 +58,12 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 	setCurrentUnitID(outputPositionUnitId);
 	{
 		add(ParamSpecs::resonatorOutputRCoordinate, Params::kParamOutL0, L"Left r", -1);
-		add(ParamSpecs::resonatorOutputPhiCoordinate, Params::kParamOutL0 + 1, L"Left φ", -1);
+		add(ParamSpecs::resonatorOutputPhiCoordinate, Params::kParamOutL0 + 1, L"Left φ", -1, L"π");
 		for (int i = 2; i < maxDimension; i++) {
 			add(ParamSpecs::resonatorOutputThetaCoordinate, Params::kParamOutL0 + i, L"Left ϑ", i - 1, L"π");
 		}
 		add(ParamSpecs::resonatorOutputRCoordinate, Params::kParamOutR0, L"Right r", -1);
-		add(ParamSpecs::resonatorOutputPhiCoordinate, Params::kParamOutR0 + 1, L"Right φ", -1);
+		add(ParamSpecs::resonatorOutputPhiCoordinate, Params::kParamOutR0 + 1, L"Right φ", -1, L"π");
 		for (int i = 2; i < maxDimension; i++) {
 			add(ParamSpecs::resonatorOutputThetaCoordinate, Params::kParamOutR0 + i, L"Right ϑ", i - 1, L"π");
 		}
@@ -90,7 +90,6 @@ void Controller::updateResonatorSizeDisplay() {
 	double w = ParamSpecs::resonatorFreq.toScaled(getParamNormalized(kParamResonatorFreq)) * 2 * pi;
 	double b = ParamSpecs::resonatorDamp.toScaled(getParamNormalized(kParamResonatorDamp));
 
-	double length = pi * velocity * std::sqrt(dim / (w * w + b * b));
 	double radius = velocity * std::sqrt((1.0 + dim - 2.0) / (w * w + b * b));
 	radius = 1.0 / std::sqrt((w * w + b * b) / (velocity * velocity * (dim - 1)));
 	double radiusNormalized = ParamSpecs::resonatorLength.toNormalized(radius);

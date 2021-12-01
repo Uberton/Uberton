@@ -106,9 +106,10 @@ public:
 // The frequency should be less than half the sample rate (else the output may be greater than 1
 // not to speak of aliasing issues).
 //
-// The duty cycle needs to be in the interval 0 to 1. It is mathematically possible to insert values
-// between -1 and 0 to get an inverse sawtooth but this creates non-desired results because of an
-// optimization used internally.
+// The duty cycle needs to be in the interval 0 to (excluding) 1. It is mathematically possible to 
+// insert values between -1 and 0 to get an inverse sawtooth but this creates non-desired results 
+// because of an optimization used internally. Setting the duty cycle to exactly 1 offsets the 
+// frequency a bit, better use something like 0.999. 
 //
 // Changes to the osciallator parameters (frequency and duty) are updated immediately after the
 // current (up- or downward) phase has finished.
