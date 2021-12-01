@@ -28,7 +28,7 @@ constexpr double vuPPMOverheadDB = 2;
 const double vuPPMNormalizedMultiplicator = std::pow(10, vuPPMOverheadDB / 20.0);
 const double vuPPMNormalizedMultiplicatorInv = 1.0 / vuPPMNormalizedMultiplicator;
 
-enum Params : Steinberg::Vst::ParamID {
+enum Params : ParamID {
 	kParamVol,
 	kParamMix,
 
@@ -68,6 +68,8 @@ enum Params : Steinberg::Vst::ParamID {
 	kParamLimiterOn,
 	kNumGlobalParameters
 };
+
+constexpr int32_t noID = -1;
 
 
 namespace ParamSpecs {

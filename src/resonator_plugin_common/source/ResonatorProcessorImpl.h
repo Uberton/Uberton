@@ -70,6 +70,7 @@ public:
 		if (resonatorDim != resonator.getDim()) {
 			resonator.setDim(resonatorDim);
 			resonator.setFreqDampeningAndVelocity(currentResFreq, currentResDamp, currentResVel); // need to update this when resonatorDim changed
+			updateCompensation();
 		}
 	}
 
@@ -79,6 +80,7 @@ public:
 		updateCompensation();
 	}
 
+	// Volume compensation for less extremes when changing resonator order or dimension
 	virtual void updateCompensation() {
 		compensation = 0.03f / std::sqrt(currentResonatorOrder);
 	}
@@ -118,8 +120,8 @@ public:
 		SampleType** out = (SampleType**)data.outputs[0].channelBuffers32;
 
 
-		float wet = mix;
-		float dry = 1 - wet;
+		SampleType wet = mix;
+		SampleType dry = 1. - wet;
 		std::array<SampleType, numChannels> input;
 		SampleVec tmp;
 		SampleType maxSampleLSq = 0;

@@ -34,7 +34,7 @@ namespace ParamSpecs {
 static const DiscreteParamSpec resonatorDim{ kParamResonatorDim, 1, maxDimension, 4, 3 };
 static const DiscreteParamSpec resonatorOrder{ kParamResonatorOrder, 1, Tesseract::maxOrder, 5, 128 };
 
-static const LinearParamSpec resonatorInputCoordinate{ -1, 0, 1, .5, .5 };
+static const LinearParamSpec resonatorInputCoordinate{ noID, 0, 1, .5, .5 };
 static const LinearParamSpec resonatorOutputCoordinate{ resonatorInputCoordinate };
 
 }

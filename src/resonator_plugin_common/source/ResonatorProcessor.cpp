@@ -108,7 +108,7 @@ void ResonatorProcessorBase::processParameterChanges(IParameterChanges* inputPar
 			if (id == bypassId) {
 				setBypassed(value > 0.5);
 			} else {
-				paramState.params[id] = value;
+				paramState[id] = value;
 			}
 			if (id == Params::kParamInPosCurveL || id == Params::kParamInPosCurveR || (id >= Params::kParamInL0 && id <= Params::kParamInRN)) {
 				processorImpl->updateResonatorInputPosition(paramState);
