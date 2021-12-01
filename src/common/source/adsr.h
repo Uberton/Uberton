@@ -25,14 +25,14 @@ class QuadraticADSREnvelope
 public:
 	// setParams should better not be called betwee start() and release()
 	void setParams(int attackSamples, int decaySamples, double sustainLevel, int releaseSamples) noexcept {
-		ca = 2 * 1.f / (attackSamples * (attackSamples - 1.0));
-		cd = -2 * (1.f - sustainLevel) / (decaySamples * (decaySamples - 1.0));
+		ca = 2 * 1.0 / (attackSamples * (attackSamples - 1.0));
+		cd = -2 * (1.0 - sustainLevel) / (decaySamples * (decaySamples - 1.0));
 		attackEnd = attackSamples;
 		decayEnd = attackEnd + decaySamples;
 		releaseTime = releaseSamples;
 	}
 
-	void start() noexcept {
+	void reset() noexcept {
 		index = 0;
 		value = 0;
 		constant = false;
@@ -42,14 +42,14 @@ public:
 	}
 
 	void release() noexcept {
-		c0 = -2.f * value / (releaseTime * (releaseTime - 1.0));
+		c0 = -2.0 * value / (releaseTime * (releaseTime - 1.0));
 		a0 = nextBreak = releaseEnd = index + releaseTime;
 		constant = false;
 	}
 
 	double next() noexcept {
 		if (constant) return value;
-		value += c0 * (a0 - index - 1);
+		value += c0 * (a0 - index - 1.0);
 		if (++index == nextBreak) {
 			if (nextBreak == attackEnd) { // finished attack period
 				c0 = cd;
@@ -131,7 +131,7 @@ public:
 		}
 	}
 
-	void start() noexcept {
+	void reset() noexcept {
 		index = 0;
 		value = 0;
 		constant = false;
