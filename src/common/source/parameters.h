@@ -36,8 +36,6 @@ using namespace Steinberg::Vst;
 template<uint32 N>
 struct UniformParamState
 {
-	std::array<ParamValue, N> params{};
-	bool bypass{ false };
 	uint64 version = 0;
 
 	bool isBypassed() const { return bypass; }
@@ -76,19 +74,23 @@ struct UniformParamState
 		return kResultOk;
 	}
 
-	ParamValue& operator[](int32 id) {
+	ParamValue& operator[](size_t id) {
 #ifdef _DEBUG
 		if (id < 0 || id >= N) throw std::exception("Invalid param id");
 #endif
 		return params[id];
 	}
 
-	const ParamValue& operator[](int32 id) const {
+	const ParamValue& operator[](size_t id) const {
 #ifdef _DEBUG
 		if (id < 0 || id >= N) throw std::exception("Invalid param id");
 #endif
 		return params[id];
 	}
+
+private:
+	std::array<ParamValue, N> params{};
+	bool bypass{ false };
 };
 
 
@@ -116,7 +118,7 @@ constexpr ParamID bypassId = 1000001;
 
 /// Turn discrete value between min and max to normalized value from 0 to 1
 inline double discreteToNormalized(int value, int min, int max) {
-	return (value - min) / static_cast<double>(max - min);
+	return static_cast<double>(value - min) / static_cast<double>(max - min);
 }
 
 /// Turn normalized value from 0 to 1 to discrete value between min and max
@@ -278,7 +280,7 @@ public:
 	}
 
 	double toNormalized(double value) const {
-		return (value - min) / static_cast<double>(max - min);
+		return scaledToNormalized(value, static_cast<double>(min), static_cast<double>(max));
 	}
 
 	int toDiscrete(double value) const {
@@ -320,6 +322,10 @@ public:
 		return std::log((value - c) / a) * logb_inv;
 	}
 
+	double getCoefficient() const { return a; }
+	double getBase() const { return b; }
+	double getOffset() const { return c; }
+
 private:
 	double a;
 	double b;
@@ -350,6 +356,10 @@ public:
 	double toNormalized(double value) const {
 		return std::pow((value - min) / a, 1.0 / b);
 	}
+
+	double getCoefficient() const { return a; }
+	double getExponent() const { return b; }
+	double getOffset() const { return min; }
 
 private:
 	double a;
@@ -500,8 +510,7 @@ public:
 		double dB = volumeTodB(value * multiplicator);
 		if (value > 0.0001) {
 			wrapper.printFloat(dB, precision);
-		}
-		else {
+		} else {
 			wrapper.append(USTRING("-oo"));
 		}
 		wrapper.copyTo(string, 128);
