@@ -64,6 +64,7 @@ public:
 		}
 
 		resonator.setSampleRate(sampleRate);
+		this->sampleRate = sampleRate;
 	}
 
 	void setResonatorDim(int resonatorDim) override {
@@ -82,6 +83,7 @@ public:
 
 	// Volume compensation for less extremes when changing resonator order or dimension
 	virtual void updateCompensation() {
+		// higher resonator orders result in considerably higher volumes
 		compensation = 0.03f / std::sqrt(currentResonatorOrder);
 	}
 
@@ -120,17 +122,57 @@ public:
 		SampleType** out = (SampleType**)data.outputs[0].channelBuffers32;
 
 
-		SampleType wet = mix;
-		SampleType dry = 1. - wet;
+		const SampleType wet = mix;
+		const SampleType dry = 1. - wet;
 		std::array<SampleType, numChannels> input;
 		SampleVec tmp;
 		SampleType maxSampleLSq = 0;
 		SampleType maxSampleRSq = 0;
-		// higher resonator orders result in considerably higher volumes
-		//float compensation = 1.f;//		/ std::sqrt(currentResonatorOrder);
-		//compensation = 10;
+
+		const double rampTime_inv = 1.0 / numSamples;
+		const double positionParamRamp = rampTime_inv * 8; // yes this is hardcoded and may not be changed
+
+
+		const InputVecArr outputDiffa =
+			(numChannels == 1) ? InputVecArr{ (newOutputPositions[0] - currentOutputPositions[0]) * positionParamRamp }
+							   : InputVecArr{
+									 (newOutputPositions[0] - currentOutputPositions[0]) * positionParamRamp,
+									 (newOutputPositions[1] - currentOutputPositions[1]) * positionParamRamp
+								 };
+		const InputVecArr inputDiffa =
+			(numChannels == 1) ? InputVecArr{ (newInputPositions[0] - currentInputPositions[0]) * positionParamRamp }
+							   : InputVecArr{
+									 (newInputPositions[0] - currentInputPositions[0]) * positionParamRamp,
+									 (newInputPositions[1] - currentInputPositions[1]) * positionParamRamp
+								 };
+
 
 		for (int32 i = 0; i < numSamples; i++) {
+			if ((i & 0b00000111) == 0) { // divisible by 8
+				// updating every sample is too slow and produces audio cracks
+				// we only update the positions every few samples
+				if (inCurveChanged) {
+					//inputPositionsParam += positionParamRamp;
+					//inputPositions = currentInputPositions;
+					//inputPositions[0] += inputPositionsDiff[0] * inputPositionsParam;
+					//if constexpr (numChannels > 1) {
+					//	inputPositions[1] += inputPositionsDiff[1] * inputPositionsParam;
+					//}
+					//resonator.setInputPositions(inputPositions);
+					currentInputPositions[0] += inputDiffa[0];
+					if constexpr (numChannels > 1) {
+						currentInputPositions[1] += inputDiffa[1];
+					}
+					resonator.setOutputPositions(currentOutputPositions);
+				}
+				if (outCurveChanged) {
+					currentOutputPositions[0] += outputDiffa[0];
+					if constexpr (numChannels > 1) {
+						currentOutputPositions[1] += outputDiffa[1];
+					}
+					resonator.setOutputPositions(currentOutputPositions);
+				}
+			}
 			for (int ch = 0; ch < numChannels; ch++) {
 				input[ch] = *(in[ch] + i);
 			}
@@ -155,6 +197,17 @@ public:
 				maxSampleRSq = std::max(maxSampleRSq, tmp[1] * tmp[1]);
 			}
 		}
+		if (inCurveChanged) {
+			inCurveChanged = false;
+			currentInputPositions = newInputPositions;
+			resonator.setInputPositions(currentInputPositions);
+		}
+		if (outCurveChanged) {
+			outCurveChanged = false;
+			currentOutputPositions = newOutputPositions;
+			resonator.setOutputPositions(currentOutputPositions);
+		}
+
 		if (vuPPMLSq != maxSampleLSq || vuPPMRSq != maxSampleRSq) {
 			addOutputPoint(data, kParamVUPPM_L, std::sqrt(maxSampleLSq) * vuPPMNormalizedMultiplicatorInv);
 			addOutputPoint(data, kParamVUPPM_R, std::sqrt(maxSampleRSq) * vuPPMNormalizedMultiplicatorInv);
@@ -167,43 +220,52 @@ public:
 			return std::max(maxSampleLSq, maxSampleRSq);
 		}
 	}
-    
-    static void addOutputPoint(ProcessData& data, ParamID id, ParamValue value) {
-            if (data.outputParameterChanges) {
-                int32 index;
-                IParamValueQueue* queue = data.outputParameterChanges->addParameterData(id, index);
-                if (queue) {
-                    queue->addPoint(0, value, index);
-                }
-            }
-        }
+
+	static void addOutputPoint(ProcessData& data, ParamID id, ParamValue value) {
+		if (data.outputParameterChanges) {
+			int32 index;
+			IParamValueQueue* queue = data.outputParameterChanges->addParameterData(id, index);
+			if (queue) {
+				queue->addPoint(0, value, index);
+			}
+		}
+	}
 
 	void updateResonatorInputPosition(const ParamState& paramState) override {
-		InputVecArr inputPositions;
-		int d = static_cast<int>(inputPositions[0].size());
-		for (int i = 0; i < d; i++) {
-			inputPositions[0][i] = paramState[Params::kParamInL0 + i];
+		inCurveChanged = true;
+		for (int i = 0; i < maxDimension; i++) {
+			newInputPositions[0][i] = paramState[Params::kParamInL0 + i];
 			if constexpr (numChannels > 1)
-				inputPositions[1][i] = paramState[Params::kParamInR0 + i];
+				newInputPositions[1][i] = paramState[Params::kParamInR0 + i];
 		}
-		inputPositions[0] += inputPosSpaceCurve(paramState[Params::kParamInPosCurveL]);
+		newInputPositions[0] += inputPosSpaceCurve(paramState[Params::kParamInPosCurveL]);
 		if constexpr (numChannels > 1)
-			inputPositions[1] += inputPosSpaceCurve(paramState[Params::kParamInPosCurveR]);
-		resonator.setInputPositions(inputPositions);
+			newInputPositions[1] += inputPosSpaceCurve(paramState[Params::kParamInPosCurveR]);
+
+		if constexpr (numChannels == 1) {
+			inputPositionsDiff = { newInputPositions[0] - currentInputPositions[0] };
+		} else {
+			inputPositionsDiff = { newInputPositions[0] - currentInputPositions[0], newInputPositions[1] - currentInputPositions[1] };
+		}
 	}
 
 	void updateResonatorOutputPosition(const ParamState& paramState) override {
-		InputVecArr outputPositions;
-		int d = static_cast<int>(outputPositions[0].size());
-		for (int i = 0; i < d; i++) {
-			outputPositions[0][i] = paramState[Params::kParamOutL0 + i];
+		outCurveChanged = true;
+
+		for (int i = 0; i < maxDimension; i++) {
+			newOutputPositions[0][i] = paramState[Params::kParamOutL0 + i];
 			if constexpr (numChannels > 1)
-				outputPositions[1][i] = paramState[Params::kParamOutR0 + i];
+				newOutputPositions[1][i] = paramState[Params::kParamOutR0 + i];
 		}
-		outputPositions[0] += outputPosSpaceCurve(paramState[Params::kParamOutPosCurveL]);
+		newOutputPositions[0] += outputPosSpaceCurve(paramState[Params::kParamOutPosCurveL]);
 		if constexpr (numChannels > 1)
-			outputPositions[1] += outputPosSpaceCurve(paramState[Params::kParamOutPosCurveR]);
-		resonator.setOutputPositions(outputPositions);
+			newOutputPositions[1] += outputPosSpaceCurve(paramState[Params::kParamOutPosCurveR]);
+
+		if constexpr (numChannels == 1) {
+			outputPositionsDiff = { newOutputPositions[0] - currentOutputPositions[0] };
+		} else {
+			outputPositionsDiff = { newOutputPositions[0] - currentOutputPositions[0], newOutputPositions[1] - currentOutputPositions[1] };
+		}
 	}
 
 
@@ -245,9 +307,20 @@ protected:
 	int currentResonatorOrder = 1;
 	float compensation = 0.03f / std::sqrt(currentResonatorOrder);
 
+	bool inCurveChanged{ true };
+	bool outCurveChanged{ true };
+	InputVecArr currentInputPositions;
+	InputVecArr newInputPositions;
+	InputVecArr currentOutputPositions;
+	InputVecArr newOutputPositions;
+	InputVecArr inputPositionsDiff;
+	InputVecArr outputPositionsDiff;
+
 	//SampleVec output
 	SampleType vuPPMLSq{ 0 };
 	SampleType vuPPMRSq{ 0 };
+
+	double sampleRate{ 0 };
 };
 
 }
