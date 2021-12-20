@@ -13,6 +13,7 @@
 
 #include "ids.h"
 #include <ResonatorProcessor.h>
+#include <ResonatorProcessorImpl.h>
 
 namespace Uberton {
 namespace ResonatorPlugin {
@@ -36,11 +37,11 @@ template<class Resonator, typename SampleType, int numChannels = 2>
 class SphereProcessorImpl : public ProcessorImpl<Resonator, SampleType, numChannels>
 {
 	void updateCompensation() override {
-		compensation = 1.0 / resonator.getDim();
+		volumeCompensation = 1.0 / resonator.getDim();
 	}
 
 	void updateResonatorInputPosition(const ParamState& paramState) override {
-		InputVecArr inputPositions;
+		PositionVecArr inputPositions;
 		auto d = inputPositions[0].size();
 
 		auto resultVec = [&](ParamID firstId, SpaceVec& output) {
@@ -77,7 +78,7 @@ class SphereProcessorImpl : public ProcessorImpl<Resonator, SampleType, numChann
 	}
 
 	void updateResonatorOutputPosition(const ParamState& paramState) override {
-		InputVecArr outputPositions;
+		PositionVecArr outputPositions;
 		auto d = outputPositions[0].size();
 
 		auto resultVec = [&](ParamID firstId, SpaceVec& output) {

@@ -64,12 +64,12 @@ tresult PLUGIN_API Processor::setActive(TBool state) {
 }
 
 void Processor::recomputeInexpensiveParameters() {
-	resonatorOrder = toDiscrete(ParamSpecs::resonatorOrder);
+	state.resonatorOrder = toDiscrete(ParamSpecs::resonatorOrder);
 	ResonatorProcessorBase::recomputeInexpensiveParameters();
 }
 
 void Processor::updateResonatorDimension() {
-	resonatorDim = toDiscrete(ParamSpecs::resonatorDim);
+	state.resonatorDim = toDiscrete(ParamSpecs::resonatorDim);
 	ResonatorProcessorBase::updateResonatorDimension();
 }
 

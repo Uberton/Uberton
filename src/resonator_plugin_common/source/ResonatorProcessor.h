@@ -13,7 +13,7 @@
 
 #include <ProcessorBase.h>
 #include "common_param_specs.h"
-#include "ResonatorProcessorImpl.h"
+#include "ResonatorProcessorImplBase.h"
 
 namespace Uberton {
 namespace ResonatorPlugin {
@@ -47,14 +47,7 @@ protected:
 
 	std::unique_ptr<ProcessorImplBase> processorImpl;
 
-	float volume{ 0 };
-	float mix{ 1 };
-	int resonatorDim = maxDimension;
-	int resonatorOrder = 1;
-	float resonatorFreq{ 0 };
-	float resonatorDamp{ 0 };
-	float resonatorVel{ 0 };
-	bool limiterOn{ false };
+	State state; // Scaled parameters stored here
 
 	double vuPPM = 0; // contains max of left and right channel from last buffer to check if there is silence
 };

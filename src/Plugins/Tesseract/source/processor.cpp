@@ -13,10 +13,46 @@
 #include <public.sdk/source/vst/vstaudioprocessoralgo.h>
 #include <resonator.h>
 #include <chrono>
+#include <ResonatorProcessorImpl.h>
 
+namespace Uberton {
+namespace Math {
+template<class T, int maxDim, int maxOrder>
+CubeEWPStorage<T, maxDim> getCubeEWPStorage();
+}
+}
 namespace Uberton {
 namespace ResonatorPlugin {
 namespace Tesseract {
+
+
+template<class SampleType, int numChannels>
+using CubeResonator = Math::PreComputedCubeResonator<SampleType, maxDimension, maxOrder, numChannels>;
+
+
+
+
+
+template<typename SampleType, int numChannels = 2>
+class ProcessorImplCube : public ProcessorImpl<CubeResonator<SampleType, numChannels>, SampleType, numChannels>
+{
+public:
+	using Resonator = CubeResonator<SampleType, numChannels>;
+
+	ProcessorImplCube() {
+		resonator.setStorage(Math::getCubeEWPStorage<SampleType, Resonator::maxDimension(), Resonator::maxOrder()>());
+	}
+
+protected:
+	void updateCompensation() override {
+		// higher resonator orders result in considerably higher volumes
+		volumeCompensation = 0.03f / std::sqrt(currentResonatorOrder);
+	}
+};
+
+
+
+
 
 Processor::Processor() {
 	setControllerClass(ControllerUID);
@@ -40,10 +76,13 @@ Processor::Processor() {
 
 tresult PLUGIN_API Processor::setActive(TBool state) {
 	if (state) {
+		constexpr int stereo = 2;
 		if (processSetup.symbolicSampleSize == kSample32) {
-			processorImpl = std::make_unique<ProcessorImpl<Math::PreComputedCubeResonator<float, maxDimension, maxOrder, 2>, float>>();
+			//using Resonator = Math::PreComputedCubeResonator<float, maxDimension, maxOrder, stereo>;
+			processorImpl = std::make_unique<ProcessorImplCube<float, stereo>>();
 		} else {
-			processorImpl = std::make_unique<ProcessorImpl<Math::PreComputedCubeResonator<double, maxDimension, maxOrder, 2>, double>>();
+			//using Resonator = Math::PreComputedCubeResonator<double, maxDimension, maxOrder, stereo>;
+			processorImpl = std::make_unique<ProcessorImplCube<double, stereo>>();
 		}
 		processorImpl->init(processSetup.sampleRate);
 		recomputeParameters();
@@ -55,12 +94,12 @@ tresult PLUGIN_API Processor::setActive(TBool state) {
 }
 
 void Processor::recomputeInexpensiveParameters() {
-	resonatorOrder = toDiscrete(ParamSpecs::resonatorOrder);
+	state.resonatorOrder = toDiscrete(ParamSpecs::resonatorOrder);
 	ResonatorProcessorBase::recomputeInexpensiveParameters();
 }
 
 void Processor::updateResonatorDimension() {
-	resonatorDim = toDiscrete(ParamSpecs::resonatorDim);
+	state.resonatorDim = toDiscrete(ParamSpecs::resonatorDim);
 	ResonatorProcessorBase::updateResonatorDimension();
 }
 
