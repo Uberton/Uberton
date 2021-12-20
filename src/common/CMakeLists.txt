@@ -19,8 +19,7 @@ add_library(${target}
         source/resonator.h
         source/parameters.h
         source/filter.h
-        source/cube_ewp_n=50.h
-        source/cube_ewp_n=200.h
+        source/cube_ewp_n=200.cpp
         source/ActionHistory.h
         source/ActionHistory.cpp
         source/ui.h
@@ -31,6 +30,8 @@ add_library(${target}
         source/subcontrollers.h
         source/subcontrollers.cpp
         source/adsr.h
+        source/processor_utilities.h
+        source/processor_utilities.cpp
 )
 
 
