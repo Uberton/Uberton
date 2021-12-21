@@ -1242,7 +1242,7 @@
 						<key>BACKGROUND_PATH</key>
 						<dict>
 							<key>PATH</key>
-							<string>../resources_common/Logo Gray Transparent 1200x500.png</string>
+							<string>../../../docs/media/Logo_Gray_Transparent_1200x500.png</string>
 							<key>PATH_TYPE</key>
 							<integer>1</integer>
 						</dict>
@@ -1257,7 +1257,7 @@
 				<key>BACKGROUND_PATH</key>
 				<dict>
 					<key>PATH</key>
-					<string>../resources_common/Logo Gray Transparent 1200x500.png</string>
+					<string>../../../docs/media/Logo_Gray_Transparent_1200x500.png</string>
 					<key>PATH_TYPE</key>
 					<integer>1</integer>
 				</dict>
