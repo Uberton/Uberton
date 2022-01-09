@@ -40,13 +40,13 @@ public:
 	using Resonator = CubeResonator<SampleType, numChannels>;
 
 	ProcessorImplCube() {
-		resonator.setStorage(Math::getCubeEWPStorage<SampleType, Resonator::maxDimension(), Resonator::maxOrder()>());
+		this->resonator.setStorage(Math::getCubeEWPStorage<SampleType, Resonator::maxDimension(), Resonator::maxOrder()>());
 	}
 
 protected:
 	void updateCompensation() override {
 		// higher resonator orders result in considerably higher volumes
-		volumeCompensation = 0.03f / std::sqrt(currentResonatorOrder);
+		this->volumeCompensation = 0.03f / std::sqrt(this->currentResonatorOrder);
 	}
 };
 
