@@ -161,7 +161,8 @@ void Installer::generatePages() {
 	makeButton(page, button1Rect, "Next", [&](CControl* p) { nextPage(); });
 	makeButton(page, button2Rect, "Cancel", [&](CControl* p) { cancel(); });
 	makeHeader(page, "Welcome to the " + getInfo().name + "\nSetup Wizard");
-	makeMainTextA(page, "This wizard will now install the Tesseract plugin as well as the user guide. \n\nPress Next to proceed installing the plugin or Cancel to abort the setup. ");
+	makeMainTextA(page, "This wizard will now install the Tesseract plugin as well as the factory presets. \nPress NEXT to proceed installing the plugin or CANCEL to abort the setup. \n\nWARNING: Tesseract is based on unrestrained strong resonances and can produce high volumes or distortions. \n\nPlease read through the manual (accessible from the plugins menu) before using this plugin. Always use a limiter after Tesseract (either the built-in one or a third-party plugin). \n\nYou can visit the webpage uberton.org for further reference or contact us via mail@uberton.org if you encounter any issues, want to give feedback, or get in touch with the developers.");
+
 
 
 	auto licensePage = addPage();
