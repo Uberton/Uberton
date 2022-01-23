@@ -1,5 +1,21 @@
-﻿#pragma once
+﻿
+// ADSR envelope wrappers.
+//
+// -----------------------------------------------------------------------------------------------------------------------------
+// This file is part of the Überton project. Copyright (C) 2021 Überton
+//
+// Überton is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+// Überton is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+// of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should
+// have received a copy of the GNU General Public License along with Überton. If not, see http://www.gnu.org/licenses/.
+// -----------------------------------------------------------------------------------------------------------------------------
 
+
+
+#pragma once
+
+namespace Uberton {
 // ADSR evenlope with quadratic attack, decay and release curves:
 //     .
 //    /|
@@ -25,14 +41,14 @@ class QuadraticADSREnvelope
 public:
 	// setParams should better not be called betwee start() and release()
 	void setParams(int attackSamples, int decaySamples, double sustainLevel, int releaseSamples) noexcept {
-		ca = 2 * 1.f / (attackSamples * (attackSamples - 1.0));
-		cd = -2 * (1.f - sustainLevel) / (decaySamples * (decaySamples - 1.0));
+		ca = 2 * 1.0 / (attackSamples * (attackSamples - 1.0));
+		cd = -2 * (1.0 - sustainLevel) / (decaySamples * (decaySamples - 1.0));
 		attackEnd = attackSamples;
 		decayEnd = attackEnd + decaySamples;
 		releaseTime = releaseSamples;
 	}
 
-	void start() noexcept {
+	void reset() noexcept {
 		index = 0;
 		value = 0;
 		constant = false;
@@ -42,14 +58,14 @@ public:
 	}
 
 	void release() noexcept {
-		c0 = -2.f * value / (releaseTime * (releaseTime - 1.0));
+		c0 = -2.0 * value / (releaseTime * (releaseTime - 1.0));
 		a0 = nextBreak = releaseEnd = index + releaseTime;
 		constant = false;
 	}
 
 	double next() noexcept {
 		if (constant) return value;
-		value += c0 * (a0 - index - 1);
+		value += c0 * (a0 - 1.0 - index);
 		if (++index == nextBreak) {
 			if (nextBreak == attackEnd) { // finished attack period
 				c0 = cd;
@@ -66,11 +82,11 @@ public:
 	}
 
 
-	bool hasReachedSustain() const {
+	bool hasReachedSustain() const noexcept {
 		return index == decayEnd;
 	}
 
-	bool isFinished() const {
+	bool isFinished() const noexcept {
 		return index == releaseEnd;
 	}
 
@@ -81,13 +97,13 @@ private:
 	int releaseEnd{ 1 };
 	int releaseTime{ 1 };
 
-	int a0;
-	double c0;
+	int a0{};
+	double c0{};
 
 	bool constant{ false }; // true during sustain and after release
-	int nextBreak;			// index of next period switch
+	int nextBreak{};		// index of next period switch
 
-	double ca, cd;	   // time coefficients for attack and release period
+	double ca{}, cd{}; // time coefficients for attack and release period
 	int index{ 0 };	   // sample count
 	double value{ 0 }; // current velocity
 };
@@ -131,7 +147,7 @@ public:
 		}
 	}
 
-	void start() noexcept {
+	void reset() noexcept {
 		index = 0;
 		value = 0;
 		constant = false;
@@ -168,30 +184,33 @@ public:
 		return value;
 	}
 
-	bool hasReachedSustain() const {
+	bool hasReachedSustain() const noexcept {
 		return index == decayEnd;
 	}
 
-	bool isFinished() const {
+	bool isFinished() const noexcept {
 		return index == releaseEnd;
 	}
 
 
 private:
-	double currentRamp;
+	double currentRamp{};
 
-	int a, d, r;
-	double s;
+	int a{}, d{}, r{};
+	double s{};
 
 	int attackEnd{ 1 };
 	int decayEnd{ 1 };
 	int releaseEnd{ 1 };
 
 	bool constant{ false }; // true during sustain and after release
-	int nextBreak;			// index of next period switch
+	int nextBreak{};		// index of next period switch
 
-	int index{ 0 };	   // sample count
-	double value{ 0 }; // current velocity
+	int index{};	// sample count
+	double value{}; // current velocity
 
-	double releaseValue{ 0 }; // value at time of release
+	double releaseValue{}; // value at time of release
 };
+
+
+}

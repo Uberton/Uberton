@@ -23,12 +23,39 @@ tresult PLUGIN_API Controller::initialize(FUnknown* context) {
 	if (result != kResultTrue) return result;
 
 
-	UnitID rootUnitId = 1;
 
 	setCurrentUnitID(rootUnitId);
 	{
 		addParam<DiscreteParameter>(ParamSpecs::resonatorDim, "Resonator Dimension", "Res Dim", "D", Precision(0))->getInfo().stepCount = maxDimension - 1;
 		addParam<DiscreteParameter>(ParamSpecs::resonatorOrder, "Resonator Order", "Res Order", "", Precision(0))->getInfo().stepCount = maxOrder - 1;
+	}
+	auto add = [&](const LinearParamSpec& paramSpec, ParamID id, const char* name, int dimension) {
+		LinearParamSpec spec = paramSpec;
+		spec.id = id;
+		UString256 a("", 10);
+		a.printInt(dimension);
+		UString256 namestr(name);
+		namestr.append(a);
+		addParam<LinearParameter>(spec, namestr, namestr, "", Precision(4));
+	};
+
+	setCurrentUnitID(inputPositionUnitId);
+	{
+		for (int i = 0; i < maxDimension; i++) {
+			add(ParamSpecs::resonatorInputCoordinate, Params::kParamInL0 + i, "Left X", i);
+		}
+		for (int i = 0; i < maxDimension; i++) {
+			add(ParamSpecs::resonatorInputCoordinate, Params::kParamInR0 + i, "Right X", i);
+		}
+	}
+	setCurrentUnitID(outputPositionUnitId);
+	{
+		for (int i = 0; i < maxDimension; i++) {
+			add(ParamSpecs::resonatorOutputCoordinate, Params::kParamOutL0 + i, "Left Y", i);
+		}
+		for (int i = 0; i < maxDimension; i++) {
+			add(ParamSpecs::resonatorOutputCoordinate, Params::kParamOutR0 + i, "Right Y", i);
+		}
 	}
 
 	return kResultTrue;

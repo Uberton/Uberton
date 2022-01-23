@@ -13,6 +13,7 @@ add_library(${target}
         source/ResonatorController.cpp
         source/ResonatorProcessor.h
         source/ResonatorProcessor.cpp
+        source/ResonatorProcessorImplBase.h
         source/ResonatorProcessorImpl.h
 )
 

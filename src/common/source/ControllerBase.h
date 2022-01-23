@@ -132,7 +132,7 @@ public:
 	Parameter* addParam<DiscreteParameter>(const typename DiscreteParameter::ParamSpecType& paramSpec, const UString256& title, const UString256& shortTitle, const UString256& units, Precision precision, int32 flags) {
 		auto p = parameters.addParameter(new DiscreteParameter(paramSpec, title, shortTitle, units, flags, currentUnitID));
 		p->setPrecision(0);
-		p->getInfo().stepCount = paramSpec.scale.getMax() - paramSpec.scale.getMin() - 1;
+		p->getInfo().stepCount = paramSpec.scale.getMax() - paramSpec.scale.getMin();
 		return p;
 	}
 

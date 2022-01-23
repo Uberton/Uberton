@@ -13,36 +13,80 @@
 #include <public.sdk/source/vst/vstaudioprocessoralgo.h>
 #include <resonator.h>
 #include <chrono>
+#include <ResonatorProcessorImpl.h>
 
+namespace Uberton {
+namespace Math {
+template<class T, int maxDim, int maxOrder>
+CubeEWPStorage<T, maxDim> getCubeEWPStorage();
+}
+}
 namespace Uberton {
 namespace ResonatorPlugin {
 namespace Tesseract {
 
+
+template<class SampleType, int numChannels>
+using CubeResonator = Math::PreComputedCubeResonator<SampleType, maxDimension, maxOrder, numChannels>;
+
+
+
+
+
+template<typename SampleType, int numChannels = 2>
+class ProcessorImplCube : public ProcessorImpl<CubeResonator<SampleType, numChannels>, SampleType, numChannels>
+{
+public:
+	using Resonator = CubeResonator<SampleType, numChannels>;
+
+	ProcessorImplCube() {
+		this->resonator.setStorage(Math::getCubeEWPStorage<SampleType, Resonator::maxDimension(), Resonator::maxOrder()>());
+	}
+
+protected:
+	void updateCompensation() override {
+		// higher resonator orders result in considerably higher volumes
+		this->volumeCompensation = 0.03f / std::sqrt(this->currentResonatorOrder);
+	}
+};
+
+
+
+
+
 Processor::Processor() {
 	setControllerClass(ControllerUID);
 
-	auto initValue = [&](const auto& p) {
-		paramState[p.id] = p.toNormalized(p.initialValue);
+	auto initValue = [&](const auto& p, ParamID id = -1) {
+		paramState[id == -1 ? p.id : id] = p.toNormalized(p.initialValue);
 	};
 
 	paramState.version = stateVersion;
 
 	initValue(ParamSpecs::resonatorDim);
 	initValue(ParamSpecs::resonatorOrder);
+
+	for (int i = 0; i < maxDimension; i++) {
+		initValue(ParamSpecs::resonatorInputCoordinate, Params::kParamInL0 + i);
+		initValue(ParamSpecs::resonatorInputCoordinate, Params::kParamInR0 + i);
+		initValue(ParamSpecs::resonatorOutputCoordinate, Params::kParamOutL0 + i);
+		initValue(ParamSpecs::resonatorOutputCoordinate, Params::kParamOutR0 + i);
+	}
 }
 
 tresult PLUGIN_API Processor::setActive(TBool state) {
 	if (state) {
+		constexpr int stereo = 2;
 		if (processSetup.symbolicSampleSize == kSample32) {
-			processorImpl = std::make_unique<ProcessorImpl<Math::PreComputedCubeResonator<float, maxDimension, maxOrder, 2>, float>>();
-		}
-		else {
-			processorImpl = std::make_unique<ProcessorImpl<Math::PreComputedCubeResonator<double, maxDimension, maxOrder, 2>, double>>();
+			//using Resonator = Math::PreComputedCubeResonator<float, maxDimension, maxOrder, stereo>;
+			processorImpl = std::make_unique<ProcessorImplCube<float, stereo>>();
+		} else {
+			//using Resonator = Math::PreComputedCubeResonator<double, maxDimension, maxOrder, stereo>;
+			processorImpl = std::make_unique<ProcessorImplCube<double, stereo>>();
 		}
 		processorImpl->init(processSetup.sampleRate);
 		recomputeParameters();
-	}
-	else {
+	} else {
 		processorImpl.reset();
 		sendMessageID(processorDeactivatedMsgID);
 	}
@@ -50,12 +94,12 @@ tresult PLUGIN_API Processor::setActive(TBool state) {
 }
 
 void Processor::recomputeInexpensiveParameters() {
-	resonatorOrder = toDiscrete(ParamSpecs::resonatorOrder);
+	state.resonatorOrder = toDiscrete(ParamSpecs::resonatorOrder);
 	ResonatorProcessorBase::recomputeInexpensiveParameters();
 }
 
 void Processor::updateResonatorDimension() {
-	resonatorDim = toDiscrete(ParamSpecs::resonatorDim);
+	state.resonatorDim = toDiscrete(ParamSpecs::resonatorDim);
 	ResonatorProcessorBase::updateResonatorDimension();
 }
 

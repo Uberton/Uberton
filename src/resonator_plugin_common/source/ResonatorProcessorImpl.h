@@ -11,28 +11,12 @@
 
 #pragma once
 
-#include <resonator.h>
-#include <public.sdk/samples/vst/note_expression_synth/source/filter.h>
-#include "common_param_specs.h"
+#include "ResonatorProcessorImplBase.h"
+#include <processor_utilities.h>
 
 
 namespace Uberton {
 namespace ResonatorPlugin {
-
-class ProcessorImplBase
-{
-public:
-	virtual void init(float sampleRate) = 0;
-	virtual float processAll(ProcessData& data, float mix, float volume, bool limit) = 0;
-	virtual void setResonatorDim(int resonatorDim) = 0;
-	virtual void setResonatorOrder(int resonatorOrder) = 0;
-	virtual void setResonatorFreq(float freq, float damp, float vel) = 0;
-	virtual void setLCFilterFreqAndQ(double freq, double q) = 0;
-	virtual void setHCFilterFreqAndQ(double freq, double q) = 0;
-	virtual void updateResonatorInputPosition(const ParamState& paramState) = 0;
-	virtual void updateResonatorOutputPosition(const ParamState& paramState) = 0;
-	virtual ~ProcessorImplBase() = default;
-};
 
 enum class Configuration {
 	Mono,
@@ -47,8 +31,8 @@ public:
 
 	using SpaceVec = Math::Vector<SampleType, maxDimension>;
 	using SampleVec = Math::Vector<SampleType, numChannels>;
-	using InputVecArr = std::array<SpaceVec, numChannels>;
-	//using Resonator = Math::PreComputedCubeResonator<SampleType, maxDimension, maxOrder, numChannels>;
+	using PositionVecArr = std::array<SpaceVec, numChannels>;
+
 	using Filter = Steinberg::Vst::NoteExpressionSynth::Filter;
 
 
@@ -56,6 +40,7 @@ public:
 	static_assert(numChannels == Resonator::numChannels());
 
 	void init(float sampleRate) override {
+		this->sampleRate = sampleRate;
 		for (auto& filter : lcFilters) {
 			filter.setSampleRate(sampleRate);
 		}
@@ -70,6 +55,7 @@ public:
 		if (resonatorDim != resonator.getDim()) {
 			resonator.setDim(resonatorDim);
 			resonator.setFreqDampeningAndVelocity(currentResFreq, currentResDamp, currentResVel); // need to update this when resonatorDim changed
+			updateCompensation();
 		}
 	}
 
@@ -77,10 +63,6 @@ public:
 		resonator.setOrder(resonatorOrder);
 		currentResonatorOrder = resonatorOrder;
 		updateCompensation();
-	}
-
-	virtual void updateCompensation() {
-		compensation = 0.03f / std::sqrt(currentResonatorOrder);
 	}
 
 	void setResonatorFreq(float freq, float damp, float vel) override {
@@ -92,43 +74,81 @@ public:
 		}
 	}
 
-	void setLCFilterFreqAndQ(double freq, double q) override {
-		for (auto& filter : lcFilters) {
-			filter.setFreqAndQ(freq, q);
-		}
-	}
+	// Volume compensation for less extremes when changing resonator order or dimension
+	virtual void updateCompensation() = 0;
 
-	void setHCFilterFreqAndQ(double freq, double q) override {
-		for (auto& filter : hcFilters) {
-			filter.setFreqAndQ(freq, q);
-		}
-	}
+	//void setLCFilterFreqAndQ(double freq, double q) override {
+	//	for (auto& filter : lcFilters) filter.setFreqAndQ(freq, q);
+	//}
 
-	template<typename T>
-	inline T tanh_approx(T x) {
-		T sq = x * x;
-		return x * (27 + sq) / (27 + 9 * sq);
-	}
+	//void setHCFilterFreqAndQ(double freq, double q) override {
+	//	for (auto& filter : hcFilters) filter.setFreqAndQ(freq, q);
+	//}
+
+	//template<typename T> T tanh_approx(T x) {
+	//	T sq = x * x;
+	//	return x * (27 + sq) / (27 + 9 * sq);
+	//}
 
 	// returns the max sample of the output buffer
-	float processAll(ProcessData& data, float mix, float volume, bool limit) final {
-		int32 numSamples = data.numSamples;
+	float processAll(ProcessData& data, const State& state) final {
+		const int32 numSamples = data.numSamples;
+		const bool limiterOn = state.limiterOn;
 
 		SampleType** in = (SampleType**)data.inputs[0].channelBuffers32;
 		SampleType** out = (SampleType**)data.outputs[0].channelBuffers32;
 
 
-		float wet = mix;
-		float dry = 1 - wet;
+		// Ramping
+		using ProcessorUtilities::getRamp;
+		const SampleType rampTime_inv = SampleType{ 1 } / numSamples;
+		const SampleType positionParamRamp = rampTime_inv * 8; // yes this is hardcoded and may not be changed
+
+		const PositionVecArr inputDiff =
+			(numChannels == 1) ? PositionVecArr{ (newInputPositions[0] - currentInputPositions[0]) * positionParamRamp }
+							   : PositionVecArr{
+									 (newInputPositions[0] - currentInputPositions[0]) * positionParamRamp,
+									 (newInputPositions[1] - currentInputPositions[1]) * positionParamRamp
+								 };
+		const PositionVecArr outputDiff =
+			(numChannels == 1) ? PositionVecArr{ (newOutputPositions[0] - currentOutputPositions[0]) * positionParamRamp }
+							   : PositionVecArr{
+									 (newOutputPositions[0] - currentOutputPositions[0]) * positionParamRamp,
+									 (newOutputPositions[1] - currentOutputPositions[1]) * positionParamRamp
+								 };
+
+		SampleType volumeRamp = getRamp(currentVolume, SampleType(state.volume), rampTime_inv);
+		SampleType wetRamp = getRamp(currentWet, SampleType(state.mix), rampTime_inv);
+		SampleType lcRamp = getRamp(currentLCFreqNormalized, SampleType(state.lcFreqNormalized), rampTime_inv);
+		SampleType hcRamp = getRamp(currentHCFreqNormalized, SampleType(state.hcFreqNormalized), rampTime_inv);
+
+		// Temporaries
 		std::array<SampleType, numChannels> input;
 		SampleVec tmp;
 		SampleType maxSampleLSq = 0;
 		SampleType maxSampleRSq = 0;
-		// higher resonator orders result in considerably higher volumes
-		//float compensation = 1.f;//		/ std::sqrt(currentResonatorOrder);
-		//compensation = 10;
 
 		for (int32 i = 0; i < numSamples; i++) {
+			const SampleType dry = 1. - currentWet;
+
+			if ((i & 0b00000111) == 0) { // divisible by 8
+				// updating every sample is too slow and produces audio cracks
+				// we only update the positions every few samples
+				if (inCurveChanged) {
+					currentInputPositions[0] += inputDiff[0];
+					if constexpr (numChannels > 1) {
+						currentInputPositions[1] += inputDiff[1];
+					}
+					resonator.setInputPositions(currentInputPositions);
+				}
+				if (outCurveChanged) {
+					currentOutputPositions[0] += outputDiff[0];
+					if constexpr (numChannels > 1) {
+						currentOutputPositions[1] += outputDiff[1];
+					}
+					resonator.setOutputPositions(currentOutputPositions);
+				}
+			}
 			for (int ch = 0; ch < numChannels; ch++) {
 				input[ch] = *(in[ch] + i);
 			}
@@ -137,8 +157,8 @@ public:
 			for (int ch = 0; ch < numChannels; ch++) {
 				tmp[ch] = lcFilters[ch].process(tmp[ch]);
 				tmp[ch] = hcFilters[ch].process(tmp[ch]);
-				tmp[ch] = volume * (tmp[ch] * wet * compensation + dry * (*(in[ch] + i)));
-				if (limit) {
+				tmp[ch] = currentVolume * (tmp[ch] * currentWet * volumeCompensation + dry * (*(in[ch] + i)));
+				if (limiterOn) {
 					tmp[ch] = std::tanh(tmp[ch]);
 					// the tanh approximation is a few times faster but already for higher than the lowest few
 					// resonator orders the actual processing takes much more time than the limiting.
@@ -152,7 +172,40 @@ public:
 			if constexpr (numChannels > 1) {
 				maxSampleRSq = std::max(maxSampleRSq, tmp[1] * tmp[1]);
 			}
+
+			currentVolume += volumeRamp;
+			currentWet += wetRamp;
+
+			if (lcRamp) {
+				currentLCFreqNormalized += lcRamp;
+				double freq = ParamSpecs::lcFreq.toScaled(currentLCFreqNormalized);
+				for (auto& filter : lcFilters) {
+					filter.setFreqAndQ(freq, state.lcQ);
+				}
+			}
+			if (hcRamp) {
+				currentHCFreqNormalized += hcRamp;
+				double freq = ParamSpecs::hcFreq.toScaled(currentHCFreqNormalized);
+				for (auto& filter : hcFilters) {
+					filter.setFreqAndQ(freq, state.hcQ);
+				}
+			}
 		}
+		if (inCurveChanged) {
+			inCurveChanged = false;
+			currentInputPositions = newInputPositions;
+			resonator.setInputPositions(currentInputPositions);
+		}
+		if (outCurveChanged) {
+			outCurveChanged = false;
+			currentOutputPositions = newOutputPositions;
+			resonator.setOutputPositions(currentOutputPositions);
+		}
+		currentVolume = state.volume;
+		currentWet = state.mix;
+		currentLCFreqNormalized = state.lcFreqNormalized;
+		currentHCFreqNormalized = state.hcFreqNormalized;
+
 		if (vuPPMLSq != maxSampleLSq || vuPPMRSq != maxSampleRSq) {
 			addOutputPoint(data, kParamVUPPM_L, std::sqrt(maxSampleLSq) * vuPPMNormalizedMultiplicatorInv);
 			addOutputPoint(data, kParamVUPPM_R, std::sqrt(maxSampleRSq) * vuPPMNormalizedMultiplicatorInv);
@@ -165,43 +218,43 @@ public:
 			return std::max(maxSampleLSq, maxSampleRSq);
 		}
 	}
-    
-    static void addOutputPoint(ProcessData& data, ParamID id, ParamValue value) {
-            if (data.outputParameterChanges) {
-                int32 index;
-                IParamValueQueue* queue = data.outputParameterChanges->addParameterData(id, index);
-                if (queue) {
-                    queue->addPoint(0, value, index);
-                }
-            }
-        }
+
+	static void addOutputPoint(ProcessData& data, ParamID id, ParamValue value) {
+		if (data.outputParameterChanges) {
+			int32 index;
+			IParamValueQueue* queue = data.outputParameterChanges->addParameterData(id, index);
+			if (queue) {
+				queue->addPoint(0, value, index);
+			}
+		}
+	}
 
 	void updateResonatorInputPosition(const ParamState& paramState) override {
-		InputVecArr inputPositions;
-		int d = static_cast<int>(inputPositions[0].size());
-		for (int i = 0; i < d; i++) {
-			inputPositions[0][i] = paramState[Params::kParamOutL0 + i];
-			if constexpr (numChannels > 1)
-				inputPositions[1][i] = paramState[Params::kParamOutR0 + i];
+		inCurveChanged = true;
+		for (int i = 0; i < maxDimension; i++) {
+			newInputPositions[0][i] = paramState[Params::kParamInL0 + i];
+			if constexpr (numChannels > 1) {
+				newInputPositions[1][i] = paramState[Params::kParamInR0 + i];
+			}
 		}
-		inputPositions[0] += inputPosSpaceCurve(paramState[Params::kParamInPosCurveL]);
-		if constexpr (numChannels > 1)
-			inputPositions[1] += inputPosSpaceCurve(paramState[Params::kParamInPosCurveR]);
-		resonator.setInputPositions(inputPositions);
+		newInputPositions[0] += inputPosSpaceCurve(paramState[Params::kParamInPosCurveL]);
+		if constexpr (numChannels > 1) {
+			newInputPositions[1] += inputPosSpaceCurve(paramState[Params::kParamInPosCurveR]);
+		}
 	}
 
 	void updateResonatorOutputPosition(const ParamState& paramState) override {
-		InputVecArr outputPositions;
-		int d = static_cast<int>(outputPositions[0].size());
-		for (int i = 0; i < d; i++) {
-			outputPositions[0][i] = paramState[Params::kParamOutL0 + i];
-			if constexpr (numChannels > 1)
-				outputPositions[1][i] = paramState[Params::kParamOutR0 + i];
+		outCurveChanged = true;
+		for (int i = 0; i < maxDimension; i++) {
+			newOutputPositions[0][i] = paramState[Params::kParamOutL0 + i];
+			if constexpr (numChannels > 1) {
+				newOutputPositions[1][i] = paramState[Params::kParamOutR0 + i];
+			}
 		}
-		outputPositions[0] += outputPosSpaceCurve(paramState[Params::kParamOutPosCurveL]);
-		if constexpr (numChannels > 1)
-			outputPositions[1] += outputPosSpaceCurve(paramState[Params::kParamOutPosCurveR]);
-		resonator.setOutputPositions(outputPositions);
+		newOutputPositions[0] += outputPosSpaceCurve(paramState[Params::kParamOutPosCurveL]);
+		if constexpr (numChannels > 1) {
+			newOutputPositions[1] += outputPosSpaceCurve(paramState[Params::kParamOutPosCurveR]);
+		}
 	}
 
 
@@ -219,13 +272,8 @@ protected:
 			otherCoords,
 			phi / (2 * pi) * std::sinf(phi),
 			phi / (2 * pi) * std::cosf(phi + pi * 0.5f),
-			otherCoords,
-			otherCoords,
-			otherCoords,
-			otherCoords,
-			otherCoords,
-			otherCoords,
-			otherCoords
+			otherCoords, otherCoords, otherCoords, otherCoords,
+			otherCoords, otherCoords, otherCoords
 		};
 	}
 
@@ -239,14 +287,35 @@ protected:
 	std::array<Filter, numChannels> lcFilters{ Filter::Type::kHighpass, Filter::Type::kHighpass };
 	std::array<Filter, numChannels> hcFilters{ Filter::Type::kLowpass, Filter::Type::kLowpass };
 
-	SampleType currentResFreq = 1, currentResDamp = 1, currentResVel = 1;
-	int currentResonatorOrder = 1;
-	float compensation = 0.03f / std::sqrt(currentResonatorOrder);
+	double sampleRate{ 0 };
 
-	//SampleVec output
+	bool inCurveChanged{ true };
+	bool outCurveChanged{ true };
+
+	// Input positions as currently played and new positions which differ when parameters
+	// (curve or manual position) are changed.
+	PositionVecArr currentInputPositions;
+	PositionVecArr newInputPositions;
+	PositionVecArr currentOutputPositions;
+	PositionVecArr newOutputPositions;
+
+	// Output values (L/R)
 	SampleType vuPPMLSq{ 0 };
 	SampleType vuPPMRSq{ 0 };
+
+	// Current values (as played)
+	SampleType currentVolume = 0;
+	SampleType currentWet = 1;
+	SampleType currentLCFreqNormalized = 0;
+	SampleType currentHCFreqNormalized = 1;
+	SampleType currentResFreq = 1, currentResDamp = 1, currentResVel = 1;
+	int currentResonatorOrder = 1;
+
+	// Volume compensation for higher volumes with higher resonator orders or lower dimensions
+	SampleType volumeCompensation = 0.03f / std::sqrt(currentResonatorOrder);
 };
+
+
 
 }
 }

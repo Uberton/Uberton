@@ -117,7 +117,7 @@ public:
 		SampleType maxSampleRSq = 0;
 		static_assert(numChannels >= 2);
 		// higher resonator orders result in considerably higher volumes
-		float compensation = 0.03f / std::sqrt(currentResonatorOrder);
+		float volumeCompensation = 0.03f / std::sqrt(currentResonatorOrder);
 
 		for (int32 i = 0; i < numSamples; i++) {
 			for (int ch = 0; ch < numChannels; ch++) {
@@ -128,7 +128,7 @@ public:
 			for (int ch = 0; ch < numChannels; ch++) {
 				tmp[ch] = lcFilters[ch].process(tmp[ch]); 
 				tmp[ch] = hcFilters[ch].process(tmp[ch]);
-				tmp[ch] = volume * (tmp[ch] * wet * compensation + dry * (*(in[ch] + i)));
+				tmp[ch] = volume * (tmp[ch] * wet * volumeCompensation + dry * (*(in[ch] + i)));
 				if (limit) {
 					tmp[ch] = std::tanh(tmp[ch]);
 					// the tanh approximation is a few times faster but already for higher than the lowest few

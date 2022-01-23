@@ -21,6 +21,7 @@ namespace ResonatorPlugin {
 namespace Hypersphere {
 constexpr uint64 stateVersion = 0;
 constexpr int maxOrder = 200;
+
 static const Steinberg::FUID ProcessorUID(0xF6EB58AE, 0x1C944641, 0xA50C3B89, 0x33ED9E29);
 static const Steinberg::FUID ControllerUID(0x32735D45, 0x89DC48F7, 0xB93B4756, 0x71743B0A);
 
@@ -31,6 +32,14 @@ FUnknown* createControllerInstance(void*);
 namespace ParamSpecs {
 static const DiscreteParamSpec resonatorDim{ kParamResonatorDim, 2, maxDimension, 4, 3 };
 static const DiscreteParamSpec resonatorOrder{ kParamResonatorOrder, 1, Hypersphere::maxOrder, 5, 128 };
+
+static const LinearParamSpec resonatorInputRCoordinate{ noID, 0, 4, 1, 1 };
+static const LinearParamSpec resonatorInputPhiCoordinate{ noID, 0, 2, 0, 0 };	   // units: pi
+static const LinearParamSpec resonatorInputThetaCoordinate{ noID, 0, 1, 0, 0 }; // units: pi
+static const LinearParamSpec resonatorOutputRCoordinate{ resonatorInputRCoordinate };
+static const LinearParamSpec resonatorOutputPhiCoordinate{ resonatorInputPhiCoordinate };
+static const LinearParamSpec resonatorOutputThetaCoordinate{ resonatorInputThetaCoordinate };
+
 }
 
 }

@@ -28,6 +28,13 @@ public:
 	tresult PLUGIN_API setComponentState(IBStream* state) SMTG_OVERRIDE;
 
 	virtual void updateResonatorSizeDisplay() = 0;
+
+
+protected:
+	static const UnitID rootUnitId = 1;
+	static const UnitID inputPositionUnitId = 2;
+	static const UnitID outputPositionUnitId = 3;
+	static const UnitID postSectionUnitId = 4;
 };
 }
 }

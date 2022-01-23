@@ -43,13 +43,6 @@ ResonatorProcessorBase::ResonatorProcessorBase() {
 	initValue(ParamSpecs::hcFreq);
 	initValue(ParamSpecs::hcQ);
 	initValue(ParamSpecs::limiterOn);
-
-	for (int i = 0; i < maxDimension; i++) {
-		paramState[Params::kParamInL0 + i] = .5;
-		paramState[Params::kParamInR0 + i] = .5;
-		paramState[Params::kParamOutL0 + i] = .5;
-		paramState[Params::kParamOutR0 + i] = .5;
-	}
 }
 
 tresult PLUGIN_API ResonatorProcessorBase::initialize(FUnknown* context) {
@@ -101,7 +94,7 @@ void ResonatorProcessorBase::processAudio(ProcessData& data) {
 		data.outputs[0].silenceFlags = 0;
 	}
 
-	vuPPM = processorImpl->processAll(data, mix, volume, limiterOn);
+	vuPPM = processorImpl->processAll(data, state);
 
 	//std::chrono::duration<double> duration = steady_clock::now() - t0;
 	//addOutputPoint(data, kParamProcessTime, (duration.count() / data.numSamples) * 1000.0 / 10.0);
@@ -115,7 +108,7 @@ void ResonatorProcessorBase::processParameterChanges(IParameterChanges* inputPar
 			if (id == bypassId) {
 				setBypassed(value > 0.5);
 			} else {
-				paramState.params[id] = value;
+				paramState[id] = value;
 			}
 			if (id == Params::kParamInPosCurveL || id == Params::kParamInPosCurveR || (id >= Params::kParamInL0 && id <= Params::kParamInRN)) {
 				processorImpl->updateResonatorInputPosition(paramState);
@@ -146,28 +139,32 @@ void ResonatorProcessorBase::recomputeParameters() {
 }
 
 void ResonatorProcessorBase::recomputeInexpensiveParameters() {
-	volume = toScaled(ParamSpecs::vol);
-	mix = paramState[Params::kParamMix];
+	state.volume = toScaled(ParamSpecs::vol);
+	state.mix = paramState[Params::kParamMix];
 	//resonatorOrder = toDiscrete(ParamSpecs::resonatorOrder);
-	resonatorFreq = toScaled(ParamSpecs::resonatorFreq);
-	resonatorDamp = toScaled(ParamSpecs::resonatorDamp);
-	resonatorVel = toScaled(ParamSpecs::resonatorVel);
-	limiterOn = paramState[Params::kParamLimiterOn] != 0;
+	state.resonatorFreq = toScaled(ParamSpecs::resonatorFreq);
+	state.resonatorDamp = toScaled(ParamSpecs::resonatorDamp);
+	state.resonatorVel = toScaled(ParamSpecs::resonatorVel);
+	state.limiterOn = paramState[Params::kParamLimiterOn] != 0;
+	state.lcFreqNormalized = paramState[Params::kParamLCFreq];
+	state.hcFreqNormalized = paramState[Params::kParamHCFreq];
+	state.lcQ = toScaled(ParamSpecs::lcQ);
+	state.hcQ = toScaled(ParamSpecs::hcQ);
 
 	// auto& f = processorImpl->resonator.timeFunctions;
 	// FDebugPrint("Out EF %i %i: %f, %f, %f, %f,%f, %f, %f, %f, %f, %f\n", resonatorDim, resonatorOrder, f[0].real(), f[1].real(), f[2].real(), f[3].real(), f[4].real(), f[5].real(), f[6].real(), f[7].real(), f[8].real(), f[9].real());
 
 	if (processorImpl) {
-		processorImpl->setResonatorFreq(resonatorFreq, resonatorDamp, resonatorVel);
-		processorImpl->setResonatorOrder(resonatorOrder);
-		processorImpl->setLCFilterFreqAndQ(toScaled(ParamSpecs::lcFreq), toScaled(ParamSpecs::lcQ));
-		processorImpl->setHCFilterFreqAndQ(toScaled(ParamSpecs::hcFreq), toScaled(ParamSpecs::hcQ));
+		processorImpl->setResonatorFreq(state.resonatorFreq, state.resonatorDamp, state.resonatorVel);
+		processorImpl->setResonatorOrder(state.resonatorOrder);
+		//processorImpl->setLCFilterFreqAndQ(toScaled(ParamSpecs::lcFreq), toScaled(ParamSpecs::lcQ));
+		//processorImpl->setHCFilterFreqAndQ(toScaled(ParamSpecs::hcFreq), toScaled(ParamSpecs::hcQ));
 	}
 }
 
 void ResonatorProcessorBase::updateResonatorDimension() {
 	if (processorImpl) {
-		processorImpl->setResonatorDim(resonatorDim);
+		processorImpl->setResonatorDim(state.resonatorDim);
 		// Need to reevaluate all eigenfunctions
 		processorImpl->updateResonatorInputPosition(paramState);
 		processorImpl->updateResonatorOutputPosition(paramState);
