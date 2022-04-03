@@ -1,5 +1,5 @@
 ﻿
-// ADSR envelope wrappers.
+// Envelope generators.
 //
 // -----------------------------------------------------------------------------------------------------------------------------
 // This file is part of the Überton project. Copyright (C) 2021 Überton
@@ -10,8 +10,6 @@
 // of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should
 // have received a copy of the GNU General Public License along with Überton. If not, see http://www.gnu.org/licenses/.
 // -----------------------------------------------------------------------------------------------------------------------------
-
-#include <cstdint>
 
 #pragma once
 

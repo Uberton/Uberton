@@ -29,7 +29,8 @@ add_library(${target}
         source/viewcreator_globals.h
         source/subcontrollers.h
         source/subcontrollers.cpp
-        source/adsr.h
+        source/envelope.h
+        source/lfo.h
         source/processor_utilities.h
         source/processor_utilities.cpp
 )
