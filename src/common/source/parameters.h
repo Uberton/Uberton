@@ -118,12 +118,12 @@ constexpr ParamID bypassId = 1000001;
 
 /// Turn discrete value between min and max to normalized value from 0 to 1
 inline double discreteToNormalized(int value, int min, int max) {
-	return static_cast<double>(value - min) / static_cast<double>(max - min);
+	return (static_cast<double>(value) - min) / (static_cast<double> (max) - min);
 }
 
 /// Turn normalized value from 0 to 1 to discrete value between min and max
 inline int normalizedToDiscrete(double value, int min, int max) {
-	return std::min<int>(max - min, static_cast<int>(value * (max - min + 1))) + min;
+	return std::min<int>(max - min, static_cast<int>(value * (static_cast<double>(max) - min + 1))) + min;
 }
 
 /// Linearily convert normalized value in [1, 1] to value in [min, max]
