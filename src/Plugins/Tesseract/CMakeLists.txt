@@ -51,5 +51,20 @@ uberton_set_userguide_pdf(TARGET ${target} USERGUIDE_PDF "User_Guide/Tesseract_U
 uberton_set_factory_presets(TARGET ${target} FACTORY_PRESETS "Factory_Presets")
 
 if(UBERTON_BUILD_INSTALLERS)
-    uberton_set_plugin_installer(NAME ${target})
+    if(NOT SMTG_MAC)
+        uberton_set_plugin_installer(NAME ${target})
+    elseif(NOT XCODE AND CMAKE_BUILD_TYPE MATCHES Release)
+        # Build mac installer using Packages command line tool
+        find_program(PACKAGESBUILD_PATH packagesbuild)
+
+        if (NOT PACKAGESBUILD_PATH)
+            message(WARNING "[Installer] Packages 1.2.9+ is not found. Building the installer will be skipped.")
+        else()
+            message(STATUS "[Installer] packagesbuild found at: ${PACKAGESBUILD_PATH}")
+            add_custom_command(TARGET ${target}
+                POST_BUILD
+                COMMAND packagesbuild ${UBERTON_SRC_PATH}/src/installers_mac/Tesseract/tesseract_installer.pkgproj
+            )
+        endif()
+    endif()
 endif()
