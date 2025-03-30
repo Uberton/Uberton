@@ -15,8 +15,8 @@
 #pragma once
 
 #define stringCompanyName "Uberton"
-#define stringCompanyWeb "https://uberton.org"
-#define stringCompanyEmail "mail@uberton.org"
+#define stringCompanyWeb "https://uberton.github.io/"
+#define stringCompanyEmail ""
 
 #define stringLegalCopyright "© 2021 Uberton"
 #define stringLegalTrademarks "VST is a trademark of Steinberg Media Technologies GmbH"
